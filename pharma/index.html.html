@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — La Science. La Confiance. L'Excellence.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#060D18;
+  --navy-2:#0A1626;
+  --teal:#0DBFA8;
+  --teal-dim:#0a9c89;
+  --gold:#C4A03A;
+  --white:#F5F7FA;
+  --body:rgba(245,247,250,.65);
+  --faint:rgba(245,247,250,.40);
+  --hair:rgba(245,247,250,.10);
+  --glass:rgba(10,22,38,.55);
+  --maxw:1280px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--navy);
+  color:var(--white);
+  font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  line-height:1.5;
+}
+body.lock{overflow:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.04}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+
+/* ============ BACKGROUND SYSTEM ============ */
+#bg-stage{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--navy)}
+.bg-image{
+  position:absolute;inset:0;
+  background-position:center;background-repeat:no-repeat;background-size:cover;
+  opacity:0;transform:scale(1.04);
+  transition:opacity 1.5s ease;
+  will-change:opacity,transform;
+}
+.bg-image.active{opacity:1;animation:kenburns 16s ease-out forwards}
+/* Section 2 (labo) keeps its black-and-white treatment with the new color source */
+#bg-labo{filter:grayscale(1)}
+@keyframes kenburns{from{transform:scale(1.04)}to{transform:scale(1.16)}}
+#bg-overlay{position:fixed;inset:0;z-index:1;background:rgba(6,13,24,.60);pointer-events:none}
+#bg-vign{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 30%,transparent 40%,rgba(6,13,24,.55) 100%),
+             linear-gradient(180deg,rgba(6,13,24,.35) 0%,transparent 22%,transparent 60%,rgba(6,13,24,.65) 100%)}
+#bg-grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+#particles{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.pt{position:absolute;border-radius:50%;background:var(--teal);filter:blur(.3px);opacity:.0;
+  animation:drift linear infinite}
+@keyframes drift{
+  0%{opacity:0;transform:translateY(20px)}
+  12%{opacity:var(--o)}
+  88%{opacity:var(--o)}
+  100%{opacity:0;transform:translateY(-120px)}
+}
+
+/* ============ LAYOUT / PAGES ============ */
+#app{position:relative;z-index:10}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%}
+.page{display:none;opacity:0;transition:opacity .45s ease}
+.page.active{display:block}
+.page.shown{opacity:1}
+section.block{position:relative;padding:140px 0;display:flex;align-items:center;min-height:90vh}
+
+/* ============ NAVBAR ============ */
+#nav{position:fixed;top:0;left:0;right:0;z-index:9999;overflow:visible;
+  transition:background .4s ease,border-color .4s ease,backdrop-filter .4s ease,padding .4s ease;
+  border-bottom:1px solid transparent;padding:26px 0}
+#nav.solid{border-bottom:1px solid var(--hair);padding:16px 0}
+/* Blur lives on a pseudo-element so #nav itself never becomes a containing block
+   for its position:fixed children (a backdrop-filter on #nav would clip the open
+   mobile menu to the navbar's height on scroll). */
+#nav::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;pointer-events:none;
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:opacity .4s ease}
+#nav.solid::before{opacity:1}
+#nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:32px;overflow:visible}
+.brand{display:flex;align-items:center;gap:12px;cursor:pointer;text-decoration:none;background:none;border:0}
+.brand .mark{width:40px;height:40px;position:relative;flex:0 0 auto}
+.brand .mark::before,.brand .mark::after{content:"";position:absolute;inset:0;border:1.5px solid var(--teal)}
+.brand .mark::before{transform:rotate(45deg)}
+.brand .mark::after{transform:scale(.5);background:var(--teal)}
+.brand .name{font-family:'Syne';font-weight:800;font-size:17px;letter-spacing:.14em;color:var(--white)}
+.brand .mark.nv-leafmark{background:none!important;border:0!important;width:auto!important;display:inline-flex;align-items:center;justify-content:center;overflow:visible}
+.brand .mark.nv-leafmark::before,.brand .mark.nv-leafmark::after{content:none!important;display:none!important}
+/* container gives a slow, restrained idle float so the mark feels alive */
+.brand .mark.nv-leafmark{animation:nvFloat 4.5s ease-in-out infinite}
+.brand:hover .mark.nv-leafmark,.brand:focus-visible .mark.nv-leafmark{animation-play-state:paused}
+.brand .mark.nv-leafmark .nv-leaf{display:block;height:132%;width:auto;transition:transform .22s ease}
+/* hover adds an extra precise lift on top */
+.brand:hover .mark.nv-leafmark .nv-leaf,.brand:focus-visible .mark.nv-leafmark .nv-leaf{transform:translateY(-4px)}
+@keyframes nvFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+@media (prefers-reduced-motion: reduce){.brand .mark.nv-leafmark{animation:none}.brand .mark.nv-leafmark .nv-leaf{transition:none}.brand:hover .mark.nv-leafmark .nv-leaf{transform:none}}
+.navlinks{display:flex;align-items:center;gap:34px;overflow:visible}
+.navlinks a{font-family:'DM Sans';font-size:14px;color:var(--body);text-decoration:none;position:relative;padding:4px 0;transition:color .25s;letter-spacing:.01em;cursor:pointer}
+.navlinks a:hover{color:var(--white)}
+.navlinks a.active{color:var(--white)}
+.navlinks a::after{content:"";position:absolute;left:0;bottom:-2px;height:1px;width:0;background:var(--teal);transition:width .3s ease}
+.navlinks a:hover::after,.navlinks a.active::after{width:100%}
+/* ---- portal access: organized + professional + alive ---- */
+.nav-sep{width:1px;height:22px;flex:0 0 auto;margin:0 6px;
+  background:linear-gradient(180deg,transparent,var(--hair) 30%,var(--hair) 70%,transparent)}
+.navlinks a.nav-cta{display:inline-flex;align-items:center;gap:10px;position:relative;overflow:hidden;
+  font-family:'IBM Plex Mono'!important;font-size:12px!important;letter-spacing:.14em;text-transform:uppercase;font-weight:500;
+  color:var(--teal)!important;text-decoration:none;padding:12px 22px;
+  background:linear-gradient(180deg,rgba(13,191,168,.18),rgba(13,191,168,.05));
+  border:1px solid rgba(13,191,168,.55);
+  box-shadow:inset 0 0 18px rgba(13,191,168,.10);
+  transition:background .28s,color .28s,border-color .28s,box-shadow .28s,transform .28s}
+.navlinks a.nav-cta::after{display:none}
+.nav-cta .lk{width:9px;height:9px;border:1.5px solid currentColor;border-radius:2px;position:relative;flex:0 0 auto;margin-top:3px}
+.nav-cta .lk::before{content:"";position:absolute;left:50%;top:-5px;transform:translateX(-50%);
+  width:7px;height:7px;border:1.5px solid currentColor;border-bottom:0;border-radius:5px 5px 0 0}
+.nav-cta .sheen{position:absolute;top:0;left:-70%;width:45%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-18deg);
+  animation:navCtaSheen 5s ease-in-out infinite}
+@keyframes navCtaSheen{0%{left:-70%}16%{left:150%}100%{left:150%}}
+.navlinks a.nav-cta:hover{background:var(--teal);color:var(--navy)!important;border-color:var(--teal);
+  box-shadow:0 0 32px rgba(13,191,168,.5);transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){.nav-cta .sheen{animation:none}}
+.burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+.burger span{display:block;width:26px;height:2px;background:var(--white);transition:.3s}
+
+/* ============ BUTTONS ============ */
+.btn{display:inline-flex;align-items:center;gap:10px;font-family:'IBM Plex Mono';font-size:13px;
+  letter-spacing:.12em;text-transform:uppercase;padding:16px 28px;text-decoration:none;cursor:pointer;
+  border:1px solid transparent;transition:all .28s ease;font-weight:500;background:none}
+.btn-primary{background:var(--teal);color:var(--navy);border-color:var(--teal)}
+.btn-primary:hover{background:transparent;color:var(--teal);box-shadow:0 0 30px rgba(13,191,168,.4)}
+.btn-ghost{background:transparent;color:var(--white);border-color:rgba(245,247,250,.35)}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal);box-shadow:0 0 24px rgba(13,191,168,.2)}
+.btn .arr{transition:transform .28s}
+.btn:hover .arr{transform:translateX(4px)}
+
+/* ============ LABELS / KICKERS ============ */
+.kicker{display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:26px}
+.kicker.gold{color:var(--gold)}
+.kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.7}
+
+/* ============ GLASS ============ */
+.glass{background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(13,191,168,.22);padding:54px}
+.glass.gold{border-color:rgba(196,160,58,.30)}
+
+/* ============ HERO ============ */
+#hero{min-height:100vh;padding:0;display:flex;align-items:center}
+.hero-inner{max-width:980px}
+.hero h1{font-size:clamp(48px,7.4vw,104px);font-weight:800;margin:30px 0 0}
+.hero h1 .accent{color:var(--teal)}
+.hero .sub{font-size:clamp(17px,1.5vw,21px);color:var(--body);max-width:560px;margin:30px 0 44px;line-height:1.55}
+.hero-btns{display:flex;flex-wrap:wrap;gap:18px}
+.scroll-ind{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);display:flex;flex-direction:column;
+  align-items:center;gap:12px;color:var(--faint);font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.2em}
+.scroll-ind .track{width:1px;height:54px;background:var(--hair);position:relative;overflow:hidden}
+.scroll-ind .track::after{content:"";position:absolute;top:0;left:0;width:100%;height:40%;background:var(--teal);
+  animation:scrolldot 2.2s cubic-bezier(.7,0,.3,1) infinite}
+@keyframes scrolldot{0%{transform:translateY(-100%)}60%,100%{transform:translateY(260%)}}
+
+/* ============ PAGE HERO (subpages) ============ */
+.page-hero{position:relative;min-height:76vh;display:flex;align-items:center;padding:150px 0 90px}
+.page-hero .inner{max-width:880px}
+.page-hero h1{font-size:clamp(40px,6.2vw,86px);font-weight:800;margin:28px 0 24px}
+.page-hero h1 .accent{color:var(--teal)}
+.page-hero .sub{font-size:clamp(16px,1.4vw,20px);color:var(--body);max-width:580px;line-height:1.62}
+
+/* ============ SECTION TITLES ============ */
+.sec-head{max-width:640px}
+.sec-head h2{font-size:clamp(34px,4.4vw,60px);margin-bottom:22px}
+.sec-head p{color:var(--body);font-size:17px;line-height:1.65}
+
+/* ============ NOTRE LABORATOIRE ============ */
+.labo .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:60px;align-items:center}
+.labo .panel h2{font-size:clamp(32px,4vw,52px);margin-bottom:24px}
+.labo .panel p{color:var(--body);font-size:16.5px;line-height:1.7;margin-bottom:16px}
+.stats{display:flex;gap:14px;margin-top:40px;flex-wrap:wrap}
+.stat{flex:1;min-width:140px;border-top:1px solid var(--hair);padding-top:18px}
+.stat .num{font-family:'Syne';font-weight:800;font-size:clamp(32px,3.4vw,46px);color:var(--teal);line-height:1}
+.stat .lbl{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);margin-top:10px}
+.labo .visual{aspect-ratio:4/5;border:1px solid rgba(13,191,168,.22);position:relative;overflow:hidden;
+  background:linear-gradient(160deg,rgba(13,191,168,.06),rgba(6,13,24,.2))}
+.labo .visual .vlabel{position:absolute;bottom:0;left:0;right:0;padding:22px 24px;background:linear-gradient(transparent,rgba(6,13,24,.85));
+  font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;color:var(--body)}
+.labo .visual .vline{position:absolute;top:24px;left:24px;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;color:var(--gold)}
+.labo .visual::after{content:"";position:absolute;inset:0;z-index:1;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0H40M0 0V40' stroke='%230DBFA8' stroke-opacity='0.08' /%3E%3C/svg%3E")}
+
+/* --- cinematic microscope field-of-view scene --- */
+.labo .visual .vline,.labo .visual .vlabel{z-index:6}
+.lv-scene{position:absolute;inset:0;z-index:2}
+.lv-scope{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);
+  width:76%;aspect-ratio:1;border-radius:50%;overflow:hidden;
+  background:radial-gradient(circle at 50% 40%,rgba(28,140,170,.55),rgba(8,22,36,.96) 68%);
+  box-shadow:0 0 0 1px rgba(13,191,168,.40),0 0 0 7px rgba(6,13,24,.55),
+    inset 0 0 70px rgba(0,0,0,.72),0 0 60px rgba(13,191,168,.14)}
+.lv-cell{position:absolute;border-radius:50%;mix-blend-mode:screen;opacity:.9;filter:blur(.4px);
+  background:radial-gradient(circle at 36% 30%,#7BF7E2 0%,#13BFA8 38%,#1C8FD6 70%,rgba(26,42,140,.15) 100%);
+  box-shadow:0 0 16px rgba(13,191,168,.5);animation:lvDrift 15s ease-in-out infinite}
+.lv-cell::after{content:"";position:absolute;left:24%;top:20%;width:26%;height:26%;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.85),transparent 70%)}
+.lv-cell.n{background:radial-gradient(circle at 36% 30%,#BFFFF4,#27E2CB 40%,#1AA0D2 75%,rgba(40,63,182,.2));
+  box-shadow:0 0 22px rgba(39,226,203,.7)}
+.lv-sweep{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);width:80%;aspect-ratio:1;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0deg,rgba(13,191,168,0) 46deg,rgba(13,191,168,.30) 74deg,rgba(122,247,226,.05) 84deg,transparent 92deg);
+  mix-blend-mode:screen;animation:lvSweep 6.5s linear infinite;pointer-events:none}
+.lv-ret{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);width:76%;aspect-ratio:1;pointer-events:none;z-index:3}
+.lv-ret::before,.lv-ret::after{content:"";position:absolute;background:rgba(122,247,226,.35)}
+.lv-ret::before{left:50%;top:8%;width:1px;height:84%;transform:translateX(-.5px)}
+.lv-ret::after{top:50%;left:8%;height:1px;width:84%;transform:translateY(-.5px)}
+.lv-core{position:absolute;left:50%;top:50%;width:14%;aspect-ratio:1;transform:translate(-50%,-50%);
+  border:1px solid rgba(122,247,226,.6);border-radius:50%;box-shadow:0 0 12px rgba(13,191,168,.4)}
+.lv-tick{position:absolute;width:7%;height:1px;background:rgba(122,247,226,.5)}
+.lv-hud{position:absolute;top:22px;right:24px;z-index:5;text-align:right;line-height:1.85;
+  font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.10em;color:rgba(159,214,228,.82)}
+.lv-hud b{color:var(--teal);font-weight:500}
+.lv-bar{position:absolute;left:24px;bottom:92px;z-index:5;width:84px;height:4px;border:1px solid rgba(13,191,168,.45)}
+.lv-bar i{position:absolute;left:0;top:0;bottom:0;width:62%;background:var(--teal);animation:lvFocus 4.5s ease-in-out infinite}
+.lv-bar span{position:absolute;left:0;top:9px;font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.14em;color:rgba(159,214,228,.7);white-space:nowrap}
+.lv-vig{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 43%,transparent 48%,rgba(4,10,18,.7))}
+.lv-scan{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+@keyframes lvSweep{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes lvDrift{0%,100%{transform:translate(0,0)}30%{transform:translate(7px,-6px)}60%{transform:translate(-6px,5px)}}
+@keyframes lvFocus{0%,100%{width:54%}50%{width:82%}}
+@media (prefers-reduced-motion:reduce){
+  .lv-sweep,.lv-cell,.lv-bar i{animation:none}
+}
+
+/* ============ FABRICATION ============ */
+.fab .sec-head{margin-bottom:60px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.step{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--hair);border-top:2px solid var(--teal);padding:40px 34px;transition:transform .4s ease,border-color .4s}
+.step:hover{transform:translateY(-8px);border-color:rgba(13,191,168,.4)}
+.step .no{font-family:'IBM Plex Mono';font-size:13px;letter-spacing:.18em;color:var(--teal);margin-bottom:24px}
+.step h3{font-size:24px;margin-bottom:16px}
+.step p{color:var(--body);font-size:15px;line-height:1.65}
+
+/* ============ PRODUITS (home preview grid) ============ */
+.prod .sec-head{margin-bottom:56px}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.pcard{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--hair);border-top:2px solid var(--gold);padding:30px 26px 28px;display:flex;flex-direction:column;
+  transition:transform .4s ease,border-color .4s,background .4s;min-height:240px;cursor:pointer}
+.pcard:hover{transform:translateY(-8px);border-color:rgba(196,160,58,.45);background:rgba(13,30,52,.6)}
+.pcard .cat{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+.pcard h3{font-size:21px;margin-bottom:12px;letter-spacing:-.01em}
+.pcard p{color:var(--body);font-size:14px;line-height:1.6;flex:1}
+.pcard .lnk{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.1em;color:var(--teal);text-decoration:none;
+  margin-top:22px;display:inline-flex;gap:8px;align-items:center;text-transform:uppercase;transition:gap .25s}
+.pcard:hover .lnk{gap:14px}
+
+/* ============ CERTIFICATIONS ============ */
+.cert .wrap{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:60px;align-items:center}
+.cert .sec-head{margin-bottom:0}
+.certlist{display:flex;flex-direction:column;gap:18px}
+.citem{display:flex;gap:22px;align-items:flex-start;padding:24px;border:1px solid rgba(196,160,58,.22);
+  background:rgba(10,22,38,.4);backdrop-filter:blur(10px);transition:border-color .35s,background .35s}
+.citem:hover{border-color:rgba(196,160,58,.5);background:rgba(13,30,52,.55)}
+.citem .ic{width:46px;height:46px;flex:0 0 auto;border:1px solid var(--gold);display:grid;place-items:center;position:relative}
+.citem .ic::before{content:"";width:14px;height:14px;background:var(--gold)}
+.citem .ic.a::before{border-radius:50%;background:none;border:2px solid var(--gold)}
+.citem .ic.b::before{transform:rotate(45deg)}
+.citem h3{font-size:19px;margin-bottom:8px}
+.citem p{color:var(--body);font-size:14.5px;line-height:1.6}
+
+/* ============ REJOINDRE ============ */
+.join{justify-content:center;text-align:center}
+.join .glass{max-width:760px;text-align:center;padding:66px 60px;margin:0 auto}
+.join h2{font-size:clamp(32px,4.4vw,56px);margin-bottom:20px}
+.join p{color:var(--body);font-size:18px;max-width:520px;margin:0 auto 40px;line-height:1.6}
+.join .hero-btns{justify-content:center}
+
+/* ============ CATALOGUE (Produits page) ============ */
+.catalog{padding:20px 0 130px}
+.filterbar{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:50px}
+.filterbar button{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  background:transparent;color:var(--body);border:1px solid var(--hair);padding:11px 20px;cursor:pointer;transition:all .25s}
+.filterbar button:hover{color:var(--white);border-color:rgba(245,247,250,.32)}
+.filterbar button.active{background:var(--teal);color:var(--navy);border-color:var(--teal)}
+.pgrid-lg{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.pcard-lg{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--hair);border-top:2px solid var(--gold);padding:34px 30px 30px;display:flex;flex-direction:column;
+  transition:transform .4s ease,border-color .4s,background .4s,opacity .4s}
+.pcard-lg:hover{transform:translateY(-8px);border-color:rgba(196,160,58,.45);background:rgba(13,30,52,.6)}
+.pcard-lg .code{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.18em;color:var(--faint);margin-bottom:16px}
+.pcard-lg .cat{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.pcard-lg h3{font-size:25px;margin-bottom:14px}
+.pcard-lg p{color:var(--body);font-size:14.5px;line-height:1.64;flex:1;margin-bottom:26px}
+.pcard-lg .btn{align-self:flex-start;padding:13px 22px;font-size:12px}
+.catcount{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;color:var(--faint);margin-bottom:26px;text-transform:uppercase}
+
+/* ============ PRODUCT MODAL ============ */
+.modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:30px}
+.modal.open{display:flex}
+.modal-backdrop{position:absolute;inset:0;background:rgba(3,8,15,.80);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:mfade .3s ease}
+.modal-panel{position:relative;z-index:2;max-width:660px;width:100%;max-height:88vh;overflow:auto;
+  background:rgba(8,18,30,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid rgba(13,191,168,.28);border-top:3px solid var(--gold);padding:50px;animation:mrise .42s cubic-bezier(.16,1,.3,1)}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+@keyframes mrise{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+.mclose{position:absolute;top:22px;right:22px;background:none;border:1px solid var(--hair);color:var(--white);
+  width:42px;height:42px;cursor:pointer;font-size:16px;transition:.25s;display:grid;place-items:center}
+.mclose:hover{border-color:var(--teal);color:var(--teal)}
+.mcat{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.modal-panel h2{font-size:clamp(28px,4vw,38px);margin:12px 0 20px}
+.mlong{color:var(--body);font-size:15.5px;line-height:1.72;margin-bottom:30px}
+.mspec{border-top:1px solid var(--hair)}
+.mspec .row{display:grid;grid-template-columns:150px 1fr;gap:22px;padding:17px 0;border-bottom:1px solid var(--hair)}
+.mspec .k{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.mspec .v{color:var(--body);font-size:14.5px;line-height:1.55}
+.mcta{margin-top:34px;display:flex;gap:16px;flex-wrap:wrap}
+
+/* ============ FOOTER ============ */
+footer{position:relative;z-index:10;border-top:1px solid rgba(196,160,58,.35);background:rgba(6,13,24,.7);
+  backdrop-filter:blur(16px);padding:72px 0 40px;margin-top:40px}
+.fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:48px}
+.fcol .brand{margin-bottom:20px}
+.fcol .tag{color:var(--body);font-size:15px;line-height:1.6;max-width:300px}
+.fcol h4{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:22px;font-weight:500}
+.fcol a,.fcol .fline{display:block;color:var(--body);text-decoration:none;font-size:15px;margin-bottom:13px;transition:color .25s;cursor:pointer}
+.fcol a:hover{color:var(--teal)}
+.fbar{display:flex;justify-content:space-between;align-items:center;margin-top:56px;padding-top:26px;border-top:1px solid var(--hair);
+  font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.1em;color:var(--faint);flex-wrap:wrap;gap:12px}
+
+/* ============ REVEAL (base = visible; animate only when JS active) ============ */
+.reveal{opacity:1;transform:none}
+html.js .reveal{opacity:0;transform:translateY(34px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+html.js .reveal.in{opacity:1;transform:none}
+html.js .reveal.d1{transition-delay:.08s}html.js .reveal.d2{transition-delay:.16s}html.js .reveal.d3{transition-delay:.24s}
+html.js .reveal.d4{transition-delay:.32s}html.js .reveal.d5{transition-delay:.4s}html.js .reveal.d6{transition-delay:.48s}
+html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64s}
+@media (prefers-reduced-motion:reduce){html.js .reveal{opacity:1!important;transform:none!important;transition:none}.bg-image.active{animation:none}}
+@media print{html.js .reveal{opacity:1!important;transform:none!important}.bg-image.active{animation:none}}
+
+/* ============ À PROPOS ============ */
+.ap-section{padding:120px 0;position:relative}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px}
+.duo .glass{padding:44px}
+.duo .kicker{margin-bottom:18px}
+.duo h3{font-size:25px;margin-bottom:16px}
+.duo p{color:var(--body);font-size:15.5px;line-height:1.7}
+.values{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:24px}
+.value{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);border-top:2px solid var(--teal);padding:34px 30px}
+.value .vn{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.16em;color:var(--teal);margin-bottom:18px}
+.value h4{font-family:'Syne';font-weight:700;font-size:20px;margin-bottom:12px;letter-spacing:-.01em}
+.value p{color:var(--body);font-size:14px;line-height:1.62}
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:8px}
+.tcard{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);border-top:2px solid var(--gold);padding:42px 34px;transition:transform .4s ease,border-color .4s}
+.tcard:hover{transform:translateY(-8px);border-color:rgba(196,160,58,.45)}
+.avatar{width:74px;height:74px;position:relative;display:grid;place-items:center;border:1px solid var(--teal);font-family:'Syne';font-weight:800;font-size:24px;color:var(--teal);margin-bottom:28px}
+.avatar::after{content:"";position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--gold)}
+.tcard h3{font-size:21px;margin-bottom:6px}
+.tcard .role{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+.tcard p{color:var(--body);font-size:14px;line-height:1.62}
+.timeline{position:relative;padding-left:30px;margin-top:18px}
+.timeline::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:1px;background:linear-gradient(var(--teal),rgba(196,160,58,.55))}
+.tl-item{position:relative;padding:0 0 44px 0}
+.tl-item:last-child{padding-bottom:0}
+.tl-item::before{content:"";position:absolute;left:-30px;top:4px;width:11px;height:11px;background:var(--navy);border:2px solid var(--teal)}
+.tl-item.future::before{border-color:var(--gold)}
+.tl-year{font-family:'IBM Plex Mono';font-size:13px;letter-spacing:.16em;color:var(--gold);margin-bottom:9px}
+.tl-item h3{font-size:22px;margin-bottom:8px}
+.tl-item p{color:var(--body);font-size:14.5px;line-height:1.62;max-width:580px}
+.future-grid{display:grid;grid-template-columns:1fr .92fr;gap:60px;align-items:center}
+.future-grid h2{font-size:clamp(30px,3.6vw,48px);margin-bottom:20px}
+.future-grid>.panel>p{color:var(--body);font-size:16px;line-height:1.7}
+.commit{list-style:none;margin:28px 0 36px;display:flex;flex-direction:column;gap:15px}
+.commit li{display:flex;gap:14px;color:var(--body);font-size:15px;line-height:1.5}
+.commit li::before{content:"";width:8px;height:8px;background:var(--teal);margin-top:7px;flex:0 0 auto;transform:rotate(45deg)}
+.bigvisual{aspect-ratio:4/3;border:1px solid rgba(196,160,58,.25);position:relative;overflow:hidden;background:linear-gradient(160deg,rgba(196,160,58,.07),rgba(6,13,24,.25))}
+.bigvisual .vline{position:absolute;top:24px;left:24px;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;color:var(--gold)}
+.bigvisual .vlabel{position:absolute;bottom:0;left:0;right:0;padding:22px 24px;background:linear-gradient(transparent,rgba(6,13,24,.85));font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.1em;color:var(--body)}
+.bigvisual::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0H40M0 0V40' stroke='%23C4A03A' stroke-opacity='0.08' /%3E%3C/svg%3E")}
+
+/* ============ FABRICATION ============ */
+.process{margin-top:10px}
+.pstep{display:grid;grid-template-columns:150px 1fr;gap:50px;padding:46px 0;border-top:1px solid var(--hair)}
+.pstep:last-child{border-bottom:1px solid var(--hair)}
+.pstep .pnum{font-family:'Syne';font-weight:800;font-size:clamp(50px,6vw,86px);line-height:.85;color:transparent;-webkit-text-stroke:1.5px var(--teal)}
+.pstep .plabel{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.pstep h3{font-size:clamp(23px,2.8vw,31px);margin-bottom:16px}
+.pstep .pbody p{color:var(--body);font-size:15.5px;line-height:1.7;margin-bottom:20px;max-width:680px}
+.ptags{display:flex;flex-wrap:wrap;gap:10px}
+.ptags span{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--body);border:1px solid var(--hair);padding:7px 13px}
+.qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:24px}
+
+/* ============ CERTIFICATIONS (detailed) ============ */
+.certrows{display:flex;flex-direction:column;gap:22px;margin-top:8px}
+.certbig{display:grid;grid-template-columns:230px 1fr;gap:50px;align-items:start;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);border-top:2px solid var(--gold);padding:46px 44px}
+.certbig .cbicon{width:64px;height:64px;border:1px solid var(--gold);display:grid;place-items:center;position:relative;margin-bottom:22px}
+.certbig .cbicon::before{content:"";width:20px;height:20px;background:var(--gold)}
+.certbig .cbicon.a::before{background:none;border:2px solid var(--gold);border-radius:50%}
+.certbig .cbicon.b::before{transform:rotate(45deg)}
+.certbig .cstd{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.certbig h3{font-size:25px;margin:6px 0 0}
+.certbig .cbody>p{color:var(--body);font-size:15.5px;line-height:1.7;margin-bottom:24px}
+.certbig .clabel{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+.doclist{margin-top:4px}
+.docrow{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px 0;border-bottom:1px solid var(--hair)}
+.docrow:first-child{border-top:1px solid var(--hair)}
+.docrow .dname{font-size:15.5px;color:var(--white)}
+.docrow .dtag{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);white-space:nowrap}
+
+/* ============ FORMS / CONTACT ============ */
+.contact-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:60px;align-items:start}
+.form{display:flex;flex-direction:column;gap:18px}
+.formrow{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field label{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--body)}
+.field input,.field textarea{background:rgba(6,13,24,.55);border:1px solid var(--hair);color:var(--white);font-family:'DM Sans';font-size:15px;padding:14px 16px;width:100%;transition:border-color .25s}
+.field input::placeholder,.field textarea::placeholder{color:rgba(245,247,250,.3)}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--teal)}
+.field textarea{resize:vertical;min-height:130px}
+.field.err input,.field.err textarea{border-color:#e0655c}
+.field .errmsg{display:none;font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.08em;color:#e0655c}
+.field.err .errmsg{display:block}
+.form .btn{align-self:flex-start;margin-top:6px}
+.formok{display:none;border:1px solid var(--teal);background:rgba(13,191,168,.08);padding:36px}
+.formok.show{display:block;animation:mfade .4s ease}
+.formok .ok-k{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+.formok h3{font-size:24px;margin-bottom:10px}
+.formok p{color:var(--body);font-size:15px;line-height:1.6}
+.cinfo .ci{border-top:1px solid var(--hair);padding:22px 0}
+.cinfo .ci .k{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.cinfo .ci .v{font-size:17px;color:var(--white);line-height:1.5}
+.cinfo .ci .v a{color:var(--white);text-decoration:none;transition:color .25s}
+.cinfo .ci .v a:hover{color:var(--teal)}
+.portal-panel{max-width:900px;margin:0 auto}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:980px){
+  .wrap{padding:0 24px}
+  section.block{padding:100px 0;min-height:auto}
+  .page-hero{min-height:auto;padding:130px 0 70px}
+  .labo .wrap,.cert .wrap{grid-template-columns:1fr;gap:40px}
+  .steps{grid-template-columns:1fr;gap:18px}
+  .pgrid{grid-template-columns:repeat(2,1fr)}
+  .pgrid-lg{grid-template-columns:repeat(2,1fr)}
+  .duo,.values,.team{grid-template-columns:1fr;gap:20px}
+  .future-grid{grid-template-columns:1fr;gap:40px}
+  .ap-section{padding:90px 0}
+  .pstep{grid-template-columns:1fr;gap:18px}
+  .pstep .pnum{font-size:52px}
+  .qgrid{grid-template-columns:repeat(2,1fr)}
+  .certbig{grid-template-columns:1fr;gap:26px;padding:36px 28px}
+  .contact-grid{grid-template-columns:1fr;gap:42px}
+  .formrow{grid-template-columns:1fr}
+  .fgrid{grid-template-columns:1fr;gap:36px}
+  /* ---- mobile nav: polished, dynamic slide-out drawer ---- */
+  #navlinks{position:fixed;inset:0 0 0 auto;z-index:9999;width:min(83vw,366px);height:100vh;height:100dvh;
+    background:linear-gradient(160deg,rgba(10,22,38,.98),rgba(6,13,24,.99));
+    backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);overflow-y:auto;
+    flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:0 46px;
+    transform:translateX(100%);transition:transform .55s cubic-bezier(.16,1,.3,1);
+    border-left:1px solid rgba(13,191,168,.22);box-shadow:-34px 0 90px -44px rgba(0,0,0,.85);counter-reset:navi}
+  #navlinks::before{content:"MENU";position:absolute;top:40px;left:46px;font-family:'IBM Plex Mono';
+    font-size:11px;letter-spacing:.34em;color:var(--teal);opacity:.7}
+  #navlinks.open{transform:none}
+  .navlinks a{width:100%}
+  .navlinks a[data-nav]{display:flex;align-items:baseline;gap:16px;padding:11px 0;font-family:'Syne';
+    font-weight:500;font-size:24px;letter-spacing:.02em;color:rgba(245,247,250,.72);
+    opacity:0;transform:translateY(16px);
+    transition:opacity .5s ease,transform .55s cubic-bezier(.16,1,.3,1),color .25s}
+  .navlinks a[data-nav]::after{display:none}
+  .navlinks a[data-nav]::before{counter-increment:navi;content:counter(navi,decimal-leading-zero);
+    font-family:'IBM Plex Mono';font-size:12px;font-weight:400;color:var(--teal);opacity:.6;
+    transition:opacity .25s,transform .25s}
+  .navlinks.open a[data-nav]{opacity:1;transform:none}
+  .navlinks.open a[data-nav]:nth-of-type(1){transition-delay:.10s}
+  .navlinks.open a[data-nav]:nth-of-type(2){transition-delay:.16s}
+  .navlinks.open a[data-nav]:nth-of-type(3){transition-delay:.22s}
+  .navlinks.open a[data-nav]:nth-of-type(4){transition-delay:.28s}
+  .navlinks.open a[data-nav]:nth-of-type(5){transition-delay:.34s}
+  .navlinks.open a[data-nav]:nth-of-type(6){transition-delay:.40s}
+  #navlinks a[data-nav].active{color:var(--white)}
+  #navlinks a[data-nav].active::before{opacity:1;color:var(--teal)}
+  #navlinks a[data-nav]:hover{color:var(--white);transform:translateX(8px)}
+  #navlinks a[data-nav]:hover::before{opacity:1;transform:translateY(-1px)}
+  .nav-sep{display:none}
+  .navlinks a.nav-cta{margin-top:30px;justify-content:center;opacity:0;transform:translateY(16px);
+    transition:opacity .5s ease,transform .55s cubic-bezier(.16,1,.3,1),background .28s,color .28s,border-color .28s,box-shadow .28s}
+  .navlinks.open a.nav-cta{opacity:1;transform:none;transition-delay:.48s}
+  .nav-backdrop{position:fixed;inset:0;z-index:9990;background:rgba(3,7,14,.5);
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    opacity:0;visibility:hidden;transition:opacity .45s ease,visibility .45s}
+  .nav-backdrop.show{opacity:1;visibility:visible}
+  .burger{display:flex;z-index:10000;position:relative}
+  .burger span{transition:transform .35s cubic-bezier(.16,1,.3,1),opacity .25s}
+  .burger.active span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger.active span:nth-child(2){opacity:0}
+  .burger.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+}
+@media(max-width:560px){
+  .pgrid{grid-template-columns:1fr}
+  .pgrid-lg{grid-template-columns:1fr}
+  .qgrid{grid-template-columns:1fr}
+  .hero-btns{flex-direction:column;align-items:stretch}
+  .btn{justify-content:center}
+  .glass{padding:34px 26px}
+  .join .glass{padding:44px 26px}
+  .modal-panel{padding:36px 24px}
+  .mspec .row{grid-template-columns:1fr;gap:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ BACKGROUND STAGE ============ -->
+<div id="bg-stage">
+  <div class="bg-image" id="bg-hero"></div>
+  <div class="bg-image" id="bg-labo"></div>
+  <div class="bg-image" id="bg-fab"></div>
+  <div class="bg-image" id="bg-prod"></div>
+  <div class="bg-image" id="bg-cert"></div>
+  <div class="bg-image" id="bg-join"></div>
+</div>
+<div id="bg-overlay"></div>
+<div id="bg-vign"></div>
+<div id="bg-grain"></div>
+<div id="particles"></div>
+
+<!-- ============ NAVBAR ============ -->
+<nav id="nav">
+  <div class="wrap">
+    <button class="brand" data-nav="home" aria-label="Accueil">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nAr" x1="80%" y1="10%" x2="44%" y2="94%"><stop offset="0%" stop-color="#46F4D4"/><stop offset="30%" stop-color="#0DBFA8"/><stop offset="64%" stop-color="#1C8FD6"/><stop offset="100%" stop-color="#283FB6"/></linearGradient><linearGradient id="nAl" x1="26%" y1="26%" x2="60%" y2="96%"><stop offset="0%" stop-color="#27E2CB"/><stop offset="46%" stop-color="#1AA0D2"/><stop offset="100%" stop-color="#1B2C92"/></linearGradient><linearGradient id="nAs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1C8FD6"/><stop offset="100%" stop-color="#1B2A8C"/></linearGradient><radialGradient id="nAsh" cx="60%" cy="26%" r="58%"><stop offset="0%" stop-color="#FFFFFF" stop-opacity=".6"/><stop offset="60%" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient><filter id="nAg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.5"/></filter></defs><path d="M57,72 C55,92 53,108 62,124" fill="none" stroke="url(#nAs)" stroke-width="5" stroke-linecap="round"/><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z" fill="url(#nAr)" stroke="#0E2A66" stroke-opacity=".28" stroke-width="1.1" stroke-linejoin="round"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z" fill="url(#nAl)" stroke="#0E2A66" stroke-opacity=".28" stroke-width="1.1" stroke-linejoin="round"/><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z" fill="url(#nAsh)"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z" fill="url(#nAsh)"/><path d="M62,90 C72,63 82,43 92,29" fill="none" stroke="#EFFFFB" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/><path d="M52,87 C47,69 43,54 39,43" fill="none" stroke="#EFFFFB" stroke-opacity=".4" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="86" cy="30" rx="5" ry="8" fill="#FFFFFF" fill-opacity=".7" filter="url(#nAg)" transform="rotate(38 86 30)"/><ellipse cx="41" cy="48" rx="3.4" ry="6" fill="#EAFEFF" fill-opacity=".55" filter="url(#nAg)" transform="rotate(20 41 48)"/></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+    </button>
+    <div class="navlinks" id="navlinks">
+      <a data-nav="home" class="active">Accueil</a>
+      <a data-nav="produits">Produits</a>
+      <a data-nav="apropos">À Propos</a>
+      <a data-nav="fabrication">Fabrication</a>
+      <a data-nav="certifications">Certifications</a>
+      <a data-nav="contact">Contact</a>
+      <span class="nav-sep"></span>
+      <a href="Login.html" class="nav-cta"><span class="lk"></span>Accès Portail<span class="sheen"></span></a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="nav-backdrop" id="navBackdrop" aria-hidden="true"></div>
+
+<div id="app">
+
+<!-- ====================================================== HOME ====================================================== -->
+<main class="page active shown" id="page-home" data-page="home" data-screen-label="HOME">
+
+  <!-- HERO -->
+  <section class="block" id="hero" data-bg="hero">
+    <div class="wrap">
+      <div class="hero-inner">
+        <div class="kicker reveal">Laboratoire Pharmaceutique Certifié ISO 9001</div>
+        <h1 class="hero reveal d1"><span class="accent">La Science.</span><br/>La Confiance.<br/>L'Excellence.</h1>
+        <p class="sub reveal d3">Compléments alimentaires et cosmétiques de précision, formulés et fabriqués au Maroc pour les pharmacies exigeantes.</p>
+        <div class="hero-btns reveal d4">
+          <button class="btn btn-primary" data-nav="produits">Découvrir nos produits <span class="arr">→</span></button>
+          <a href="Login.html" class="btn btn-ghost">Accès portail pharmacie</a>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-ind reveal d5"><span>SCROLL</span><span class="track"></span></div>
+  </section>
+
+  <!-- NOTRE LABORATOIRE -->
+  <section class="block labo" id="labo" data-bg="labo">
+    <div class="wrap">
+      <div class="panel glass reveal">
+        <div class="kicker">Notre Laboratoire</div>
+        <h2>Une exigence scientifique, du flacon à la pharmacie.</h2>
+        <p>Chez Neoval Pharma, chaque formule naît d'un travail de recherche rigoureux. Nos équipes R&D conçoivent des compléments alimentaires et des cosmétiques à l'efficacité documentée, en s'appuyant sur des principes actifs sélectionnés pour leur pureté et leur biodisponibilité.</p>
+        <p>De la sélection des matières premières au contrôle final, nous appliquons les standards les plus stricts de l'industrie pharmaceutique afin d'offrir aux pharmacies marocaines une gamme fiable, traçable et premium.</p>
+        <div class="stats">
+          <div class="stat reveal d2"><div class="num">8+</div><div class="lbl">Produits</div></div>
+          <div class="stat reveal d3"><div class="num">100%</div><div class="lbl">Certifiés</div></div>
+          <div class="stat reveal d4"><div class="num">48h</div><div class="lbl">Livraison</div></div>
+        </div>
+      </div>
+      <div class="visual reveal d2">
+        <div class="lv-scene">
+          <div class="lv-scope">
+            <span class="lv-cell" style="left:24%;top:30%;width:20%;height:20%;animation-delay:0s"></span>
+            <span class="lv-cell n" style="left:55%;top:24%;width:12%;height:12%;animation-delay:-3s"></span>
+            <span class="lv-cell" style="left:42%;top:52%;width:24%;height:24%;animation-delay:-6s"></span>
+            <span class="lv-cell" style="left:66%;top:58%;width:14%;height:14%;animation-delay:-2s"></span>
+            <span class="lv-cell n" style="left:22%;top:62%;width:11%;height:11%;animation-delay:-8s"></span>
+            <span class="lv-cell" style="left:70%;top:38%;width:9%;height:9%;animation-delay:-4.5s"></span>
+            <span class="lv-cell n" style="left:48%;top:40%;width:7%;height:7%;animation-delay:-7s"></span>
+          </div>
+          <div class="lv-sweep"></div>
+          <div class="lv-ret">
+            <span class="lv-core"></span>
+            <span class="lv-tick" style="left:8%;top:50%"></span>
+            <span class="lv-tick" style="right:8%;top:50%"></span>
+            <span class="lv-tick" style="left:50%;top:8%;width:1px;height:7%"></span>
+            <span class="lv-tick" style="left:50%;bottom:8%;width:1px;height:7%"></span>
+          </div>
+          <div class="lv-vig"></div>
+          <div class="lv-scan"></div>
+          <div class="lv-hud">
+            MAG <b>×400</b><br/>
+            FOCUS <b id="lvFocus">11.40</b> µm<br/>
+            COUNT <b id="lvCount">318</b> /mm²<br/>
+            LOT <b>NV-2406-07</b>
+          </div>
+          <div class="lv-bar"><i></i><span>FOCUS LOCK</span></div>
+        </div>
+        <span class="vline">// R&D — POV BENCH</span>
+        <span class="vlabel">Paillasse d'analyse — microscopie & contrôle des échantillons</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FABRICATION -->
+  <section class="block fab" id="fab" data-bg="fab">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker">Fabrication</div>
+        <h2>Un processus maîtrisé de bout en bout.</h2>
+        <p>Trois étapes au cœur de notre chaîne de valeur pharmaceutique, conçues pour garantir constance, sécurité et conformité.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal d1"><div class="no">01</div><h3>Formulation Scientifique</h3><p>Nos pharmaciens et formulateurs définissent dosages et synergies d'actifs sur la base de la littérature scientifique et d'essais de stabilité.</p></div>
+        <div class="step reveal d2"><div class="no">02</div><h3>Fabrication Contrôlée</h3><p>Production en environnement maîtrisé selon les Bonnes Pratiques de Fabrication, avec contrôle qualité à chaque lot.</p></div>
+        <div class="step reveal d3"><div class="no">03</div><h3>Distribution Nationale</h3><p>Logistique dédiée aux pharmacies, livraison sous 48h partout au Maroc avec traçabilité complète des lots.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOS PRODUITS (preview) -->
+  <section class="block prod" id="produits-preview" data-bg="prod">
+    <div class="wrap">
+      <div class="sec-head reveal" style="margin-bottom:56px">
+        <div class="kicker gold">Nos Produits</div>
+        <h2>Notre Gamme</h2>
+        <p>Une sélection de compléments alimentaires et de cosmétiques pensés pour la pharmacie d'officine.</p>
+      </div>
+      <div class="pgrid" id="pgrid-home"></div>
+      <div class="reveal d4" style="margin-top:46px">
+        <button class="btn btn-ghost" data-nav="produits">Voir toute la gamme <span class="arr">→</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CERTIFICATIONS -->
+  <section class="block cert" id="cert" data-bg="cert">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker gold">Certifications</div>
+        <h2>La qualité, prouvée à chaque étape.</h2>
+        <p>Nos engagements ne sont pas des promesses — ils sont audités, documentés et tracés.</p>
+      </div>
+      <div class="certlist">
+        <div class="citem reveal d1"><div class="ic a"></div><div><h3>ISO 9001:2015</h3><p>Système de management de la qualité certifié, garantissant des processus maîtrisés et une amélioration continue.</p></div></div>
+        <div class="citem reveal d2"><div class="ic b"></div><div><h3>BPF Pharmaceutiques</h3><p>Bonnes Pratiques de Fabrication appliquées à l'ensemble de la production pour une sécurité maximale.</p></div></div>
+        <div class="citem reveal d3"><div class="ic"></div><div><h3>Traçabilité Totale</h3><p>Chaque lot est documenté de la matière première à la livraison, avec dossier de lot disponible sur demande.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REJOINDRE LE RÉSEAU -->
+  <section class="block join" id="join" data-bg="join">
+    <div class="wrap">
+      <div class="glass gold reveal">
+        <div class="kicker" style="justify-content:center">Rejoindre le Réseau</div>
+        <h2>Devenez pharmacie partenaire Neoval.</h2>
+        <p>Accédez à notre catalogue grossiste, tarifs préférentiels et portail de commande dédié aux officines.</p>
+        <div class="hero-btns">
+          <button class="btn btn-primary" data-nav="contact">Demander un accès <span class="arr">→</span></button>
+          <button class="btn btn-ghost" data-nav="contact">Nous contacter</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ====================================================== PRODUITS ====================================================== -->
+<main class="page" id="page-produits" data-page="produits" data-screen-label="PRODUITS">
+
+  <!-- HERO BANNER -->
+  <section class="page-hero" data-bg="prod">
+    <div class="wrap">
+      <div class="inner">
+        <div class="kicker gold reveal">Catalogue Grossiste · Officines</div>
+        <h1 class="reveal d1">Notre Gamme <span class="accent">Complète</span></h1>
+        <p class="sub reveal d2">Huit formulations pharmaceutiques — compléments alimentaires et cosmétiques — développées et fabriquées selon les Bonnes Pratiques de Fabrication. Sélectionnez une catégorie, explorez les fiches détaillées et commandez en gros.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATALOGUE -->
+  <section class="catalog" data-bg="prod">
+    <div class="wrap">
+      <div class="filterbar reveal" id="filterbar"></div>
+      <div class="catcount" id="catcount"></div>
+      <div class="pgrid-lg" id="pgrid-full"></div>
+    </div>
+  </section>
+</main>
+
+<!-- ====================================================== À PROPOS ====================================================== -->
+<main class="page" id="page-apropos" data-page="apropos" data-screen-label="A PROPOS">
+
+  <!-- HERO -->
+  <section class="page-hero" data-bg="labo">
+    <div class="wrap">
+      <div class="inner">
+        <div class="kicker reveal">À Propos · Laboratoire Neoval</div>
+        <h1 class="reveal d1">Notre <span class="accent">Histoire</span></h1>
+        <p class="sub reveal d2">Née de la conviction que les officines marocaines méritent des produits de santé d'exception, Neoval Pharma associe rigueur scientifique et exigence industrielle pour formuler et fabriquer localement.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUI SOMMES-NOUS / MISSION / VALEURS -->
+  <section class="ap-section" data-bg="labo">
+    <div class="wrap">
+      <div class="sec-head reveal" style="margin-bottom:48px">
+        <div class="kicker">Qui sommes-nous</div>
+        <h2>Un laboratoire marocain, des standards internationaux.</h2>
+        <p>Neoval Pharma conçoit, formule et distribue des compléments alimentaires et des cosmétiques destinés exclusivement aux pharmacies d'officine. Chaque produit est le fruit d'un travail de recherche rigoureux et d'un contrôle qualité sans compromis.</p>
+      </div>
+      <div class="duo">
+        <div class="glass reveal d1">
+          <div class="kicker">Notre Mission</div>
+          <h3>Rendre l'excellence pharmaceutique accessible.</h3>
+          <p>Offrir aux pharmaciens marocains une gamme fiable, traçable et différenciante, soutenue par un accompagnement de proximité et une logistique réactive sous 48h.</p>
+        </div>
+        <div class="glass gold reveal d2">
+          <div class="kicker gold">Notre Vision</div>
+          <h3>Devenir la référence des laboratoires de santé au Maroc.</h3>
+          <p>Construire une marque de confiance, reconnue pour la qualité de ses formules et son engagement envers la santé des patients et la réussite des officines.</p>
+        </div>
+      </div>
+      <div class="values">
+        <div class="value reveal d1"><div class="vn">01</div><h4>Rigueur Scientifique</h4><p>Des formulations fondées sur la littérature scientifique, des dosages justifiés et des essais de stabilité documentés.</p></div>
+        <div class="value reveal d2"><div class="vn">02</div><h4>Traçabilité Totale</h4><p>De la matière première au flacon livré, chaque lot est suivi, contrôlé et documenté pour une transparence absolue.</p></div>
+        <div class="value reveal d3"><div class="vn">03</div><h4>Proximité Officinale</h4><p>Un partenariat durable avec les pharmaciens : conseils, formation produit et disponibilité permanente des équipes.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ÉQUIPE -->
+  <section class="ap-section" data-bg="cert">
+    <div class="wrap">
+      <div class="sec-head reveal" style="margin-bottom:48px">
+        <div class="kicker gold">L'Équipe</div>
+        <h2>Des expertises complémentaires.</h2>
+        <p>Une direction qui réunit la vision entrepreneuriale, l'expertise scientifique et l'exigence qualité.</p>
+      </div>
+      <div class="team">
+        <div class="tcard reveal d1"><div class="avatar">KB</div><h3>Dr. Karim Benjelloun</h3><div class="role">Directeur Général</div><p>Pharmacien de formation, il pilote la stratégie et le développement du réseau d'officines partenaires à l'échelle nationale.</p></div>
+        <div class="tcard reveal d2"><div class="avatar">YE</div><h3>Dr. Yasmine El Amrani</h3><div class="role">Responsable R&D</div><p>Docteur en pharmacie, elle dirige la formulation des produits et la veille scientifique sur les actifs et leurs synergies.</p></div>
+        <div class="tcard reveal d3"><div class="avatar">SI</div><h3>Salma Idrissi</h3><div class="role">Responsable Qualité</div><p>Ingénieure qualité, elle garantit la conformité BPF, le contrôle des lots et la documentation réglementaire complète.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section class="ap-section" data-bg="fab">
+    <div class="wrap">
+      <div class="sec-head reveal" style="margin-bottom:50px">
+        <div class="kicker">Notre Parcours</div>
+        <h2>Les étapes clés.</h2>
+      </div>
+      <div class="timeline">
+        <div class="tl-item reveal d1"><div class="tl-year">2021</div><h3>Fondation à Casablanca</h3><p>Création de Neoval Pharma avec une ambition claire : élever la qualité des produits de santé distribués en officine au Maroc.</p></div>
+        <div class="tl-item reveal d1"><div class="tl-year">2022</div><h3>Premier laboratoire R&D</h3><p>Mise en place de l'équipe de formulation et lancement des trois premières références de la gamme.</p></div>
+        <div class="tl-item reveal d2"><div class="tl-year">2023</div><h3>Certification ISO 9001:2015</h3><p>Obtention de la certification du système de management de la qualité, jalon majeur de notre démarche d'excellence.</p></div>
+        <div class="tl-item reveal d2"><div class="tl-year">2024</div><h3>Réseau de 200+ officines</h3><p>Déploiement de la distribution à l'échelle nationale et structuration de la logistique 48h.</p></div>
+        <div class="tl-item reveal d3"><div class="tl-year">2025</div><h3>Gamme étendue à 8 produits</h3><p>Élargissement de l'offre aux cosmétiques dermo-actifs et aux probiotiques de nouvelle génération.</p></div>
+        <div class="tl-item future reveal d3"><div class="tl-year">2026 · À venir</div><h3>Nouvelle unité de fabrication BPF</h3><p>Lancement de la construction de notre propre usine, pour internaliser la production selon les Bonnes Pratiques de Fabrication.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUTURE USINE / QUALITÉ -->
+  <section class="ap-section" data-bg="join">
+    <div class="wrap">
+      <div class="future-grid">
+        <div class="panel reveal">
+          <div class="kicker gold">Manufacturing · 2026</div>
+          <h2>Notre future unité de fabrication.</h2>
+          <p>Nous investissons dans une unité de production aux normes BPF pharmaceutiques, conçue pour maîtriser chaque étape — de la pesée des matières premières au conditionnement final.</p>
+          <ul class="commit">
+            <li>Environnement de production contrôlé et zones à atmosphère maîtrisée.</li>
+            <li>Laboratoire de contrôle qualité intégré, analyse de chaque lot.</li>
+            <li>Traçabilité numérique complète et dossier de lot sur demande.</li>
+            <li>Capacité pensée pour accompagner la croissance du réseau d'officines.</li>
+          </ul>
+          <button class="btn btn-primary" data-nav="contact">Devenir partenaire <span class="arr">→</span></button>
+        </div>
+        <div class="bigvisual reveal d2">
+          <span class="vline">// UNITÉ BPF — CASABLANCA</span>
+          <span class="vlabel">Rendu de la future unité de fabrication — mise en service prévue 2026</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ====================================================== FABRICATION ====================================================== -->
+<main class="page" id="page-fabrication" data-page="fabrication" data-screen-label="FABRICATION">
+
+  <section class="page-hero" data-bg="fab">
+    <div class="wrap">
+      <div class="inner">
+        <div class="kicker reveal">Fabrication · Bonnes Pratiques</div>
+        <h1 class="reveal d1">De la Recherche à la <span class="accent">Pharmacie</span></h1>
+        <p class="sub reveal d2">Cinq étapes maîtrisées qui transforment un actif sélectionné en un produit fini, sûr et tracé, livré dans votre officine. Chaque maillon est documenté et contrôlé.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ap-section" data-bg="fab">
+    <div class="wrap">
+      <div class="sec-head reveal" style="margin-bottom:30px">
+        <div class="kicker">Notre Processus</div>
+        <h2>Cinq étapes, zéro compromis.</h2>
+      </div>
+      <div class="process">
+        <div class="pstep reveal d1">
+          <div class="pnum">01</div>
+          <div class="pbody">
+            <div class="plabel">Sourcing</div>
+            <h3>Sourcing des Ingrédients</h3>
+            <p>Nous sélectionnons et auditons nos fournisseurs de matières premières. Chaque lot entrant est accompagné de son certificat d'analyse et contrôlé à réception avant d'entrer en production.</p>
+            <div class="ptags"><span>Fournisseurs audités</span><span>Certificat d'analyse</span><span>Contrôle réception</span></div>
+          </div>
+        </div>
+        <div class="pstep reveal d1">
+          <div class="pnum">02</div>
+          <div class="pbody">
+            <div class="plabel">Recherche</div>
+            <h3>Formulation R&D</h3>
+            <p>Nos pharmaciens et formulateurs définissent dosages et synergies d'actifs sur la base de la littérature scientifique, puis valident la galénique et la stabilité de chaque formule.</p>
+            <div class="ptags"><span>Dosage justifié</span><span>Essais de stabilité</span><span>Galénique</span></div>
+          </div>
+        </div>
+        <div class="pstep reveal d2">
+          <div class="pnum">03</div>
+          <div class="pbody">
+            <div class="plabel">Production</div>
+            <h3>Fabrication BPF</h3>
+            <p>La production se déroule en environnement maîtrisé selon les Bonnes Pratiques de Fabrication : pesée contrôlée, zones à atmosphère maîtrisée et enregistrement complet de chaque opération.</p>
+            <div class="ptags"><span>Zones maîtrisées</span><span>Pesée contrôlée</span><span>Lots enregistrés</span></div>
+          </div>
+        </div>
+        <div class="pstep reveal d2">
+          <div class="pnum">04</div>
+          <div class="pbody">
+            <div class="plabel">Qualité</div>
+            <h3>Contrôle Qualité</h3>
+            <p>Chaque lot est analysé et comparé à ses spécifications avant toute libération. Aucun produit ne quitte le site sans la validation formelle du service qualité.</p>
+            <div class="ptags"><span>Analyse de lot</span><span>Conformité</span><span>Libération qualité</span></div>
+          </div>
+        </div>
+        <div class="pstep reveal d3">
+          <div class="pnum">05</div>
+          <div class="pbody">
+            <div class="plabel">Logistique</div>
+            <h3>Distribution Nationale</h3>
+            <p>Stockage dans des conditions adaptées, préparation des commandes et livraison sous 48h partout au Maroc — avec une traçabilité complète jusqu'au comptoir de l'officine.</p>
+            <div class="ptags"><span>Stockage adapté</span><span>Livraison 48h</span><span>Traçabilité</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ap-section" data-bg="cert">
+    <div class="wrap">
+      <div class="sec-head reveal" style="margin-bottom:10px">
+        <div class="kicker gold">Standards Qualité</div>
+        <h2>Les référentiels que nous appliquons.</h2>
+      </div>
+      <div class="qgrid">
+        <div class="value reveal d1"><div class="vn">BPF</div><h4>Bonnes Pratiques</h4><p>Production conforme aux Bonnes Pratiques de Fabrication pharmaceutiques.</p></div>
+        <div class="value reveal d2"><div class="vn">PH. EUR</div><h4>Pharmacopée</h4><p>Matières premières conformes aux référentiels des pharmacopées en vigueur.</p></div>
+        <div class="value reveal d3"><div class="vn">ICH</div><h4>Stabilité</h4><p>Études de stabilité conduites selon les lignes directrices ICH.</p></div>
+        <div class="value reveal d4"><div class="vn">RÉG</div><h4>Étiquetage</h4><p>Mentions, dosages et allégations conformes à la réglementation.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ====================================================== CERTIFICATIONS ====================================================== -->
+<main class="page" id="page-certifications" data-page="certifications" data-screen-label="CERTIFICATIONS">
+
+  <section class="page-hero" data-bg="cert">
+    <div class="wrap">
+      <div class="inner">
+        <div class="kicker gold reveal">Qualité & Conformité</div>
+        <h1 class="reveal d1">Qualité & <span class="accent">Conformité</span></h1>
+        <p class="sub reveal d2">Nos certifications ne sont pas de simples logos : ce sont des engagements audités qui protègent vos patients et sécurisent votre officine. Voici ce qu'elles signifient concrètement pour vous.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ap-section" data-bg="cert">
+    <div class="wrap">
+      <div class="certrows">
+        <div class="certbig reveal d1">
+          <div class="cleft">
+            <div class="cbicon a"></div>
+            <div class="cstd">Norme ISO 9001:2015</div>
+            <h3>Management de la Qualité</h3>
+          </div>
+          <div class="cbody">
+            <p>Notre système de management de la qualité est certifié et audité régulièrement. Il garantit des processus maîtrisés, documentés et soumis à une démarche d'amélioration continue.</p>
+            <div class="clabel">Pour votre officine</div>
+            <ul class="commit">
+              <li>Une qualité constante d'un lot à l'autre, sans mauvaise surprise au réassort.</li>
+              <li>Des processus tracés et auditables, gage de fiabilité à long terme.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="certbig reveal d2">
+          <div class="cleft">
+            <div class="cbicon b"></div>
+            <div class="cstd">Référentiel BPF</div>
+            <h3>Bonnes Pratiques de Fabrication</h3>
+          </div>
+          <div class="cbody">
+            <p>L'ensemble de notre production applique les Bonnes Pratiques de Fabrication pharmaceutiques : environnements contrôlés, procédures validées et contrôle qualité systématique à chaque lot.</p>
+            <div class="clabel">Pour votre officine</div>
+            <ul class="commit">
+              <li>Des produits fabriqués selon des exigences pharmaceutiques strictes.</li>
+              <li>La garantie de formules sûres à recommander à vos patients.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="certbig reveal d3">
+          <div class="cleft">
+            <div class="cbicon"></div>
+            <div class="cstd">Traçabilité Totale</div>
+            <h3>Du lot à l'officine</h3>
+          </div>
+          <div class="cbody">
+            <p>Chaque lot est documenté de la matière première à la livraison. Le dossier de lot complet est conservé et reste disponible sur simple demande de votre part.</p>
+            <div class="clabel">Pour votre officine</div>
+            <ul class="commit">
+              <li>Un dossier de lot et un certificat d'analyse accessibles à tout moment.</li>
+              <li>Une réactivité totale en cas de question patient ou de rappel.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ap-section" data-bg="join">
+    <div class="wrap">
+      <div class="future-grid">
+        <div class="panel reveal">
+          <div class="kicker">Notre Promesse</div>
+          <h2>La qualité, un engagement écrit.</h2>
+          <p>Nous nous engageons à fournir des produits conformes, sûrs et documentés, et à mettre à disposition de chaque pharmacie partenaire l'ensemble de la documentation réglementaire associée à ses commandes.</p>
+          <ul class="commit" style="margin-top:24px">
+            <li>Conformité vérifiée et libération qualité de chaque lot.</li>
+            <li>Documentation complète remise sur demande.</li>
+            <li>Interlocuteur qualité dédié aux officines partenaires.</li>
+          </ul>
+        </div>
+        <div class="panel reveal d2">
+          <div class="kicker gold">Documentation de Lot</div>
+          <h2 style="font-size:clamp(26px,3vw,38px);margin-bottom:24px">Disponible sur demande.</h2>
+          <div class="doclist">
+            <div class="docrow"><span class="dname">Certificat d'analyse (CoA)</span><span class="dtag">Sur demande</span></div>
+            <div class="docrow"><span class="dname">Dossier de lot</span><span class="dtag">Sur demande</span></div>
+            <div class="docrow"><span class="dname">Fiche technique produit</span><span class="dtag">Sur demande</span></div>
+            <div class="docrow"><span class="dname">Fiche de données de sécurité</span><span class="dtag">Sur demande</span></div>
+          </div>
+          <button class="btn btn-ghost" data-nav="contact" style="margin-top:30px">Demander un document <span class="arr">→</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ====================================================== CONTACT ====================================================== -->
+<main class="page" id="page-contact" data-page="contact" data-screen-label="CONTACT">
+
+  <section class="page-hero" data-bg="join">
+    <div class="wrap">
+      <div class="inner">
+        <div class="kicker reveal">Contact · Service Officines</div>
+        <h1 class="reveal d1">Contactez-<span class="accent">Nous</span></h1>
+        <p class="sub reveal d2">Une question sur nos produits, une demande de tarifs grossiste ou de documentation ? Notre équipe répond aux pharmaciens sous 24h ouvrées.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ap-section" data-bg="join">
+    <div class="wrap">
+      <div class="contact-grid">
+        <div class="glass reveal">
+          <div class="kicker" style="margin-bottom:24px">Écrivez-nous</div>
+          <form class="form jsform" novalidate>
+            <div class="formrow">
+              <div class="field"><label>Nom</label><input type="text" required placeholder="Votre nom" /><span class="errmsg">Champ requis</span></div>
+              <div class="field"><label>Pharmacie</label><input type="text" required placeholder="Nom de l'officine" /><span class="errmsg">Champ requis</span></div>
+            </div>
+            <div class="formrow">
+              <div class="field"><label>Email</label><input type="email" required placeholder="vous@pharmacie.ma" /><span class="errmsg">Email invalide</span></div>
+              <div class="field"><label>Téléphone</label><input type="tel" placeholder="+212 ..." /><span class="errmsg">Champ requis</span></div>
+            </div>
+            <div class="field"><label>Message</label><textarea required placeholder="Votre message"></textarea><span class="errmsg">Champ requis</span></div>
+            <button type="submit" class="btn btn-primary">Envoyer le message <span class="arr">→</span></button>
+          </form>
+          <div class="formok"><div class="ok-k">Message envoyé</div><h3>Merci, votre message a bien été reçu.</h3><p>Notre service officines vous répondra sous 24h ouvrées à l'adresse indiquée.</p></div>
+        </div>
+        <div class="cinfo reveal d2">
+          <div class="ci"><div class="k">Adresse</div><div class="v">Zone Industrielle<br/>Casablanca, Maroc</div></div>
+          <div class="ci"><div class="k">Email</div><div class="v"><a href="mailto:contact@neovalpharma.ma">contact@neovalpharma.ma</a></div></div>
+          <div class="ci"><div class="k">Téléphone</div><div class="v"><a href="tel:+212522000000">+212 5 22 00 00 00</a></div></div>
+          <div class="ci"><div class="k">Service Commercial</div><div class="v"><a href="mailto:commercial@neovalpharma.ma">commercial@neovalpharma.ma</a></div></div>
+          <div class="ci"><div class="k">Horaires</div><div class="v">Lundi – Vendredi · 9h – 18h</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ap-section" data-bg="cert">
+    <div class="wrap">
+      <div class="portal-panel">
+        <div class="glass gold reveal">
+          <div class="kicker gold" style="margin-bottom:22px">Portail Pharmacie</div>
+          <h2 style="font-size:clamp(28px,3.6vw,46px);margin-bottom:16px">Demander un accès au portail.</h2>
+          <p style="color:var(--body);font-size:16px;line-height:1.65;max-width:620px;margin-bottom:36px">Réservé aux pharmacies d'officine. Accédez au catalogue grossiste, aux tarifs préférentiels et à la commande en ligne. Renseignez vos informations, nous validons votre compte sous 48h.</p>
+          <form class="form jsform" novalidate>
+            <div class="formrow">
+              <div class="field"><label>Nom de la pharmacie</label><input type="text" required placeholder="Pharmacie ..." /><span class="errmsg">Champ requis</span></div>
+              <div class="field"><label>Ville</label><input type="text" required placeholder="Ville" /><span class="errmsg">Champ requis</span></div>
+            </div>
+            <div class="formrow">
+              <div class="field"><label>Email professionnel</label><input type="email" required placeholder="officine@email.ma" /><span class="errmsg">Email invalide</span></div>
+              <div class="field"><label>Téléphone</label><input type="tel" required placeholder="+212 ..." /><span class="errmsg">Champ requis</span></div>
+            </div>
+            <div class="field"><label>N° RC / ICE</label><input type="text" placeholder="Identifiant de l'officine (optionnel)" /></div>
+            <button type="submit" class="btn btn-primary">Demander l'accès <span class="arr">→</span></button>
+          </form>
+          <div class="formok"><div class="ok-k">Demande reçue</div><h3>Votre demande d'accès est enregistrée.</h3><p>Notre équipe vérifie vos informations et active votre portail sous 48h. Vous recevrez vos identifiants par email.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+</div>
+
+<!-- ============ PRODUCT MODAL ============ -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <button class="mclose" data-close aria-label="Fermer">✕</button>
+    <div class="mcat" id="m-cat"></div>
+    <h2 id="m-name"></h2>
+    <p class="mlong" id="m-long"></p>
+    <div class="mspec">
+      <div class="row"><div class="k">Ingrédients</div><div class="v" id="m-ing"></div></div>
+      <div class="row"><div class="k">Posologie</div><div class="v" id="m-dos"></div></div>
+      <div class="row"><div class="k">Conditionnement</div><div class="v" id="m-pack"></div></div>
+    </div>
+    <div class="mcta">
+      <button class="btn btn-primary" data-nav="contact" data-close>Commander <span class="arr">→</span></button>
+      <button class="btn btn-ghost" data-close>Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="fcol">
+        <button class="brand" data-nav="home"><span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nBr" x1="80%" y1="10%" x2="44%" y2="94%"><stop offset="0%" stop-color="#46F4D4"/><stop offset="30%" stop-color="#0DBFA8"/><stop offset="64%" stop-color="#1C8FD6"/><stop offset="100%" stop-color="#283FB6"/></linearGradient><linearGradient id="nBl" x1="26%" y1="26%" x2="60%" y2="96%"><stop offset="0%" stop-color="#27E2CB"/><stop offset="46%" stop-color="#1AA0D2"/><stop offset="100%" stop-color="#1B2C92"/></linearGradient><linearGradient id="nBs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1C8FD6"/><stop offset="100%" stop-color="#1B2A8C"/></linearGradient><radialGradient id="nBsh" cx="60%" cy="26%" r="58%"><stop offset="0%" stop-color="#FFFFFF" stop-opacity=".6"/><stop offset="60%" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient><filter id="nBg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.5"/></filter></defs><path d="M57,72 C55,92 53,108 62,124" fill="none" stroke="url(#nBs)" stroke-width="5" stroke-linecap="round"/><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z" fill="url(#nBr)" stroke="#0E2A66" stroke-opacity=".28" stroke-width="1.1" stroke-linejoin="round"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z" fill="url(#nBl)" stroke="#0E2A66" stroke-opacity=".28" stroke-width="1.1" stroke-linejoin="round"/><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z" fill="url(#nBsh)"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z" fill="url(#nBsh)"/><path d="M62,90 C72,63 82,43 92,29" fill="none" stroke="#EFFFFB" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/><path d="M52,87 C47,69 43,54 39,43" fill="none" stroke="#EFFFFB" stroke-opacity=".4" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="86" cy="30" rx="5" ry="8" fill="#FFFFFF" fill-opacity=".7" filter="url(#nBg)" transform="rotate(38 86 30)"/><ellipse cx="41" cy="48" rx="3.4" ry="6" fill="#EAFEFF" fill-opacity=".55" filter="url(#nBg)" transform="rotate(20 41 48)"/></svg></span><span class="name">NEOVAL&nbsp;PHARMA</span></button>
+        <p class="tag">Laboratoire pharmaceutique marocain. Compléments alimentaires et cosmétiques premium, distribués en gros aux pharmacies d'officine.</p>
+      </div>
+      <div class="fcol">
+        <h4>Navigation</h4>
+        <a data-nav="home">Accueil</a>
+        <a data-nav="produits">Produits</a>
+        <a data-nav="apropos">À Propos</a>
+        <a data-nav="fabrication">Fabrication</a>
+        <a data-nav="certifications">Certifications</a>
+      </div>
+      <div class="fcol">
+        <h4>Contact</h4>
+        <span class="fline">Zone Industrielle, Casablanca</span>
+        <span class="fline">Maroc</span>
+        <a href="mailto:contact@neovalpharma.ma">contact@neovalpharma.ma</a>
+        <a href="tel:+212522000000">+212 5 22 00 00 00</a>
+      </div>
+    </div>
+    <div class="fbar">
+      <span>© 2026 NEOVAL PHARMA — TOUS DROITS RÉSERVÉS</span>
+      <span>ISO 9001:2015 · BPF · MADE IN MOROCCO</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.documentElement.classList.add('js');
+
+/* ============ BACKGROUND IMAGES (verified Unsplash, matched per section) ============ */
+var Q='?auto=format&fit=crop&w=1920&q=80';
+var IMG = {
+  hero:'https://images.unsplash.com/photo-1779727279604-19ebb58b8b83'+Q,
+  labo:'https://images.unsplash.com/photo-1478744919174-118dbd24973e'+Q,
+  fab :'https://images.unsplash.com/photo-1757578097654-fdae0f7cf008'+Q,
+  prod:'https://images.unsplash.com/photo-1763667926453-6a992d38ac43'+Q,
+  cert:'https://images.unsplash.com/photo-1745420052756-1b1c294a6420'+Q,
+  join:'https://images.unsplash.com/photo-1581056771085-3ce30d907416'+Q
+};
+var FALLBACK = {
+  hero:'linear-gradient(135deg,#07101f 0%,#0c2436 50%,#061a22 100%)',
+  labo:'linear-gradient(150deg,#061421 0%,#0a2230 60%,#07181f 100%)',
+  fab :'linear-gradient(135deg,#08111e 0%,#0e2a30 100%)',
+  prod:'linear-gradient(135deg,#0a1626 0%,#10242e 100%)',
+  cert:'linear-gradient(150deg,#070f1c 0%,#12222b 100%)',
+  join:'linear-gradient(135deg,#061018 0%,#0b2230 100%)'
+};
+Object.keys(IMG).forEach(function(k){
+  var el=document.getElementById('bg-'+k);
+  el.style.backgroundImage = "url('"+IMG[k]+"'), "+FALLBACK[k];
+  var test=new Image();
+  test.onerror=function(){ el.style.backgroundImage=FALLBACK[k]; };
+  test.src=IMG[k];
+});
+
+/* ============ BACKGROUND SWITCHER (scoped to active page) ============ */
+var pageSections=[];
+var currentBg=null;
+function setBg(key){
+  if(currentBg===key) return;
+  currentBg=key;
+  document.querySelectorAll('.bg-image').forEach(function(b){b.classList.remove('active')});
+  var t=document.getElementById('bg-'+key);
+  if(t) t.classList.add('active');
+}
+function pickBg(){
+  if(!pageSections.length) return;
+  var mid=window.innerHeight*0.42, best=null, bestD=Infinity;
+  pageSections.forEach(function(s){
+    var r=s.getBoundingClientRect(), d;
+    if(r.top<=mid && r.bottom>=mid) d=0;
+    else d=Math.min(Math.abs(r.top-mid),Math.abs(r.bottom-mid));
+    if(d<bestD){bestD=d;best=s;}
+  });
+  if(best) setBg(best.getAttribute('data-bg'));
+}
+function refreshSections(){
+  var ap=document.querySelector('.page.active');
+  pageSections=ap?[].slice.call(ap.querySelectorAll('[data-bg]')):[];
+  pickBg();
+}
+
+/* ============ REVEAL (scroll-driven, scoped to active page) ============ */
+var pageReveals=[];
+function armReveals(pageEl){
+  pageReveals=[].slice.call(pageEl.querySelectorAll('.reveal'));
+  pageReveals.forEach(function(el){el.classList.remove('in')});
+  requestAnimationFrame(checkReveals);
+}
+function checkReveals(){
+  if(!pageReveals.length) return;
+  var h=window.innerHeight*0.90;
+  pageReveals.forEach(function(el){
+    if(!el.classList.contains('in')){
+      var r=el.getBoundingClientRect();
+      if(r.top<h && r.bottom>0) el.classList.add('in');
+    }
+  });
+}
+
+/* ============ ROUTER ============ */
+var ROUTES={
+  home:{page:'home'},
+  produits:{page:'produits'},
+  apropos:{page:'apropos'},
+  fabrication:{page:'fabrication'},
+  certifications:{page:'certifications'},
+  contact:{page:'contact'}
+};
+var nav=document.getElementById('nav');
+var navAnchors=[].slice.call(document.querySelectorAll('#navlinks a'));
+function setActiveNav(key){
+  navAnchors.forEach(function(a){
+    a.classList.toggle('active', a.getAttribute('data-nav')===key && !a.classList.contains('nav-cta'));
+  });
+}
+function scrollToSection(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  var y=el.getBoundingClientRect().top+window.pageYOffset-70;
+  window.scrollTo({top:y,behavior:'smooth'});
+}
+var routing=false;
+function go(key,opts){
+  opts=opts||{};
+  var r=ROUTES[key]||ROUTES.home;
+  var targetPageId='page-'+r.page;
+  var cur=document.querySelector('.page.active');
+  var next=document.getElementById(targetPageId);
+  setActiveNav(key);
+  if(location.hash!=='#'+key && !opts.fromHash){ history.replaceState(null,'',('#'+key)); }
+
+  if(cur===next){
+    // same page — just scroll
+    if(r.section){ scrollToSection(r.section); }
+    else { window.scrollTo({top:0,behavior:opts.instant?'auto':'smooth'}); }
+    return;
+  }
+  if(routing) return;
+  routing=true;
+  cur.classList.remove('shown');
+  setTimeout(function(){
+    cur.classList.remove('active');
+    next.classList.add('active');
+    window.scrollTo(0,0);
+    refreshSections();
+    armReveals(next);
+    requestAnimationFrame(function(){
+      next.classList.add('shown');
+      routing=false;
+      if(r.section){ setTimeout(function(){scrollToSection(r.section)},120); }
+    });
+  },380);
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-nav]');
+  if(t){ e.preventDefault(); go(t.getAttribute('data-nav')); 
+    closeMenu(); }
+});
+window.addEventListener('hashchange',function(){
+  var key=location.hash.replace('#','')||'home';
+  if(ROUTES[key]) go(key,{fromHash:true});
+});
+
+/* ============ SCROLL: nav solid + bg + reveals ============ */
+var tick=false;
+window.addEventListener('scroll',function(){
+  if(window.scrollY>40) nav.classList.add('solid'); else nav.classList.remove('solid');
+  if(tick) return; tick=true;
+  requestAnimationFrame(function(){ pickBg(); checkReveals(); tick=false; });
+},{passive:true});
+window.addEventListener('resize',function(){pickBg();checkReveals();},{passive:true});
+
+/* ============ MOBILE MENU ============ */
+var burger=document.getElementById('burger'),nl=document.getElementById('navlinks'),navBackdrop=document.getElementById('navBackdrop');
+function setMenu(open){
+  nl.classList.toggle('open',open);
+  burger.classList.toggle('active',open);
+  burger.setAttribute('aria-expanded',open?'true':'false');
+  if(navBackdrop)navBackdrop.classList.toggle('show',open);
+  document.body.classList.toggle('nav-open',open);
+}
+function closeMenu(){setMenu(false);}
+burger.addEventListener('click',function(){setMenu(!nl.classList.contains('open'));});
+if(navBackdrop)navBackdrop.addEventListener('click',closeMenu);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nl.classList.contains('open'))closeMenu();});
+
+/* ============ PRODUCTS DATA ============ */
+var PRODUCTS=[
+  {code:'NV-01',cat:'Compléments · Oméga',tags:['Compléments'],name:'OmegaPure 3000',
+   short:'Acides gras oméga-3 hautement concentrés et purifiés, pour la santé cardiovasculaire.',
+   long:'Huile de poisson sauvage ultra-purifiée, titrée à 3000 mg d\'oméga-3 par dose journalière. Soutient la fonction cardiaque et cérébrale ainsi que la régulation des triglycérides. Désodorisée pour un confort digestif optimal.',
+   ing:'Huile de poisson (EPA 1800 mg, DHA 1200 mg), vitamine E naturelle, enveloppe de gélatine marine.',
+   dos:'2 capsules par jour au cours d\'un repas.',
+   pack:'Flacon de 60 capsules molles · Boîte grossiste de 12 unités.'},
+  {code:'NV-02',cat:'Immunité',tags:['Immunité'],name:'ImmunoShield+',
+   short:'Complexe vitamine C, zinc et plantes pour soutenir les défenses naturelles.',
+   long:'Formule synergique associant vitamine C, zinc bisglycinate, échinacée et sureau. Conçue pour renforcer les défenses immunitaires, particulièrement en période hivernale et de fatigue.',
+   ing:'Vitamine C (500 mg), zinc (10 mg), extrait d\'échinacée, extrait de sureau, vitamine D3.',
+   dos:'1 comprimé par jour, en cure de 4 à 6 semaines.',
+   pack:'Pilulier de 30 comprimés · Boîte grossiste de 12 unités.'},
+  {code:'NV-03',cat:'Cosmétique · Soin',tags:['Cosmétiques'],name:'DermaActiv Sérum',
+   short:'Sérum dermo-actif à l\'acide hyaluronique pour hydratation et éclat.',
+   long:'Sérum concentré associant un acide hyaluronique à double poids moléculaire et de la niacinamide. Hydrate intensément, lisse le grain de peau et ravive l\'éclat. Testé sous contrôle dermatologique.',
+   ing:'Acide hyaluronique (haut et bas poids moléculaire), niacinamide, panthénol, eau thermale.',
+   dos:'Appliquer matin et soir sur peau propre, avant la crème.',
+   pack:'Flacon pompe airless 30 ml · Boîte grossiste de 6 unités.'},
+  {code:'NV-04',cat:'Compléments · Minéraux',tags:['Compléments'],name:'MagnésioPure',
+   short:'Magnésium bisglycinate hautement assimilable contre fatigue et stress.',
+   long:'Magnésium sous forme bisglycinate, reconnue pour sa biodisponibilité et sa tolérance digestive. Contribue à réduire la fatigue et à soutenir le système nerveux et la fonction musculaire.',
+   ing:'Bisglycinate de magnésium (300 mg de magnésium élément), vitamine B6.',
+   dos:'2 gélules par jour, de préférence le soir.',
+   pack:'Flacon de 60 gélules · Boîte grossiste de 12 unités.'},
+  {code:'NV-05',cat:'Cosmétique · Anti-âge',tags:['Cosmétiques','Compléments'],name:'CollagenPlus',
+   short:'Collagène marin et vitamine C pour fermeté de la peau et confort articulaire.',
+   long:'Peptides de collagène marin hydrolysé enrichis en vitamine C et acide hyaluronique. Soutient la fermeté cutanée, l\'hydratation et le confort articulaire. Poudre au goût neutre, soluble.',
+   ing:'Peptides de collagène marin (10 g), vitamine C, acide hyaluronique, zinc.',
+   dos:'1 sachet par jour dilué dans un verre d\'eau.',
+   pack:'Boîte de 30 sachets · Carton grossiste de 8 boîtes.'},
+  {code:'NV-06',cat:'Cosmétique · Solaire',tags:['Cosmétiques'],name:'SunBarrier SPF50+',
+   short:'Protection solaire très haute, texture légère non grasse, large spectre.',
+   long:'Crème solaire haute protection SPF50+ à large spectre UVA/UVB. Texture fluide invisible, résistante à l\'eau, enrichie en antioxydants protecteurs. Convient aux peaux sensibles.',
+   ing:'Filtres UVA/UVB photostables, vitamine E, eau thermale, sans parfum.',
+   dos:'Appliquer généreusement avant exposition, renouveler toutes les 2 heures.',
+   pack:'Tube 50 ml · Boîte grossiste de 6 unités.'},
+  {code:'NV-07',cat:'Probiotiques',tags:['Probiotiques'],name:'FloraBalance',
+   short:'Souches probiotiques sélectionnées pour l\'équilibre de la flore intestinale.',
+   long:'Complexe de 8 souches probiotiques documentées (10 milliards UFC) associé à un prébiotique inuline. Soutient l\'équilibre du microbiote et le confort intestinal. Gélules gastro-résistantes.',
+   ing:'Lactobacillus & Bifidobacterium (10 Mds UFC), inuline (FOS).',
+   dos:'1 gélule par jour à jeun.',
+   pack:'Flacon de 30 gélules gastro-résistantes · Boîte grossiste de 12 unités.'},
+  {code:'NV-08',cat:'Compléments · Vitamines',tags:['Compléments'],name:'VitaBoost B-Complex',
+   short:'Complexe complet de vitamines B pour énergie et métabolisme.',
+   long:'Association des 8 vitamines du groupe B sous formes actives. Contribue au métabolisme énergétique normal et à la réduction de la fatigue. Idéal pour les périodes de surmenage.',
+   ing:'Vitamines B1, B2, B3, B5, B6, B8, B9, B12 (formes actives).',
+   dos:'1 comprimé par jour le matin.',
+   pack:'Pilulier de 60 comprimés · Boîte grossiste de 12 unités.'}
+];
+
+/* ---- home preview grid (first 8, compact) ---- */
+(function(){
+  var pg=document.getElementById('pgrid-home');
+  PRODUCTS.forEach(function(p,i){
+    var d=Math.min(8,(i%4)+1);
+    var c=document.createElement('div');
+    c.className='pcard reveal d'+d;
+    c.setAttribute('data-id',i);
+    c.innerHTML='<div class="cat">'+p.cat+'</div><h3>'+p.name+'</h3><p>'+p.short+'</p>'+
+      '<span class="lnk">Voir détails <span>→</span></span>';
+    c.addEventListener('click',function(){openProduct(i)});
+    pg.appendChild(c);
+  });
+})();
+
+/* ---- full catalogue grid + filters ---- */
+var FILTERS=['Tous','Compléments','Cosmétiques','Immunité','Probiotiques'];
+var activeFilter='Tous';
+(function(){
+  var fb=document.getElementById('filterbar');
+  FILTERS.forEach(function(f){
+    var b=document.createElement('button');
+    b.textContent=f;
+    if(f==='Tous') b.classList.add('active');
+    b.addEventListener('click',function(){
+      activeFilter=f;
+      [].slice.call(fb.children).forEach(function(x){x.classList.toggle('active',x===b)});
+      renderCatalog();
+    });
+    fb.appendChild(b);
+  });
+})();
+function renderCatalog(){
+  var grid=document.getElementById('pgrid-full');
+  var count=document.getElementById('catcount');
+  grid.innerHTML='';
+  var list=PRODUCTS.map(function(p,i){return {p:p,i:i}}).filter(function(o){
+    return activeFilter==='Tous' || o.p.tags.indexOf(activeFilter)>-1;
+  });
+  count.textContent=list.length+(list.length>1?' produits':' produit')+(activeFilter!=='Tous'?' · '+activeFilter:'');
+  list.forEach(function(o,n){
+    var p=o.p;
+    var d=Math.min(8,(n%3)+1);
+    var c=document.createElement('div');
+    c.className='pcard-lg reveal d'+d;
+    c.innerHTML='<div class="code">'+p.code+'</div><div class="cat">'+p.cat+'</div>'+
+      '<h3>'+p.name+'</h3><p>'+p.long+'</p>'+
+      '<button class="btn btn-ghost">Voir détails <span class="arr">→</span></button>';
+    c.querySelector('button').addEventListener('click',function(){openProduct(o.i)});
+    grid.appendChild(c);
+  });
+  // reveal the freshly added cards if Produits page is active
+  if(document.getElementById('page-produits').classList.contains('active')){
+    armReveals(document.getElementById('page-produits'));
+  }
+}
+renderCatalog();
+
+/* ============ MODAL ============ */
+var modal=document.getElementById('modal');
+function openProduct(i){
+  var p=PRODUCTS[i];
+  document.getElementById('m-cat').textContent=p.code+' · '+p.cat;
+  document.getElementById('m-name').textContent=p.name;
+  document.getElementById('m-long').textContent=p.long;
+  document.getElementById('m-ing').textContent=p.ing;
+  document.getElementById('m-dos').textContent=p.dos;
+  document.getElementById('m-pack').textContent=p.pack;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  document.body.classList.add('lock');
+}
+function closeModal(){
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+  document.body.classList.remove('lock');
+}
+modal.addEventListener('click',function(e){ if(e.target.closest('[data-close]')) closeModal(); });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
+
+/* ============ FORMS ============ */
+document.querySelectorAll('form.jsform').forEach(function(f){
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var ok=true;
+    f.querySelectorAll('[required]').forEach(function(inp){
+      var v=inp.value.trim();
+      var bad=!v || (inp.type==='email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v));
+      inp.closest('.field').classList.toggle('err',bad);
+      if(bad) ok=false;
+    });
+    if(!ok) return;
+    var box=f.parentNode.querySelector('.formok');
+    f.style.display='none';
+    if(box) box.classList.add('show');
+  });
+  f.addEventListener('input',function(e){ var fld=e.target.closest('.field'); if(fld) fld.classList.remove('err'); });
+});
+
+/* ============ PARTICLES ============ */
+(function(){
+  var c=document.getElementById('particles'),N=22;
+  for(var i=0;i<N;i++){
+    var p=document.createElement('span');p.className='pt';
+    var s=1+Math.random()*2.5;
+    p.style.width=s+'px';p.style.height=s+'px';
+    p.style.left=(Math.random()*100)+'%';
+    p.style.top=(Math.random()*100)+'%';
+    p.style.setProperty('--o',(0.15+Math.random()*0.4).toFixed(2));
+    var dur=14+Math.random()*22;
+    p.style.animationDuration=dur+'s';
+    p.style.animationDelay=(-Math.random()*dur)+'s';
+    c.appendChild(p);
+  }
+})();
+
+/* ============ INIT ============ */
+(function(){
+  var key=location.hash.replace('#','');
+  if(key && ROUTES[key] && key!=='home'){ go(key,{fromHash:true,instant:true}); }
+  else { refreshSections(); armReveals(document.getElementById('page-home')); }
+})();
+
+/* microscope HUD — subtle live telemetry (paused for reduced-motion) */
+(function(){
+  var f=document.getElementById('lvFocus'), c=document.getElementById('lvCount');
+  if(!f||window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  setInterval(function(){
+    f.textContent=(11.1+Math.random()*0.7).toFixed(2);
+    c.textContent=314+Math.floor(Math.random()*11);
+  },1500);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Spectral:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+/* ============================================================
+   NEOVAL PHARMA — PORTAL DESIGN-SYSTEM UPDATE
+   Layered over each page's inline CSS. All rules are scoped to
+   body.theme so they win the cascade without touching markup
+   structure. Per-section temperature via body.p-<section>.
+   ============================================================ */
+
+/* ---- tokens + base rhythm ---- */
+body.theme{
+  --glass:rgba(255,255,255,.04);          /* glassmorphism fill */
+  --teal-soft:rgba(13,191,168,.10);        /* 10% teal wash for hovers */
+  --teal-bright:#3FE9D2;                   /* brightened teal on hover */
+  --gold-soft:rgba(196,160,58,.10);
+  --f-head:'Syne';                         /* tweakable type families */
+  --f-body:'DM Sans';
+  --f-mono:'IBM Plex Mono';
+  line-height:1.7;
+  font-family:var(--f-body),system-ui,sans-serif;
+}
+
+/* ============================================================
+   BACKGROUND — center bloom + per-section colour temperature
+   ============================================================ */
+body.theme #bg-glow{transition:none}
+
+body.p-dash #bg-glow{
+  background:
+    radial-gradient(72% 56% at 50% 36%, rgba(245,247,250,.035) 0%, transparent 62%),
+    radial-gradient(46% 46% at 10% 94%, rgba(13,191,168,.11) 0%, transparent 60%);
+}
+body.p-cat #bg-glow{
+  background:
+    radial-gradient(70% 58% at 50% 32%, rgba(245,247,250,.055) 0%, transparent 64%);
+}
+body.p-orders #bg-glow{
+  background:
+    radial-gradient(70% 55% at 50% 34%, rgba(245,247,250,.028) 0%, transparent 62%),
+    radial-gradient(56% 50% at 84% 4%,  rgba(120,150,195,.09) 0%, transparent 60%),
+    radial-gradient(52% 52% at 6% 98%,  rgba(120,150,195,.06) 0%, transparent 60%);
+}
+body.p-docs #bg-glow{
+  background:
+    radial-gradient(58% 44% at 50% 30%, rgba(245,247,250,.02) 0%, transparent 60%);
+}
+body.p-account #bg-glow{
+  background:
+    radial-gradient(70% 55% at 50% 34%, rgba(245,247,250,.03) 0%, transparent 62%),
+    radial-gradient(52% 46% at 86% 10%, rgba(196,160,58,.10) 0%, transparent 60%);
+}
+body.p-login #bg-glow{
+  background:
+    radial-gradient(60% 50% at 50% 40%, rgba(13,191,168,.10) 0%, transparent 62%),
+    radial-gradient(48% 40% at 78% 90%, rgba(196,160,58,.06) 0%, transparent 60%);
+}
+
+/* faint dot grid — opacity tweakable via --dot-op */
+body.theme::after{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:radial-gradient(rgba(245,247,250,.9) 0.8px, transparent 1.3px);
+  background-size:24px 24px;
+  opacity:var(--dot-op,.06);
+}
+
+/* background style variants (palette-reactive) */
+body.dbg-bloom #bg-glow{
+  background:
+    radial-gradient(72% 56% at 50% 36%, rgba(245,247,250,.035) 0%, transparent 62%),
+    radial-gradient(46% 46% at 10% 94%, color-mix(in srgb,var(--teal) 12%,transparent) 0%, transparent 60%);
+}
+body.dbg-aurora #bg-glow{
+  background:
+    radial-gradient(42% 60% at 10% 18%, color-mix(in srgb,var(--teal) 15%,transparent), transparent 60%),
+    radial-gradient(46% 56% at 90% 28%, color-mix(in srgb,var(--gold) 13%,transparent), transparent 60%),
+    radial-gradient(60% 50% at 50% 104%, color-mix(in srgb,var(--teal) 11%,transparent), transparent 60%);
+}
+body.dbg-mesh #bg-glow{
+  background:
+    radial-gradient(36% 40% at 16% 22%, color-mix(in srgb,var(--teal) 17%,transparent), transparent 56%),
+    radial-gradient(34% 38% at 84% 16%, color-mix(in srgb,var(--gold) 14%,transparent), transparent 56%),
+    radial-gradient(40% 42% at 72% 90%, color-mix(in srgb,var(--teal) 12%,transparent), transparent 56%),
+    radial-gradient(32% 36% at 24% 88%, color-mix(in srgb,var(--gold) 10%,transparent), transparent 56%);
+}
+body.dbg-minimal #bg-glow{
+  background:radial-gradient(60% 46% at 50% 30%, rgba(245,247,250,.02) 0%, transparent 60%);
+}
+
+/* ============================================================
+   TYPOGRAPHY — architectural Syne, airy DM Sans, quiet mono
+   ============================================================ */
+body.theme h1,
+body.theme h2,
+body.theme h3,
+body.theme h4{
+  font-family:var(--f-head),sans-serif;
+  font-weight:400;
+  letter-spacing:.08em;
+}
+body.theme .brand .name{font-family:var(--f-head),sans-serif;font-weight:500;letter-spacing:.18em}
+
+/* tame the heaviest display numerals — scale carries them now */
+body.theme .stat .num,
+body.theme .price .amt,
+body.theme .sumrow.tot .v,
+body.theme .sr.tot .v,
+body.theme .ohead .right .tv,
+body.theme .orow .ototal,
+body.theme .line .ltot,
+body.theme .li .st,
+body.theme .donecard h2,
+body.theme .pcard h3{
+  font-family:var(--f-head),sans-serif;
+  font-weight:500;
+  letter-spacing:.012em;
+}
+
+/* body copy: more breathing room */
+body.theme .head p,
+body.theme .pcard .desc,
+body.theme .donecard p,
+body.theme .empty p,
+body.theme .nf p,
+body.theme .cartempty p{
+  line-height:1.75;
+  font-size:15.5px;
+}
+
+/* IBM Plex Mono metadata — quieter, 70% */
+body.theme .kicker,
+body.theme .ohead .left .kick,
+body.theme .stat .lbl,
+body.theme .pcard .ref,
+body.theme .price .unit,
+body.theme .ph-note,
+body.theme .docs .note,
+body.theme .acard .csub,
+body.theme .field .hint,
+body.theme .field label,
+body.theme .sumnote,
+body.theme .tbcount,
+body.theme .count,
+body.theme .row .rt,
+body.theme .orow .odate,
+body.theme .drow .ocmd,
+body.theme .drow .ddate{
+  opacity:.7;
+}
+
+/* mono family application (so --f-mono can swap globally) */
+body.theme .mono,body.theme .kicker,body.theme .ohead .left .kick,
+body.theme .stat .lbl,body.theme .pcard .ref,body.theme .price .unit,
+body.theme .ph-note,body.theme .docs .note,body.theme .acard .csub,
+body.theme .field .hint,body.theme .field label,body.theme .sumnote,
+body.theme .tbcount,body.theme .count,body.theme .row .rt,body.theme .orow .onum,
+body.theme .orow .odate,body.theme .drow .nm,body.theme .drow .ocmd,body.theme .drow .ddate,
+body.theme .bar-nav a,body.theme .cartlink,body.theme .who .meta .r,body.theme .logout,
+body.theme .tag,body.theme .filters button,body.theme .chip,body.theme .addbtn,
+body.theme .confirm,body.theme .save,body.theme .submit .label,body.theme .dl,
+body.theme .stepper .q{
+  font-family:var(--f-mono),monospace;
+}
+
+/* page titles — thin 40px gold rule underneath */
+body.theme .head h1::after,
+body.theme .ohead .left h1::after{
+  content:"";display:block;width:40px;height:1px;
+  background:var(--gold);margin-top:18px;
+}
+
+/* ============================================================
+   BUTTONS — no solid fills, sharp corners, restrained states
+   ============================================================ */
+/* primary CTAs: teal outline, transparent fill */
+body.theme .submit,
+body.theme .confirm,
+body.theme .save,
+body.theme .reorder,
+body.theme .donecard a{
+  background:transparent;
+  border:1px solid var(--teal);
+  color:var(--teal);
+  border-radius:0;
+}
+body.theme .submit:hover,
+body.theme .confirm:hover,
+body.theme .save:hover:not(:disabled),
+body.theme .reorder:hover,
+body.theme .donecard a:hover{
+  background:var(--teal-soft);
+  color:var(--teal-bright);
+  box-shadow:none;
+}
+body.theme .save:disabled{
+  background:transparent;border-color:var(--hair);color:var(--faint);
+}
+
+/* small teal outline actions: soften hover from solid → 10% wash */
+body.theme .addbtn:hover:not(:disabled),
+body.theme .cartempty a:hover,
+body.theme .empty a:hover,
+body.theme .nf a:hover,
+body.theme .dl:hover,
+body.theme .doc .dl:hover{
+  background:var(--teal-soft);
+  color:var(--teal-bright);
+  box-shadow:none;
+}
+
+/* topbar cart link */
+body.theme .cartlink:hover{background:var(--teal-soft);color:var(--teal-bright)}
+body.theme .cartlink:hover .cn{background:transparent;color:var(--teal-bright)}
+body.theme .cartlink .cn{background:var(--teal-soft);color:var(--teal);border-radius:0}
+
+/* quantity stepper */
+body.theme .stepper button:hover{background:var(--teal-soft);color:var(--teal-bright)}
+
+/* filter chips / tabs — tinted active, never solid */
+body.theme .chip.active{background:var(--teal-soft);border-color:var(--teal);color:var(--teal)}
+body.theme .filters button.active{background:var(--teal-soft);color:var(--teal)}
+body.theme .filters button.active .ct{border-color:rgba(13,191,168,.4);color:var(--teal)}
+
+/* account avatar active state */
+body.theme .who.active .av{background:transparent;color:var(--teal)}
+
+/* ghost / text actions — underline on hover */
+body.theme .keep:hover,
+body.theme .docs-all:hover,
+body.theme .back:hover,
+body.theme .logout:hover,
+body.theme .askaccess a:hover{text-decoration:underline;text-underline-offset:3px}
+/* destructive (remove) — text only, underline on hover */
+body.theme .line .rm:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* sharp corners on the last rounded bits */
+body.theme .cn,
+body.theme .donecard .check{border-radius:0}
+
+/* primary-CTA pulse ring — single expanding ring, 2 cycles on load */
+@media (prefers-reduced-motion: no-preference){
+  body.theme .submit,
+  body.theme .confirm,
+  body.theme .reorder{position:relative}
+  body.theme .submit::after,
+  body.theme .confirm::after,
+  body.theme .reorder::after{
+    content:"";position:absolute;inset:0;border:1px solid var(--teal);
+    pointer-events:none;opacity:0;
+    animation:ctaPulse 1.25s cubic-bezier(.16,1,.3,1) 2;
+  }
+}
+@keyframes ctaPulse{
+  0%{opacity:.55;transform:scale(1)}
+  100%{opacity:0;transform:scale(1.14)}
+}
+
+/* ============================================================
+   CARDS & ROWS — glass, hover lift + instant teal left flash
+   ============================================================ */
+body.theme .stat,
+body.theme .panel,
+body.theme .pcard,
+body.theme .acard,
+body.theme .sum,
+body.theme .card,
+body.theme .lines,
+body.theme .list,
+body.theme .filters,
+body.theme .auth .card{
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+}
+
+body.theme .stat,
+body.theme .panel,
+body.theme .pcard,
+body.theme .acard{
+  transition:transform .18s ease, border-color .18s ease, box-shadow 0s;
+}
+body.theme .stat:hover,
+body.theme .panel:hover,
+body.theme .pcard:hover,
+body.theme .acard:hover{
+  transform:translateY(-2px);
+  box-shadow:inset 3px 0 0 var(--teal), 0 18px 40px -28px rgba(0,0,0,.6);
+}
+
+/* table rows: instant teal left border on hover (no layout shift) */
+body.theme .drow,
+body.theme .row{transition:background .2s, box-shadow 0s}
+body.theme .drow:hover,
+body.theme .row:hover{box-shadow:inset 2px 0 0 var(--teal)}
+body.theme .row:hover{background:rgba(13,191,168,.04)}
+body.theme .orow::before{transition:none}  /* make existing flash instant */
+
+/* ============================================================
+   FORM FIELDS — teal focus + floating-label lift
+   ============================================================ */
+body.theme .field label{
+  transition:color .2s ease, transform .2s ease, opacity .2s ease;
+  transform-origin:left center;
+}
+body.theme .field:focus-within label{
+  color:var(--teal);
+  opacity:1;
+  transform:translateY(-3px);
+}
+body.theme .field input:focus{
+  border-color:var(--teal);
+  box-shadow:0 0 0 3px rgba(13,191,168,.12);
+}
+
+/* ============================================================
+   STATUS TAGS — subtle inner glow matching tag colour
+   ============================================================ */
+body.theme .tag.attente{box-shadow:inset 0 0 12px rgba(196,160,58,.20)}
+body.theme .tag.confirme{box-shadow:inset 0 0 12px rgba(13,191,168,.20)}
+body.theme .tag.livre{box-shadow:inset 0 0 12px rgba(245,247,250,.08)}
+body.theme .tag.bl{box-shadow:inset 0 0 12px rgba(13,191,168,.20)}
+body.theme .tag.pop{box-shadow:inset 0 0 12px rgba(196,160,58,.20)}
+
+/* ============================================================
+   TOPBAR — declutter: single-line nav, tighter rhythm,
+   secondary identity line dropped so nothing is glued together
+   ============================================================ */
+body.theme #bar .wrap{gap:18px}
+body.theme .bar-nav{gap:20px}
+body.theme .bar-nav a{white-space:nowrap;font-size:11px;letter-spacing:.07em}
+body.theme .bar-right{gap:14px}
+/* .cartlink also carries class "empty" (cart-is-empty), which collides with the
+   page-level .empty state rule — reset every property that rule leaks in */
+body.theme .cartlink{display:inline-flex;margin:0;background:transparent;border:1px solid var(--teal);text-align:left;padding:10px 13px;gap:8px;letter-spacing:.07em}
+body.theme .logout{padding:9px 13px;font-size:10.5px;letter-spacing:.08em}
+body.theme .who{gap:10px}
+body.theme .who .av{width:32px;height:32px}
+body.theme .who .meta .n{font-size:13px;white-space:nowrap}
+/* the pharmacy/role line is available on Mon compte — drop it from the bar */
+body.theme #bar .who .meta .r{display:none}
+/* brand wordmark: a touch tighter so the row breathes */
+body.theme #bar .brand .name{letter-spacing:.13em}
+/* mid widths: collapse identity to the avatar so nav + cart never clip */
+@media (max-width:1100px){
+  body.theme #bar .who .meta{display:none}
+  body.theme #bar .logout{display:none}
+}
+
+/* ============================================================
+   BRAND LEAF MARK — real logo, inlined in markup so it paints
+   on first frame (no swap, no flash). Neutralises the old CSS
+   diamond and applies the leaf-only hover float.
+   ============================================================ */
+body.theme .brand .mark.nv-leafmark{
+  background:none!important;border:0!important;width:auto!important;
+  display:inline-flex;align-items:center;justify-content:center;overflow:visible;
+}
+body.theme .brand .mark.nv-leafmark::before,
+body.theme .brand .mark.nv-leafmark::after{content:none!important;display:none!important}
+body.theme .brand .mark.nv-leafmark .nv-leaf{
+  display:block;height:118%;width:auto;
+  transition:transform .2s ease;
+}
+/* the ONLY animation: a precise upward lift on brand hover */
+body.theme .brand:hover .mark.nv-leafmark .nv-leaf,
+body.theme .brand:focus-visible .mark.nv-leafmark .nv-leaf{transform:translateY(-3px)}
+@media (prefers-reduced-motion: reduce){
+  body.theme .brand .mark.nv-leafmark .nv-leaf{transition:none}
+  body.theme .brand:hover .mark.nv-leafmark .nv-leaf{transform:none}
+}

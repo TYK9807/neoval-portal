@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — Tableau de bord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#060D18;
+  --navy-2:#0A1626;
+  --teal:#0DBFA8;
+  --gold:#C4A03A;
+  --white:#F5F7FA;
+  --body:rgba(245,247,250,.65);
+  --faint:rgba(245,247,250,.40);
+  --hair:rgba(245,247,250,.10);
+  --glass:rgba(10,22,38,.55);
+  --maxw:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+
+#bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(55% 45% at 18% 0%,rgba(13,191,168,.09) 0%,transparent 60%),
+             radial-gradient(50% 45% at 92% 100%,rgba(196,160,58,.06) 0%,transparent 60%)}
+#bg-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%}
+
+/* topbar */
+#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:26px;height:26px;position:relative;flex:0 0 auto}
+/* leaf mark — styled in portal-theme.css */
+.brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:var(--white)}
+.bar-right{display:flex;align-items:center;gap:22px}
+.bar-nav{display:flex;align-items:center;gap:28px}
+.bar-nav a{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);text-decoration:none;transition:color .25s}
+.bar-nav a:hover,.bar-nav a.active{color:var(--teal)}
+.cartlink{position:relative;display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--white);border:1px solid var(--teal);padding:11px 16px;transition:background .25s,color .25s}
+.cartlink:hover{background:var(--teal);color:var(--navy)}
+.cartlink .cn{min-width:20px;height:20px;padding:0 6px;border-radius:11px;background:var(--teal);color:var(--navy);
+  display:inline-grid;place-items:center;font-size:11px;font-weight:500;line-height:1}
+.cartlink:hover .cn{background:var(--navy);color:var(--teal)}
+.cartlink.empty .cn{display:none}
+.who{display:flex;align-items:center;gap:11px}
+.who .av{width:34px;height:34px;border:1px solid var(--teal);display:grid;place-items:center;
+  font-family:'Syne';font-weight:800;font-size:13px;color:var(--teal)}
+.who .meta{display:flex;flex-direction:column;line-height:1.2}
+.who .meta .n{font-size:13.5px;color:var(--white)}
+.who .meta .r{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.logout{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);
+  text-decoration:none;border:1px solid var(--hair);padding:10px 16px;transition:all .25s;white-space:nowrap}
+.logout:hover{color:var(--teal);border-color:var(--teal)}
+
+/* content */
+.head{padding:54px 0 34px}
+.kicker{display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:20px}
+.kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.7}
+.head h1{font-size:clamp(34px,5vw,52px)}
+.head p{color:var(--body);font-size:16px;margin-top:14px;max-width:560px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:22px}
+.stat{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--hair);border-top:2px solid var(--teal);padding:28px 26px}
+.stat:nth-child(even){border-top-color:var(--gold)}
+.stat .num{font-family:'Syne';font-weight:800;font-size:38px;color:var(--teal);line-height:1}
+.stat:nth-child(even) .num{color:var(--gold)}
+.stat .lbl{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--body);margin-top:12px}
+
+.panels{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;padding-bottom:70px}
+.panel{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--hair);padding:36px 34px}
+.panel h3{font-size:21px;margin-bottom:6px}
+.panel .ph-note{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:24px}
+.ph{border:1px dashed rgba(245,247,250,.16);background:repeating-linear-gradient(135deg,rgba(245,247,250,.012) 0 10px,transparent 10px 20px);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:24px}
+.ph.tall{min-height:260px}
+.rows{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--hair)}
+.row:first-child{border-top:1px solid var(--hair)}
+.row .rn{font-size:14.5px;color:var(--white)}
+.row .rt{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);white-space:nowrap}
+.row .rt.pending{color:var(--gold)}
+
+@media(max-width:900px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .panels{grid-template-columns:1fr}
+  .bar-nav{display:none}
+}
+@media(max-width:560px){
+  .wrap{padding:0 22px}
+  .who .meta{display:none}
+}
+</style>
+<link rel="stylesheet" href="portal-theme.css" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Spectral:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style id="dash-tweak-style">
+/* ===== tweakable font families ===== */
+body.theme{--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono'}
+body.theme{font-family:var(--f-body),system-ui,sans-serif}
+body.theme h1,body.theme h2,body.theme h3,body.theme h4,
+body.theme .brand .name,body.theme .stat .num,
+body.theme .cat3d-card .c-glyph,body.theme .cat3d-card .c-price{font-family:var(--f-head),sans-serif}
+body.theme .mono,body.theme .kicker,body.theme .stat .lbl,body.theme .ph-note,
+body.theme .row .rt,body.theme .bar-nav a,body.theme .cartlink,body.theme .who .meta .r,
+body.theme .logout,body.theme .cat3d-card .c-cat,body.theme .cat3d-card .c-ref,
+body.theme .cat3d-browse{font-family:var(--f-mono),monospace}
+
+/* ===== tweakable texture ===== */
+body.theme::after{opacity:var(--dot-op,.06)}
+
+/* ===== background variants ===== */
+body.dbg-bloom #bg-glow{
+  background:
+    radial-gradient(72% 56% at 50% 36%, rgba(245,247,250,.035) 0%, transparent 62%),
+    radial-gradient(46% 46% at 10% 94%, color-mix(in srgb,var(--teal) 12%,transparent) 0%, transparent 60%);
+}
+body.dbg-aurora #bg-glow{
+  background:
+    radial-gradient(42% 60% at 10% 18%, color-mix(in srgb,var(--teal) 15%,transparent), transparent 60%),
+    radial-gradient(46% 56% at 90% 28%, color-mix(in srgb,var(--gold) 13%,transparent), transparent 60%),
+    radial-gradient(60% 50% at 50% 104%, color-mix(in srgb,var(--teal) 11%,transparent), transparent 60%);
+}
+body.dbg-mesh #bg-glow{
+  background:
+    radial-gradient(36% 40% at 16% 22%, color-mix(in srgb,var(--teal) 17%,transparent), transparent 56%),
+    radial-gradient(34% 38% at 84% 16%, color-mix(in srgb,var(--gold) 14%,transparent), transparent 56%),
+    radial-gradient(40% 42% at 72% 90%, color-mix(in srgb,var(--teal) 12%,transparent), transparent 56%),
+    radial-gradient(32% 36% at 24% 88%, color-mix(in srgb,var(--gold) 10%,transparent), transparent 56%);
+}
+body.dbg-minimal #bg-glow{
+  background:radial-gradient(60% 46% at 50% 30%, rgba(245,247,250,.02) 0%, transparent 60%);
+}
+
+/* ===== 3D animated catalogue ===== */
+/* drop backdrop-filter on the host panel so it doesn't flatten the 3D scene */
+body.theme .panel.has-3d{-webkit-backdrop-filter:none;backdrop-filter:none}
+.cat3d{position:relative;display:block;height:300px;margin-top:8px;
+  perspective:1150px;perspective-origin:50% 44%;text-decoration:none;cursor:pointer}
+.cat3d-stage{position:absolute;inset:0;transform-style:preserve-3d;
+  transform:rotateX(var(--cat-tilt,14deg)) rotateY(var(--cat-rot,-22deg))}
+.cat3d:not(.spin) .cat3d-stage{animation:catFloat 7s ease-in-out infinite}
+.cat3d.spin .cat3d-stage{animation:catRock var(--cat-speed,16s) ease-in-out infinite}
+@keyframes catRock{
+  0%,100%{transform:rotateX(var(--cat-tilt,14deg)) rotateY(-23deg)}
+  50%{transform:rotateX(var(--cat-tilt,14deg)) rotateY(23deg)}
+}
+@keyframes catFloat{
+  0%,100%{transform:rotateX(var(--cat-tilt,14deg)) rotateY(-30deg) translateY(-5px)}
+  50%{transform:rotateX(var(--cat-tilt,14deg)) rotateY(-12deg) translateY(7px)}
+}
+body.motion-off .cat3d-stage{animation:none!important}
+
+.cat3d-card{position:absolute;left:50%;top:50%;width:140px;height:186px;margin:-93px 0 0 -70px;
+  background:rgba(8,16,30,.92);
+  background-image:linear-gradient(165deg, color-mix(in srgb,var(--teal) 24%,transparent), transparent 68%);
+  border:1px solid color-mix(in srgb,var(--teal) 34%,transparent);
+  box-shadow:0 28px 56px -26px rgba(0,0,0,.85);
+  display:flex;flex-direction:column;padding:15px 14px;backface-visibility:hidden}
+.cat3d-card .c-cat{align-self:flex-start;font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--teal);border:1px solid color-mix(in srgb,var(--teal) 42%,transparent);padding:3px 7px;opacity:.85}
+.cat3d-card .c-glyph{font-size:48px;font-weight:500;line-height:1;color:var(--teal);opacity:.85;margin:12px 0 auto}
+.cat3d-card .c-name{font-size:12.5px;color:#F5F7FA;line-height:1.25;margin-bottom:4px}
+.cat3d-card .c-ref{font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,247,250,.42)}
+.cat3d-card .c-price{font-size:15px;font-weight:500;color:#F5F7FA;margin-top:9px}
+.cat3d-card .c-price small{font-size:8.5px;color:rgba(245,247,250,.5);margin-left:2px}
+
+.cat3d.stack .cat3d-card{
+  transform:translateX(calc(var(--i) * 30px - 18px)) translateY(calc(var(--i) * -15px + 10px))
+            translateZ(calc(var(--i) * -72px)) rotateY(-16deg) rotateX(3deg)
+            scale(calc(1 - var(--i) * 0.045));
+  opacity:calc(1 - var(--i) * 0.19);
+}
+.cat3d.fan .cat3d-card{
+  transform:rotateY(calc((var(--i) - (var(--n) - 1)/2) * 22deg)) translateZ(166px);
+}
+.cat3d.carousel .cat3d-card{
+  transform:translateX(calc((var(--i) - (var(--n) - 1)/2) * 80px))
+            translateZ(calc(130px - (var(--i) - (var(--n) - 1)/2) * (var(--i) - (var(--n) - 1)/2) * 30px))
+            rotateY(calc((var(--i) - (var(--n) - 1)/2) * -24deg));
+}
+
+.cat3d-browse{display:inline-flex;align-items:center;gap:8px;margin-top:20px;
+  font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--teal);
+  text-decoration:none;border:1px solid var(--teal);padding:11px 16px;
+  transition:background .25s,color .25s}
+.cat3d-browse:hover{background:var(--teal-soft);color:var(--teal-bright)}
+</style>
+</head>
+<body class="theme p-dash">
+<script>
+/* Apply saved tweaks synchronously BEFORE first paint so the page never flashes
+   the default teal/Syne before React mounts. This block is the persisted source
+   of truth (the host rewrites it on tweak changes); the React app reads it too. */
+window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "cat3dStyle": "carousel",
+  "cat3dSpin": true,
+  "cat3dSpeed": 10,
+  "cat3dTilt": 14,
+  "palette": [
+    "#8B7CF0",
+    "#C9A44A"
+  ],
+  "typePairing": "editorial",
+  "bgStyle": "mesh",
+  "dotOpacity": 16,
+  "glass": 11,
+  "reduceMotion": false
+}/*EDITMODE-END*/;
+(function(){
+  var t=window.TWEAK_DEFAULTS,b=document.body;
+  function hx(h){h=String(h).replace('#','');if(h.length===3)h=h.replace(/./g,function(c){return c+c;});var n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+  function hexA(h,a){var c=hx(h);return'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}
+  function lighten(h,a){var c=hx(h);return'rgb('+Math.round(c[0]+(255-c[0])*a)+','+Math.round(c[1]+(255-c[1])*a)+','+Math.round(c[2]+(255-c[2])*a)+')';}
+  var PAIR={architectural:{head:"'Syne'",body:"'DM Sans'",mono:"'IBM Plex Mono'"},grotesk:{head:"'Space Grotesk'",body:"'DM Sans'",mono:"'IBM Plex Mono'"},editorial:{head:"'Spectral'",body:"'DM Sans'",mono:"'IBM Plex Mono'"},technical:{head:"'Space Mono'",body:"'DM Sans'",mono:"'Space Mono'"}};
+  var p=t.palette||['#0DBFA8','#C4A03A'];
+  b.style.setProperty('--teal',p[0]);
+  b.style.setProperty('--gold',p[1]);
+  b.style.setProperty('--teal-soft',hexA(p[0],0.10));
+  b.style.setProperty('--teal-bright',lighten(p[0],0.32));
+  var pr=PAIR[t.typePairing]||PAIR.architectural;
+  b.style.setProperty('--f-head',pr.head);
+  b.style.setProperty('--f-body',pr.body);
+  b.style.setProperty('--f-mono',pr.mono);
+  b.style.setProperty('--glass','rgba(255,255,255,'+(t.glass/100).toFixed(3)+')');
+  b.style.setProperty('--dot-op',(t.dotOpacity/100).toFixed(3));
+  b.classList.add('dbg-'+t.bgStyle);
+  if(t.reduceMotion)b.classList.add('motion-off');
+})();
+</script>
+
+<div id="bg-glow"></div>
+<div id="bg-grain"></div>
+
+<header id="bar">
+  <div class="wrap">
+    <a class="brand" href="Neoval Pharma.html" style="text-decoration:none">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nvLeafGrad" x1="20%" y1="8%" x2="92%" y2="86%"><stop offset="0%" stop-color="#0DBFA8"/><stop offset="54%" stop-color="#1C73C4"/><stop offset="100%" stop-color="#1A3A8F"/></linearGradient></defs><g fill="none" stroke="url(#nvLeafGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/><path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/><path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/><path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/></g></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+    </a>
+    <nav class="bar-nav">
+      <a href="Dashboard.html" class="active">Tableau de bord</a>
+      <a href="Catalogue.html">Catalogue</a>
+      <a href="Mes commandes.html">Mes commandes</a>
+      <a href="Mes documents.html">Documents</a>
+    </nav>
+    <div class="bar-right">
+      <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
+      <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
+        <span class="av">DR</span>
+        <span class="meta">
+          <span class="n">Dr. Reda Amrani</span>
+          <span class="r">Pharmacie Centrale · Rabat</span>
+        </span>
+      </a>
+      <a class="logout" href="Login.html">Déconnexion</a>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <div class="head">
+    <span class="kicker">Portail Pharmacie</span>
+    <h1>Tableau de bord</h1>
+    <p>Bienvenue. Vos commandes validées depuis le catalogue apparaissent ici en temps réel.</p>
+  </div>
+
+  <section class="stats">
+    <div class="stat"><div class="num">128</div><div class="lbl">Références actives</div></div>
+    <div class="stat"><div class="num" id="statOrders">0</div><div class="lbl">Commandes en cours</div></div>
+    <div class="stat"><div class="num" id="statUnits">0</div><div class="lbl">Unités commandées</div></div>
+    <div class="stat"><div class="num">100%</div><div class="lbl">Conformité lots</div></div>
+  </section>
+
+  <section class="panels">
+    <div class="panel">
+      <h3 style="display:flex;align-items:baseline;justify-content:space-between;gap:16px">Commandes récentes<a href="Mes commandes.html" style="font-family:'IBM Plex Mono';font-weight:400;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--body);text-decoration:none;transition:color .2s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color=''">Voir tout&nbsp;→</a></h3>
+      <div class="ph-note" id="recentNote">Données de démonstration</div>
+      <div class="rows" id="recentOrders"></div>
+    </div>
+    <div class="panel has-3d">
+      <h3>Catalogue produits</h3>
+      <div class="ph-note">8 références · vue 3D interactive</div>
+      <a class="cat3d carousel spin" id="cat3d" href="Catalogue.html" aria-label="Parcourir le catalogue">
+        <div class="cat3d-stage" id="cat3dStage"></div>
+      </a>
+      <a href="Catalogue.html" class="cat3d-browse">Parcourir le catalogue&nbsp;→</a>
+    </div>
+  </section>
+</main>
+
+<script src="cart.js"></script>
+<script>
+(function(){
+  var C=window.NeovalCart;
+
+  function sync(){
+    var n=C.count();
+    var cl=document.getElementById('cartLink');
+    document.getElementById('cartCount').textContent=n;
+    cl.classList.toggle('empty',n===0);
+  }
+  window.addEventListener('cart:change',sync);
+
+  var DEMO=[
+    {name:'OmegaPure 3000',units:240,status:'Expédiée'},
+    {name:'MagnésioPure',units:120,status:'En préparation'},
+    {name:'DermaActiv Sérum',units:84,status:'Livrée'},
+    {name:'ImmunoShield+',units:144,status:'En attente'}
+  ];
+  var PENDING={'En préparation':1,'En attente':1};
+
+  function rowHTML(label,status){
+    var pending=PENDING[status]?' pending':'';
+    return '<div class="row"><span class="rn">'+label+'</span><span class="rt'+pending+'">'+status+'</span></div>';
+  }
+
+  function render(){
+    var orders=C.getOrders();
+    var box=document.getElementById('recentOrders');
+    var note=document.getElementById('recentNote');
+    var statOrders=document.getElementById('statOrders');
+    var statUnits=document.getElementById('statUnits');
+
+    if(orders.length){
+      note.textContent=orders.length+' commande'+(orders.length>1?'s':'')+' validée'+(orders.length>1?'s':'');
+      var totalUnits=0;
+      box.innerHTML=orders.slice(0,5).map(function(o){
+        totalUnits+=o.units;
+        var lead=o.items[0]?o.items[0].name:o.id;
+        var extra=o.lineCount>1?' +'+(o.lineCount-1):'';
+        return rowHTML(o.id+' · '+lead+extra+' · '+o.units+' unités',o.status);
+      }).join('');
+      // include units from orders not shown in the top 5 too
+      orders.slice(5).forEach(function(o){totalUnits+=o.units;});
+      statOrders.textContent=String(orders.length).padStart(2,'0');
+      statUnits.textContent=totalUnits.toLocaleString('fr-FR');
+    } else {
+      note.textContent='Données de démonstration';
+      box.innerHTML=DEMO.map(function(d){return rowHTML(d.name+' · '+d.units+' unités',d.status);}).join('');
+      statOrders.textContent='06';
+      statUnits.textContent='588';
+    }
+  }
+
+  window.addEventListener('orders:change',render);
+  sync();
+  render();
+})();
+</script>
+
+<script>
+/* ---- build 3D catalogue cards from product data ---- */
+(function(){
+  var P=(window.NeovalCart&&window.NeovalCart.PRODUCTS)||[];
+  var stage=document.getElementById('cat3dStage');
+  if(!stage) return;
+  var items=P.slice(0,5);
+  if(!items.length){
+    items=[{cat:'Compléments',glyph:'O',name:'OmegaPure 3000',ref:'NV-OMG-300',price:189},
+           {cat:'Immunité',glyph:'I',name:'ImmunoShield+',ref:'NV-IMM-120',price:142},
+           {cat:'Cosmétique',glyph:'D',name:'DermaActiv Sérum',ref:'NV-DRM-050',price:264},
+           {cat:'Articulations',glyph:'F',name:'FlexaJoint',ref:'NV-FLX-090',price:208},
+           {cat:'Énergie',glyph:'V',name:'VitaBoost',ref:'NV-VTB-060',price:96}];
+  }
+  var n=items.length;
+  stage.style.setProperty('--n',n);
+  items.forEach(function(p,i){
+    var c=document.createElement('div');
+    c.className='cat3d-card';
+    c.style.setProperty('--i',i);
+    c.style.setProperty('--n',n);
+    var price=(typeof p.price==='number'?p.price.toLocaleString('fr-FR'):p.price);
+    c.innerHTML='<span class="c-cat">'+p.cat+'</span>'+
+      '<span class="c-glyph">'+p.glyph+'</span>'+
+      '<span class="c-name">'+p.name+'</span>'+
+      '<span class="c-ref">'+p.ref+'</span>'+
+      '<span class="c-price">'+price+'<small>MAD</small></span>';
+    stage.appendChild(c);
+  });
+})();
+</script>
+
+<div id="tweakRoot"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const PALETTES=[
+  ['#0DBFA8','#C4A03A'],
+  ['#3B9AE1','#D98E5A'],
+  ['#8B7CF0','#C9A44A'],
+  ['#1FB271','#A9C24B'],
+  ['#E0688F','#5BB7C4']
+];
+const PAIRINGS={
+  architectural:{head:"'Syne'",body:"'DM Sans'",mono:"'IBM Plex Mono'"},
+  grotesk:{head:"'Space Grotesk'",body:"'DM Sans'",mono:"'IBM Plex Mono'"},
+  editorial:{head:"'Spectral'",body:"'DM Sans'",mono:"'IBM Plex Mono'"},
+  technical:{head:"'Space Mono'",body:"'DM Sans'",mono:"'Space Mono'"}
+};
+function hx(hex){var h=String(hex).replace('#','');if(h.length===3)h=h.replace(/./g,function(c){return c+c;});var n=parseInt(h,16);return [(n>>16)&255,(n>>8)&255,n&255];}
+function hexA(hex,a){var c=hx(hex);return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}
+function lighten(hex,amt){var c=hx(hex);var r=Math.round(c[0]+(255-c[0])*amt),g=Math.round(c[1]+(255-c[1])*amt),b=Math.round(c[2]+(255-c[2])*amt);return 'rgb('+r+','+g+','+b+')';}
+
+const TWEAK_DEFAULTS=window.TWEAK_DEFAULTS;
+
+function App(){
+  const {useTweaks,TweaksPanel,TweakSection,TweakRadio,TweakSelect,TweakSlider,TweakToggle,TweakColor}=window;
+  const [t,setTweak]=useTweaks(TWEAK_DEFAULTS);
+  React.useEffect(function(){
+    var b=document.body;
+    var p=t.palette||PALETTES[0];
+    b.style.setProperty('--teal',p[0]);
+    b.style.setProperty('--gold',p[1]);
+    b.style.setProperty('--teal-soft',hexA(p[0],0.10));
+    b.style.setProperty('--teal-bright',lighten(p[0],0.32));
+    /* Chromium quirk: a transitioned color reading a custom prop won't recompute
+       when only the prop changes — nudge the nav links to repaint with the accent */
+    document.querySelectorAll('#bar .bar-nav a').forEach(function(el){
+      el.style.transition='none'; void el.offsetWidth; el.style.transition='';
+    });
+    var pr=PAIRINGS[t.typePairing]||PAIRINGS.architectural;
+    b.style.setProperty('--f-head',pr.head);
+    b.style.setProperty('--f-body',pr.body);
+    b.style.setProperty('--f-mono',pr.mono);
+    b.style.setProperty('--glass','rgba(255,255,255,'+(t.glass/100).toFixed(3)+')');
+    b.style.setProperty('--dot-op',(t.dotOpacity/100).toFixed(3));
+    ['dbg-bloom','dbg-aurora','dbg-mesh','dbg-minimal'].forEach(function(c){b.classList.remove(c);});
+    b.classList.add('dbg-'+t.bgStyle);
+    b.classList.toggle('motion-off',!!t.reduceMotion);
+    var cat=document.querySelector('.cat3d');
+    if(cat){
+      ['stack','fan','carousel'].forEach(function(c){cat.classList.remove(c);});
+      cat.classList.add(t.cat3dStyle);
+      cat.classList.toggle('spin',!!t.cat3dSpin && !t.reduceMotion);
+      cat.style.setProperty('--cat-speed',t.cat3dSpeed+'s');
+      cat.style.setProperty('--cat-tilt',t.cat3dTilt+'deg');
+    }
+  },[t]);
+  return (
+    <TweaksPanel title="Tweaks">
+      <TweakSection label="3D Catalogue"/>
+      <TweakRadio label="Topology" value={t.cat3dStyle}
+        options={[{value:'stack',label:'Stack'},{value:'fan',label:'Fan'},{value:'carousel',label:'Arc'}]}
+        onChange={function(v){setTweak('cat3dStyle',v);}}/>
+      <TweakToggle label="Animate" value={t.cat3dSpin} onChange={function(v){setTweak('cat3dSpin',v);}}/>
+      <TweakSlider label="Motion speed" value={t.cat3dSpeed} min={4} max={28} unit="s" onChange={function(v){setTweak('cat3dSpeed',v);}}/>
+      <TweakSlider label="Tilt" value={t.cat3dTilt} min={0} max={32} unit="°" onChange={function(v){setTweak('cat3dTilt',v);}}/>
+      <TweakSection label="Palette"/>
+      <TweakColor label="Accents" value={t.palette} options={PALETTES} onChange={function(v){setTweak('palette',v);}}/>
+      <TweakSection label="Typography"/>
+      <TweakSelect label="Pairing" value={t.typePairing}
+        options={[{value:'architectural',label:'Architectural · Syne'},{value:'grotesk',label:'Grotesk · Space Grotesk'},{value:'editorial',label:'Editorial · Spectral'},{value:'technical',label:'Technical · Mono'}]}
+        onChange={function(v){setTweak('typePairing',v);}}/>
+      <TweakSection label="Background"/>
+      <TweakSelect label="Style" value={t.bgStyle}
+        options={[{value:'bloom',label:'Teal bloom'},{value:'aurora',label:'Aurora'},{value:'mesh',label:'Colour mesh'},{value:'minimal',label:'Minimal'}]}
+        onChange={function(v){setTweak('bgStyle',v);}}/>
+      <TweakSlider label="Dot grid" value={t.dotOpacity} min={0} max={16} unit="%" onChange={function(v){setTweak('dotOpacity',v);}}/>
+      <TweakSlider label="Glass" value={t.glass} min={2} max={14} unit="%" onChange={function(v){setTweak('glass',v);}}/>
+      <TweakSection label="Motion"/>
+      <TweakToggle label="Pause animations" value={t.reduceMotion} onChange={function(v){setTweak('reduceMotion',v);}}/>
+    </TweaksPanel>
+  );
+}
+ReactDOM.createRoot(document.getElementById('tweakRoot')).render(<App/>);
+</script>
+</body>
+</html>
