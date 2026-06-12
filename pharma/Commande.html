@@ -279,6 +279,24 @@ document.getElementById('confirmBtn').addEventListener('click',function(){
   var n=order?order.id:'CMD-'+Math.floor(100000+Math.random()*900000);
   document.getElementById('onum').textContent='RÉF. '+n;
   document.getElementById('done').classList.add('show');
+  var sum=C.summary();
+  var pharmacyName=(document.querySelector('.who .meta .n')||{}).textContent||'Pharmacie';
+  var pharmacyRef=(document.querySelector('.who .meta .r')||{}).textContent||'';
+  var pharmacyEmail=localStorage.getItem('neoval_email')||'';
+  fetch('https://tahayassine.app.n8n.cloud/webhook/neoval-order',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      orderId:n,
+      pharmacyName:pharmacyName+(pharmacyRef?' â€” '+pharmacyRef:''),
+      pharmacyEmail:pharmacyEmail,
+      items:sum.items.map(function(it){
+        return{name:it.product.name,quantity:it.units,unitPrice:it.product.price};
+      }),
+      total:sum.total,
+      timestamp:new Date().toISOString()
+    })
+  }).catch(function(){});
   C.clear();
 });
 
