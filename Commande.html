@@ -217,75 +217,144 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 </div>
 
 <script src="cart.js"></script>
-<script>
-var C=window.NeovalCart;
+<script type="module">
+import { supabase } from './supabase-client.js';
+import { guard } from './auth-guard.js';
 
-function fmt(n){return C.fmt(n);}
+(async () => {
+  const ctx = await guard('pharmacy', 'Login.html');
+  if (!ctx) return;
 
-function render(){
-  var sum=C.summary();
-  var order=document.getElementById('order');
-  var empty=document.getElementById('cartempty');
-  if(!sum.items.length){
-    order.style.display='none';
-    empty.style.display='block';
-    return;
+  const C = window.NeovalCart;
+  const TVA = 0.20;
+  let products = [];
+
+  function fmt(n) { return Math.round(n).toLocaleString('fr-FR'); }
+  function glyph(name) { return name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(); }
+
+  async function loadProducts() {
+    const cart = C.get();
+    const ids = Object.keys(cart).filter(id => cart[id] > 0);
+    if (!ids.length) return [];
+    const { data } = await supabase
+      .from('products')
+      .select('id, name, category, price')
+      .in('id', ids);
+    return data || [];
   }
-  order.style.display='grid';
-  empty.style.display='none';
 
-  var lines=document.getElementById('lines');
-  lines.innerHTML='';
-  var totalUnits=0;
-  sum.items.forEach(function(it){
-    var p=it.product; totalUnits+=it.units;
-    var el=document.createElement('div');
-    el.className='line';
-    el.innerHTML=
-      '<div class="glyph">'+p.glyph+'</div>'+
-      '<div class="info">'+
-        '<h3>'+p.name+'</h3>'+
-        '<div class="ref">'+p.ref+'</div>'+
-        '<div class="meta">'+fmt(p.price)+' MAD / unité · carton de '+p.carton+' · <b>'+it.units+' unités</b></div>'+
-      '</div>'+
-      '<div class="right">'+
-        '<div class="stepper" data-ref="'+p.ref+'">'+
-          '<button class="dec" aria-label="Retirer">−</button>'+
-          '<span class="q">'+it.cartons+'</span>'+
-          '<button class="inc" aria-label="Ajouter">+</button>'+
-          '<span class="lab">carton'+(it.cartons>1?'s':'')+'</span>'+
-        '</div>'+
-        '<div class="ltot">'+fmt(it.lineTotal)+' MAD</div>'+
-        '<button class="rm" data-ref="'+p.ref+'">Retirer</button>'+
-      '</div>';
-    lines.appendChild(el);
+  function buildSummary(prods) {
+    const cart = C.get();
+    const items = prods
+      .map(p => ({ product: p, qty: cart[p.id] || 0, lineTotal: p.price * (cart[p.id] || 0) }))
+      .filter(it => it.qty > 0);
+    const subtotal = items.reduce((s, it) => s + it.lineTotal, 0);
+    const tva = subtotal * TVA;
+    return { items, subtotal, tva, total: subtotal + tva };
+  }
+
+  async function render() {
+    products = await loadProducts();
+    const sum = buildSummary(products);
+    const orderEl = document.getElementById('order');
+    const emptyEl = document.getElementById('cartempty');
+
+    if (!sum.items.length) {
+      orderEl.style.display = 'none';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    orderEl.style.display = 'grid';
+    emptyEl.style.display = 'none';
+
+    const lines = document.getElementById('lines');
+    lines.innerHTML = '';
+    let totalUnits = 0;
+    sum.items.forEach(it => {
+      totalUnits += it.qty;
+      const el = document.createElement('div');
+      el.className = 'line';
+      el.innerHTML =
+        `<div class="glyph">${glyph(it.product.name)}</div>
+        <div class="info">
+          <h3>${it.product.name}</h3>
+          <div class="ref">${it.product.category || ''}</div>
+          <div class="meta">${fmt(it.product.price)} MAD / unité · <b>${it.qty} unité${it.qty > 1 ? 's' : ''}</b></div>
+        </div>
+        <div class="right">
+          <div class="stepper" data-id="${it.product.id}">
+            <button class="dec" aria-label="Retirer">−</button>
+            <span class="q">${it.qty}</span>
+            <button class="inc" aria-label="Ajouter">+</button>
+            <span class="lab">unité${it.qty > 1 ? 's' : ''}</span>
+          </div>
+          <div class="ltot">${fmt(it.lineTotal)} MAD</div>
+          <button class="rm" data-id="${it.product.id}">Retirer</button>
+        </div>`;
+      lines.appendChild(el);
+    });
+
+    document.getElementById('sUnits').textContent = totalUnits.toLocaleString('fr-FR');
+    document.getElementById('sSub').textContent = fmt(sum.subtotal) + ' MAD';
+    document.getElementById('sTva').textContent = fmt(sum.tva) + ' MAD';
+    document.getElementById('sTot').innerHTML = fmt(sum.total) + '<small>MAD</small>';
+  }
+
+  document.getElementById('lines').addEventListener('click', e => {
+    const inc = e.target.closest('.inc');
+    const dec = e.target.closest('.dec');
+    const rm  = e.target.closest('.rm');
+    if (inc)      { C.add(inc.closest('.stepper').dataset.id,  1); render(); }
+    else if (dec) { C.add(dec.closest('.stepper').dataset.id, -1); render(); }
+    else if (rm)  { C.remove(rm.dataset.id); render(); }
   });
 
-  document.getElementById('sUnits').textContent=totalUnits.toLocaleString('fr-FR');
-  document.getElementById('sSub').textContent=fmt(sum.subtotal)+' MAD';
-  document.getElementById('sTva').textContent=fmt(sum.tva)+' MAD';
-  document.getElementById('sTot').innerHTML=fmt(sum.total)+'<small>MAD</small>';
-}
+  document.getElementById('confirmBtn').addEventListener('click', async () => {
+    const sum = buildSummary(products);
+    if (!sum.items.length) return;
 
-document.getElementById('lines').addEventListener('click',function(e){
-  var ref;
-  var inc=e.target.closest('.inc'), dec=e.target.closest('.dec'), rm=e.target.closest('.rm');
-  if(inc){ ref=inc.closest('.stepper').getAttribute('data-ref'); C.add(ref,1); render(); }
-  else if(dec){ ref=dec.closest('.stepper').getAttribute('data-ref'); C.add(ref,-1); render(); }
-  else if(rm){ ref=rm.getAttribute('data-ref'); C.remove(ref); render(); }
-});
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Envoi en cours…';
 
-document.getElementById('confirmBtn').addEventListener('click',function(){
-  var order=C.saveOrder();
-  var n=order?order.id:'CMD-'+Math.floor(100000+Math.random()*900000);
-  document.getElementById('onum').textContent='RÉF. '+n;
-  document.getElementById('done').classList.add('show');
-  C.clear();
-});
+    /* insert order */
+    const { data: order, error: orderErr } = await supabase
+      .from('orders')
+      .insert({
+        placed_by:   ctx.user.id,
+        pharmacy_id: ctx.profile.pharmacy_id || null,
+        status:      'En attente',
+        total:       sum.total
+      })
+      .select()
+      .single();
 
-render();
+    if (orderErr || !order) {
+      btn.disabled = false;
+      btn.textContent = 'Valider la commande';
+      alert('Erreur lors de l\'envoi. Veuillez réessayer.');
+      return;
+    }
+
+    /* insert order items */
+    await supabase.from('order_items').insert(
+      sum.items.map(it => ({
+        order_id:   order.id,
+        product_id: it.product.id,
+        quantity:   it.qty,
+        unit_price: it.product.price
+      }))
+    );
+
+    C.clear();
+    const ref = 'CMD-' + order.id.substring(0, 8).toUpperCase();
+    document.getElementById('onum').textContent = 'RÉF. ' + ref;
+    document.getElementById('done').classList.add('show');
+  });
+
+  await render();
+})();
 </script>
 <script src="portal-nav.js"></script>
-<script type="module">import { guard } from './auth-guard.js'; guard('pharmacy','Login.html');</script>
 </body>
 </html>
