@@ -1,0 +1,697 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Spectral:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+/* ============================================================
+   NEOVAL PHARMA — PORTAL DESIGN-SYSTEM UPDATE
+   Layered over each page's inline CSS. All rules are scoped to
+   body.theme so they win the cascade without touching markup
+   structure. Per-section temperature via body.p-<section>.
+   ============================================================ */
+
+/* ---- tokens + base rhythm ---- */
+body.theme{
+  /* ---- canvas: cool architectural paper — layered, never stark white ---- */
+  --navy:#B8D8D4 !important;               /* page canvas — proper teal-sage, cards pop against it */
+  --canvas-top:#C4DEDB;
+  --canvas-bot:#A8CCC8;
+  /* ---- surfaces: glassy, semi-transparent, coloured glow ---- */
+  --card:rgba(255,255,255,.52);
+  --card-key:rgba(255,255,255,.72);
+  --glass:rgba(255,255,255,.52);
+  /* ---- ink ---- */
+  --white:#0E1C2B;                         /* primary ink (deep navy) */
+  --body:#34495B;                          /* secondary ink — readable on cards */
+  --faint:#6B7C8A;                         /* tertiary / mono labels */
+  --hair:rgba(14,28,43,.13);
+  --hair-soft:rgba(14,28,43,.07);
+  /* ---- header (dark-navy chrome) ink ---- */
+  --bar-ink:#E8EFF1;
+  --bar-faint:rgba(232,239,241,.60);
+  /* ---- accents (brand) ---- */
+  --teal-soft:rgba(13,191,168,.10);
+  --teal-bright:#0aa491;
+  --teal-ink:#0A8C7D;                      /* teal that holds contrast on light */
+  --gold-soft:rgba(196,160,58,.12);
+  --gold-ink:#8A6B16;
+  /* ---- elevation ---- */
+  --sh-sm:0 1px 2px rgba(14,28,43,.05);
+  --sh-md:0 1px 2px rgba(14,28,43,.04),0 10px 24px -14px rgba(14,28,43,.20);
+  --sh-lg:0 2px 6px rgba(14,28,43,.05),0 22px 48px -22px rgba(14,28,43,.30);
+  --f-head:'Syne';                         /* tweakable type families */
+  --f-body:'DM Sans';
+  --f-mono:'IBM Plex Mono';
+  line-height:1.6;
+  font-family:var(--f-body),system-ui,sans-serif;
+}
+
+/* ============================================================
+   BACKGROUND — center bloom + per-section colour temperature
+   ============================================================ */
+/* ------------------------------------------------------------
+   BACKGROUND — calm, premium clinical field. A cool paper
+   gradient + one soft teal bloom + a whisper of blueprint grid.
+   Forced so it reads consistently and supersedes legacy
+   per-section / dbg-* variants still defined on the pages.
+   ------------------------------------------------------------ */
+body.theme #bg-glow{
+  transition:none;
+  background:
+    radial-gradient(62% 54% at  8% -6%, rgba(13,191,168,.55),  transparent 55%),
+    radial-gradient(50% 48% at 98%  2%, rgba(196,160,58,.32),  transparent 52%),
+    radial-gradient(68% 62% at 88% 108%, rgba(34,142,176,.38), transparent 58%),
+    radial-gradient(56% 50% at 28% 114%, rgba(13,191,168,.28), transparent 56%),
+    linear-gradient(155deg, #C6DFDB 0%, #AECECA 45%, #9EC2C0 100%) !important;
+}
+/* whisper-faint engineering grid — data-surface character */
+body.theme::after{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(14,28,43,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,28,43,.035) 1px, transparent 1px) !important;
+  background-size:48px 48px !important;
+  opacity:.55 !important;
+}
+/* keep page content above the background field + grid layers */
+body.theme main,
+body.theme #bar{position:relative;z-index:5}
+body.theme #bar{z-index:50}
+/* legacy bg tweak variants collapse to the same calm field */
+body.dbg-bloom #bg-glow,
+body.dbg-aurora #bg-glow,
+body.dbg-mesh #bg-glow,
+body.dbg-minimal #bg-glow{background:inherit}
+
+/* ============================================================
+   TYPOGRAPHY — architectural Syne, airy DM Sans, quiet mono
+   ============================================================ */
+body.theme h1,
+body.theme h2,
+body.theme h3,
+body.theme h4{
+  font-family:var(--f-head),sans-serif;
+  font-weight:400;
+  letter-spacing:.08em;
+}
+body.theme .brand .name{font-family:var(--f-head),sans-serif;font-weight:500;letter-spacing:.18em}
+
+/* tame the heaviest display numerals — scale carries them now */
+body.theme .stat .num,
+body.theme .price .amt,
+body.theme .sumrow.tot .v,
+body.theme .sr.tot .v,
+body.theme .ohead .right .tv,
+body.theme .orow .ototal,
+body.theme .line .ltot,
+body.theme .li .st,
+body.theme .donecard h2,
+body.theme .pcard h3{
+  font-family:var(--f-head),sans-serif;
+  font-weight:500;
+  letter-spacing:.012em;
+}
+
+/* body copy: more breathing room */
+body.theme .head p,
+body.theme .pcard .desc,
+body.theme .donecard p,
+body.theme .empty p,
+body.theme .nf p,
+body.theme .cartempty p{
+  line-height:1.75;
+  font-size:15.5px;
+}
+
+/* IBM Plex Mono metadata — quieter, 70% */
+body.theme .kicker,
+body.theme .ohead .left .kick,
+body.theme .stat .lbl,
+body.theme .pcard .ref,
+body.theme .price .unit,
+body.theme .ph-note,
+body.theme .docs .note,
+body.theme .acard .csub,
+body.theme .field .hint,
+body.theme .field label,
+body.theme .sumnote,
+body.theme .tbcount,
+body.theme .count,
+body.theme .row .rt,
+body.theme .orow .odate,
+body.theme .drow .ocmd,
+body.theme .drow .ddate{
+  opacity:.92;
+}
+
+/* mono family application (so --f-mono can swap globally) */
+body.theme .mono,body.theme .kicker,body.theme .ohead .left .kick,
+body.theme .stat .lbl,body.theme .pcard .ref,body.theme .price .unit,
+body.theme .ph-note,body.theme .docs .note,body.theme .acard .csub,
+body.theme .field .hint,body.theme .field label,body.theme .sumnote,
+body.theme .tbcount,body.theme .count,body.theme .row .rt,body.theme .orow .onum,
+body.theme .orow .odate,body.theme .drow .nm,body.theme .drow .ocmd,body.theme .drow .ddate,
+body.theme .bar-nav a,body.theme .cartlink,body.theme .who .meta .r,body.theme .logout,
+body.theme .tag,body.theme .filters button,body.theme .chip,body.theme .addbtn,
+body.theme .confirm,body.theme .save,body.theme .submit .label,body.theme .dl,
+body.theme .stepper .q{
+  font-family:var(--f-mono),monospace;
+}
+
+/* page titles — thin 40px gold rule underneath */
+body.theme .head h1::after,
+body.theme .ohead .left h1::after{
+  content:"";display:block;width:40px;height:1px;
+  background:var(--gold);margin-top:18px;
+}
+
+/* ============================================================
+   BUTTONS — no solid fills, sharp corners, restrained states
+   ============================================================ */
+/* primary CTAs: solid teal fill, white text */
+body.theme .submit,
+body.theme .confirm,
+body.theme .save,
+body.theme .reorder,
+body.theme .donecard a{
+  background:var(--teal);
+  border:1px solid var(--teal);
+  color:#FFFFFF;
+  border-radius:0;
+}
+body.theme .submit,
+body.theme .confirm,
+body.theme .reorder,
+body.theme .donecard a{box-shadow:0 1px 2px rgba(13,191,168,.22),0 8px 20px -12px rgba(13,191,168,.55)}
+body.theme .submit:hover,
+body.theme .confirm:hover,
+body.theme .save:hover:not(:disabled),
+body.theme .reorder:hover,
+body.theme .donecard a:hover{
+  background:#0aa491;
+  border-color:#0aa491;
+  color:#FFFFFF;
+  box-shadow:0 6px 18px rgba(13,191,168,.30);
+}
+body.theme .save:disabled{
+  background:transparent;border-color:var(--hair);color:var(--faint);box-shadow:none;
+}
+
+/* small teal outline actions: soften hover from solid → 10% wash */
+body.theme .addbtn:hover:not(:disabled),
+body.theme .cartempty a:hover,
+body.theme .empty a:hover,
+body.theme .nf a:hover,
+body.theme .dl:hover,
+body.theme .doc .dl:hover{
+  background:var(--teal-soft);
+  color:var(--teal-bright);
+  box-shadow:none;
+}
+
+/* topbar cart link */
+body.theme .cartlink:hover{background:var(--teal-soft);color:var(--teal-bright)}
+body.theme .cartlink:hover .cn{background:transparent;color:var(--teal-bright)}
+body.theme .cartlink .cn{background:var(--teal-soft);color:var(--teal);border-radius:0}
+
+/* quantity stepper */
+body.theme .stepper button:hover{background:var(--teal-soft);color:var(--teal-bright)}
+
+/* filter chips / tabs — tinted active, never solid */
+body.theme .chip.active{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-ink)}
+body.theme .filters button.active{background:var(--teal-soft);color:var(--teal-ink)}
+body.theme .filters button.active .ct{border-color:rgba(13,191,168,.4);color:var(--teal-ink)}
+
+/* account avatar active state */
+body.theme .who.active .av{background:transparent;color:var(--teal)}
+
+/* ghost / text actions — underline on hover */
+body.theme .keep:hover,
+body.theme .docs-all:hover,
+body.theme .back:hover,
+body.theme .logout:hover,
+body.theme .askaccess a:hover{text-decoration:underline;text-underline-offset:3px}
+/* destructive (remove) — text only, underline on hover */
+body.theme .line .rm:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* sharp corners on the last rounded bits */
+body.theme .cn,
+body.theme .donecard .check{border-radius:0}
+
+/* primary-CTA pulse ring — single expanding ring, 2 cycles on load */
+@media (prefers-reduced-motion: no-preference){
+  body.theme .submit,
+  body.theme .confirm,
+  body.theme .reorder{position:relative}
+  body.theme .submit::after,
+  body.theme .confirm::after,
+  body.theme .reorder::after{
+    content:"";position:absolute;inset:0;border:1px solid var(--teal);
+    pointer-events:none;opacity:0;
+    animation:ctaPulse 1.25s cubic-bezier(.16,1,.3,1) 2;
+  }
+}
+@keyframes ctaPulse{
+  0%{opacity:.55;transform:scale(1)}
+  100%{opacity:0;transform:scale(1.14)}
+}
+
+/* ============================================================
+   CARDS & ROWS — glass, hover lift + instant teal left flash
+   ============================================================ */
+body.theme .stat,
+body.theme .panel,
+body.theme .pcard,
+body.theme .acard,
+body.theme .sum,
+body.theme .card,
+body.theme .lines,
+body.theme .list,
+body.theme .filters,
+body.theme .auth .card{
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+}
+
+body.theme .stat,
+body.theme .panel,
+body.theme .pcard,
+body.theme .acard{
+  transition:transform .18s ease, border-color .18s ease, box-shadow 0s;
+}
+body.theme .stat:hover,
+body.theme .panel:hover,
+body.theme .pcard:hover,
+body.theme .acard:hover{
+  transform:translateY(-5px);
+  border-color:rgba(13,191,168,.55);
+  -webkit-backdrop-filter:blur(22px) saturate(1.8);
+  backdrop-filter:blur(22px) saturate(1.8);
+  background:rgba(255,255,255,.70);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,.95) inset,
+    inset 3px 0 0 var(--teal),
+    0 8px 32px -6px rgba(13,191,168,.38),
+    0 2px 8px rgba(14,28,43,.08);
+}
+
+/* table rows: instant teal left border on hover (no layout shift) */
+body.theme .drow,
+body.theme .row{transition:background .2s, box-shadow 0s}
+body.theme .drow:hover,
+body.theme .row:hover{box-shadow:inset 2px 0 0 var(--teal)}
+body.theme .row:hover{background:rgba(13,191,168,.04)}
+body.theme .orow::before{transition:none}  /* make existing flash instant */
+
+/* ============================================================
+   FORM FIELDS — teal focus + floating-label lift
+   ============================================================ */
+body.theme .field label{
+  transition:color .2s ease, transform .2s ease, opacity .2s ease;
+  transform-origin:left center;
+}
+body.theme .field:focus-within label{
+  color:var(--teal);
+  opacity:1;
+  transform:translateY(-3px);
+}
+body.theme .field input:focus{
+  border-color:var(--teal);
+  box-shadow:0 0 0 3px rgba(13,191,168,.12);
+}
+
+/* ============================================================
+   STATUS TAGS — subtle inner glow matching tag colour
+   ============================================================ */
+body.theme .tag.attente{box-shadow:inset 0 0 12px rgba(196,160,58,.20)}
+body.theme .tag.confirme{box-shadow:inset 0 0 12px rgba(13,191,168,.20)}
+body.theme .tag.livre{box-shadow:inset 0 0 12px rgba(245,247,250,.08)}
+body.theme .tag.bl{box-shadow:inset 0 0 12px rgba(13,191,168,.20)}
+body.theme .tag.pop{box-shadow:inset 0 0 12px rgba(196,160,58,.20)}
+
+/* ============================================================
+   TOPBAR — declutter: single-line nav, tighter rhythm,
+   secondary identity line dropped so nothing is glued together
+   ============================================================ */
+body.theme #bar .wrap{gap:18px}
+body.theme .bar-nav{gap:20px}
+body.theme .bar-nav a{white-space:nowrap;font-size:11px;letter-spacing:.07em}
+body.theme .bar-right{gap:14px}
+/* .cartlink also carries class "empty" (cart-is-empty), which collides with the
+   page-level .empty state rule — reset every property that rule leaks in */
+body.theme .cartlink{display:inline-flex;margin:0;background:transparent;border:1px solid var(--teal);text-align:left;padding:10px 13px;gap:8px;letter-spacing:.07em}
+body.theme .logout{padding:9px 13px;font-size:10.5px;letter-spacing:.08em}
+body.theme .who{gap:10px}
+body.theme .who .av{width:38px;height:38px;font-size:13px;letter-spacing:.04em}
+body.theme .who .meta .n{font-size:13px;white-space:nowrap}
+/* the pharmacy/role line is available on Mon compte — drop it from the bar */
+body.theme #bar .who .meta .r{display:none}
+/* brand wordmark: a touch tighter so the row breathes */
+body.theme #bar .brand .name{letter-spacing:.13em}
+
+/* ---- refined dark-navy header: solid chrome, legible light ink,
+        teal underline. Fixes the prior dark-on-dark nav contrast. ---- */
+body.theme #bar{
+  background:linear-gradient(180deg,#10202F,#0C1825) !important;
+  border-bottom:1px solid rgba(13,191,168,.22);
+  box-shadow:0 12px 32px -22px rgba(0,0,0,.7);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+}
+body.theme #bar .brand .name{color:var(--bar-ink)}
+body.theme #bar .bar-nav a{color:var(--bar-faint)}
+body.theme #bar .bar-nav a:hover{color:#FFFFFF}
+body.theme #bar .bar-nav a.active{color:#37E5D0}
+body.theme #bar .who .meta .n{color:var(--bar-ink)}
+body.theme #bar .who .av{border-color:rgba(13,191,168,.55);color:#46E9D4;background:rgba(13,191,168,.10)}
+body.theme #bar .who:hover .av{background:rgba(13,191,168,.18)}
+body.theme #bar .cartlink{color:var(--bar-ink);border-color:rgba(13,191,168,.5)}
+body.theme #bar .cartlink:hover{background:var(--teal);color:#06121C;border-color:var(--teal)}
+body.theme #bar .cartlink .cn{background:rgba(13,191,168,.20);color:#A6F4E8}
+body.theme #bar .cartlink:hover .cn{background:rgba(6,18,28,.22);color:#06121C}
+body.theme #bar .logout{color:var(--bar-faint);border-color:rgba(232,239,241,.16)}
+body.theme #bar .logout:hover{color:#FFFFFF;border-color:rgba(13,191,168,.6)}
+body.theme #bar .brand .apill{color:#E6C868;border-color:rgba(196,160,58,.5);background:rgba(196,160,58,.12)}
+/* mid widths: collapse identity to the avatar so nav + cart never clip */
+@media (max-width:1100px){
+  body.theme #bar .who .meta{display:none}
+  body.theme #bar .logout{display:none}
+}
+
+/* ============================================================
+   BRAND LEAF MARK — real logo, inlined in markup so it paints
+   on first frame (no swap, no flash). Neutralises the old CSS
+   diamond and applies the leaf-only hover float.
+   ============================================================ */
+body.theme .brand .mark.nv-leafmark{
+  background:none!important;border:0!important;width:auto!important;
+  display:inline-flex;align-items:center;justify-content:center;overflow:visible;
+}
+body.theme .brand .mark.nv-leafmark::before,
+body.theme .brand .mark.nv-leafmark::after{content:none!important;display:none!important}
+body.theme .brand .mark.nv-leafmark .nv-leaf{
+  display:block;height:118%;width:auto;
+  transition:transform .2s ease;
+}
+/* the ONLY animation: a precise upward lift on brand hover */
+body.theme .brand:hover .mark.nv-leafmark .nv-leaf,
+body.theme .brand:focus-visible .mark.nv-leafmark .nv-leaf{transform:translateY(-3px)}
+@media (prefers-reduced-motion: reduce){
+  body.theme .brand .mark.nv-leafmark .nv-leaf{transition:none}
+  body.theme .brand:hover .mark.nv-leafmark .nv-leaf{transform:none}
+}
+
+/* ============================================================
+   DARK CINEMATIC RESET — gradient headings + 3-D card tilt
+   (aligns portal/admin with the public-site dark reset)
+   ============================================================ */
+body.theme .head h1,
+body.theme .ohead .left h1,
+body.theme .donecard h2{
+  background:none;
+  -webkit-text-fill-color:#0A1929;color:#0A1929;
+}
+/* ============================================================
+   PRODUCT CARD VISUAL BAND — colourful, legible, readable glyph
+   ============================================================ */
+body.theme .pcard .vis{
+  background:linear-gradient(135deg, #D6F0EC 0%, #E8F5F2 50%, #F5F0E0 100%) !important;
+  border-bottom:1px solid rgba(14,28,43,.09);
+}
+body.theme .pcard .vis .glyph{
+  color:var(--teal-ink) !important;
+  opacity:1 !important;
+  filter:none !important;
+  transition:transform .32s cubic-bezier(.16,1,.3,1);
+}
+body.theme .pcard:hover .vis .glyph{
+  transform:scale(1.1) translateY(-3px);
+}
+body.theme .pcard .vis .pill{
+  color:#0A7F71 !important;
+  border-color:rgba(10,127,113,.45) !important;
+  background:rgba(255,255,255,.85) !important;
+}
+/* kicker, ref, stock — all fully readable dark values */
+body.theme .pcard .ref{color:var(--faint);opacity:1}
+body.theme .pcard .stock.in{color:var(--teal-ink)}
+body.theme .pcard .stock.low{color:var(--gold-ink)}
+body.theme .pcard h3{color:#0A1929}
+body.theme .pcard .desc{color:#34495B}
+body.theme .pcard .count b{color:var(--teal-ink)}
+/* stat kicker labels — deepened */
+body.theme .stat .lbl{color:#34495B;opacity:1}
+body.theme .stat .num{color:#0A1929}
+/* status tags — guaranteed contrast */
+body.theme .tag.confirme{color:#0A7F71;border-color:rgba(10,127,113,.45);background:rgba(13,191,168,.13)}
+body.theme .tag.attente{color:#7A5E12;border-color:rgba(122,94,18,.45);background:rgba(196,160,58,.16)}
+body.theme .tag.livre{color:#1A3A5C;border-color:rgba(26,58,92,.4);background:rgba(26,58,92,.09)}
+body.theme .tag.bl,body.theme .tag.pop{color:#0A7F71;border-color:rgba(10,127,113,.45);background:rgba(13,191,168,.13)}
+/* row text */
+body.theme .row .rt,body.theme .drow .ddate,body.theme .drow .ocmd,
+body.theme .orow .odate,body.theme .orow .onum{color:var(--faint);opacity:1}
+body.theme .row .rn,body.theme .drow .nm,body.theme .orow .oname{color:#0A1929}
+body.theme .stat,
+body.theme .panel,
+body.theme .pcard,
+body.theme .acard,
+body.theme .sum,
+body.theme .card,
+body.theme .lines,
+body.theme .list,
+body.theme .auth .card{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:0;
+  -webkit-backdrop-filter:blur(18px) saturate(1.6);
+  backdrop-filter:blur(18px) saturate(1.6);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,.8) inset,         /* top-edge highlight */
+    0 2px 6px rgba(14,28,43,.06),
+    0 12px 32px -14px rgba(13,191,168,.22);
+}
+/* stat cards — teal-tinted glass */
+body.theme .stat{
+  background:rgba(230,248,246,.52);
+  border-color:rgba(13,191,168,.3);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,.8) inset,
+    0 2px 6px rgba(14,28,43,.06),
+    0 12px 36px -14px rgba(13,191,168,.30);
+}
+/* product cards — warmer tint */
+body.theme .pcard{
+  background:rgba(248,252,251,.55);
+  border-color:rgba(13,191,168,.22);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,.85) inset,
+    0 2px 8px rgba(14,28,43,.07),
+    0 16px 40px -18px rgba(13,191,168,.25);
+}
+/* admin cards — gold-accent glass */
+body.theme .acard{
+  background:rgba(255,252,242,.52);
+  border-color:rgba(196,160,58,.28);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,.8) inset,
+    0 2px 6px rgba(14,28,43,.06),
+    0 12px 32px -14px rgba(196,160,58,.22);
+}
+/* filter toolbars — lighter glass */
+body.theme .filters{
+  background:rgba(255,255,255,.46);
+  border:1px solid rgba(255,255,255,.5);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 2px 8px rgba(14,28,43,.06);
+}
+body.theme .stat:hover,
+body.theme .panel:hover,
+body.theme .pcard:hover,
+body.theme .acard:hover{
+  transform:translateY(-3px);
+  border-color:rgba(13,191,168,.45);
+  background:var(--card-key);
+  box-shadow:var(--sh-lg);
+}
+/* card text — strong contrast through the glass (never light grey) */
+body.theme .pcard h3,body.theme .acard h3,body.theme .acard h4,
+body.theme .panel h3,body.theme .panel h4,body.theme .sum h3,
+body.theme .card h3,body.theme .donecard h2{
+  color:#0D1B2A;-webkit-text-fill-color:#0D1B2A;font-weight:600;
+}
+@media (prefers-reduced-motion: reduce){
+  body.theme .stat:hover,body.theme .panel:hover,
+  body.theme .pcard:hover,body.theme .acard:hover{transform:translateY(-2px)}
+}
+
+/* ============================================================
+   MOBILE NAVIGATION — hamburger + slide-in drawer
+   Shared across every portal & admin page. The burger and drawer
+   markup are injected by portal-nav.js; this is the styling +
+   the single source of truth for the mobile breakpoint (880px).
+   ============================================================ */
+
+/* hamburger button — hidden on desktop, shown ≤880px */
+body.theme .nav-burger{
+  display:none;flex-direction:column;justify-content:center;gap:5px;
+  width:44px;height:44px;flex:0 0 auto;padding:11px 9px;margin-left:4px;
+  background:transparent;border:1px solid var(--hair);cursor:pointer;
+  transition:border-color .2s;border-radius:0;
+}
+body.theme .nav-burger:hover{border-color:var(--teal)}
+body.theme .nav-burger span{
+  display:block;width:100%;height:2px;background:#0D1B2A;
+  transition:transform .35s cubic-bezier(.16,1,.3,1),opacity .25s;
+}
+body.theme .nav-burger.active span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+body.theme .nav-burger.active span:nth-child(2){opacity:0}
+body.theme .nav-burger.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* backdrop */
+body.theme .mnav-backdrop{
+  position:fixed;inset:0;z-index:9990;background:rgba(13,27,42,.34);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  opacity:0;visibility:hidden;transition:opacity .4s ease,visibility .4s;
+}
+body.theme .mnav-backdrop.show{opacity:1;visibility:visible}
+
+/* drawer */
+body.theme .mnav-drawer{
+  position:fixed;inset:0 0 0 auto;z-index:9999;
+  width:min(84vw,360px);height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  background:rgba(244,250,250,.97);
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  border-left:1px solid rgba(13,191,168,.3);
+  box-shadow:-30px 0 80px -42px rgba(13,27,42,.5);
+  transform:translateX(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);
+  overflow-y:auto;overscroll-behavior:contain;
+}
+body.theme .mnav-drawer.open{transform:none}
+
+body.theme .mnav-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:26px 30px 0;
+}
+body.theme .mnav-label{
+  font-family:var(--f-mono),monospace;font-size:11px;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--teal);
+}
+body.theme .mnav-close{
+  width:40px;height:40px;display:grid;place-items:center;
+  background:transparent;border:0;cursor:pointer;
+  font-size:30px;line-height:1;color:#0D1B2A;opacity:.6;transition:opacity .2s;
+}
+body.theme .mnav-close:hover{opacity:1}
+
+body.theme .mnav-links{
+  display:flex;flex-direction:column;padding:30px 30px 12px;counter-reset:mnavi;
+}
+body.theme .mnav-link{
+  display:flex;align-items:baseline;gap:16px;
+  padding:15px 0;min-height:44px;text-decoration:none;
+  border-bottom:1px solid rgba(13,27,42,.07);
+  transition:color .22s,transform .22s;
+}
+body.theme .mnav-link::before{
+  counter-increment:mnavi;content:counter(mnavi,decimal-leading-zero);
+  font-family:var(--f-mono),monospace;font-size:12px;font-weight:500;
+  color:var(--teal);opacity:.8;flex:0 0 auto;
+}
+body.theme .mnav-link .mnav-txt{
+  font-family:var(--f-head),sans-serif;font-weight:500;font-size:22px;
+  letter-spacing:.01em;color:#0D1B2A;
+}
+body.theme .mnav-link.active .mnav-txt{color:var(--teal)}
+body.theme .mnav-link:hover{transform:translateX(6px)}
+body.theme .mnav-link:hover .mnav-txt{color:var(--teal)}
+
+/* footer */
+body.theme .mnav-foot{
+  margin-top:auto;display:flex;flex-direction:column;gap:14px;
+  padding:24px 30px 34px;border-top:1px solid rgba(13,27,42,.1);
+}
+body.theme .mnav-account{
+  display:flex;align-items:center;gap:12px;text-decoration:none;
+}
+body.theme .mnav-av{
+  width:40px;height:40px;flex:0 0 auto;border:1px solid var(--teal);
+  display:grid;place-items:center;font-family:var(--f-head),sans-serif;
+  font-weight:700;font-size:14px;color:var(--teal);
+}
+body.theme .mnav-id{display:flex;flex-direction:column;line-height:1.3}
+body.theme .mnav-name{font-size:15px;color:#0D1B2A;font-weight:500}
+body.theme .mnav-role{
+  font-family:var(--f-mono),monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);margin-top:2px;
+}
+body.theme .mnav-cart{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  min-height:48px;text-decoration:none;
+  font-family:var(--f-mono),monospace;font-size:12px;letter-spacing:.13em;
+  text-transform:uppercase;color:#fff;background:var(--teal);
+  border:1px solid var(--teal);
+}
+body.theme .mnav-cart:hover{background:var(--teal-bright);border-color:var(--teal-bright)}
+body.theme .mnav-cn{
+  min-width:22px;height:22px;padding:0 7px;display:inline-grid;place-items:center;
+  background:rgba(255,255,255,.22);font-size:11px;line-height:1;
+}
+body.theme .mnav-logout{
+  display:flex;align-items:center;justify-content:center;min-height:48px;
+  text-decoration:none;font-family:var(--f-mono),monospace;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--body);
+  border:1px solid var(--hair);transition:color .2s,border-color .2s;
+}
+body.theme .mnav-logout:hover{color:var(--teal);border-color:var(--teal)}
+
+@media (prefers-reduced-motion: reduce){
+  body.theme .mnav-drawer{transition:none}
+  body.theme .nav-burger span{transition:none}
+  body.theme .mnav-link:hover{transform:none}
+}
+
+/* ---- breakpoint switch: swap full nav → hamburger ---- */
+@media(max-width:880px){
+  body.theme #bar .bar-nav{display:none}
+  body.theme .nav-burger{display:flex}
+  /* push brand left so cart/avatar/burger cluster cleanly at the right */
+  body.theme #bar .brand{margin-right:auto}
+  body.theme #bar .wrap{gap:12px}
+}
+
+/* ============================================================
+   MOBILE POLISH — full-width primary actions + tap targets
+   ============================================================ */
+@media(max-width:560px){
+  /* primary CTAs go full width and become easy to tap */
+  body.theme .submit,
+  body.theme .confirm,
+  body.theme .save,
+  body.theme .reorder,
+  body.theme .donecard a,
+  body.theme .empty a,
+  body.theme .nf a,
+  body.theme .cartempty a{
+    width:100%;justify-content:center;min-height:52px;
+  }
+  /* keep filter chip rows from clipping — let them wrap / scroll */
+  body.theme .filters{flex-wrap:wrap}
+  /* download buttons in document/table rows: comfortable tap height */
+  body.theme .dl{min-height:44px}
+  /* slightly tighter page heads so titles aren't cramped */
+  body.theme .head{padding-top:38px}
+}
+
+/* ============================================================
+   AUTH / LOGIN CARD — lighter glass so background blooms through
+   ============================================================ */
+body.theme .auth .card{
+  background:rgba(255,255,255,.18) !important;
+  border:1px solid rgba(255,255,255,.38) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(1.8) !important;
+  backdrop-filter:blur(28px) saturate(1.8) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.55) inset,
+    0 8px 40px -12px rgba(13,191,168,.30),
+    0 32px 80px -32px rgba(14,28,43,.22) !important;
+}
+/* secure footer — force readable on the light-glass card */
+body.theme .auth .card .secure{color:#1A3040;opacity:1}

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval — Logo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#060D18;
+  --navy-2:#0A1626;
+  --teal:#0DBFA8;
+  --blue:#1A3A8F;
+  --white:#F5F7FA;
+  --hair:rgba(245,247,250,.10);
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--navy);
+  color:var(--white);
+  font-family:var(--mono);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  padding:64px 40px 96px;
+}
+
+/* ============================================================
+   NEOVAL LOGO COMPONENT
+   .neoval-logo  — vertical primary lockup
+   add .nv-row   — horizontal lockup (leaf left, type right)
+   add .on-dark / .on-light manually, or leave auto-detection on
+   ============================================================ */
+.neoval-logo{
+  --nv-leaf:64px;                 /* leaf height, drives the whole lockup scale */
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  gap:calc(var(--nv-leaf) * .18);
+  text-decoration:none;
+  line-height:1;
+  cursor:pointer;
+  -webkit-user-select:none;user-select:none;
+}
+
+/* --- the leaf mark --- */
+.nv-leaf{
+  display:block;
+  height:var(--nv-leaf);
+  width:auto;
+  transition:transform .2s ease;   /* the ONLY animation: a restrained lift */
+  will-change:transform;
+}
+.neoval-logo:hover .nv-leaf,
+.neoval-logo:focus-visible .nv-leaf{
+  transform:translateY(-3px);
+}
+@media (prefers-reduced-motion: reduce){
+  .nv-leaf{transition:none}
+  .neoval-logo:hover .nv-leaf,
+  .neoval-logo:focus-visible .nv-leaf{transform:none}
+}
+.neoval-logo:focus-visible{outline:none}
+
+/* --- wordmark --- */
+.nv-word{
+  font-family:'Montserrat',system-ui,sans-serif;
+  font-weight:800;
+  font-size:calc(var(--nv-leaf) * .56);
+  letter-spacing:.01em;
+  background:var(--nv-word-grad);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+}
+
+/* --- tagline: a quiet mono label, never a headline --- */
+.nv-tag{
+  font-family:var(--mono);
+  font-weight:400;
+  font-size:calc(var(--nv-leaf) * .135);
+  letter-spacing:.22em;
+  color:var(--nv-tag-col);
+  white-space:nowrap;
+}
+
+/* horizontal lockup */
+.neoval-logo.nv-row{
+  flex-direction:row;
+  align-items:center;
+  gap:calc(var(--nv-leaf) * .26);
+}
+.neoval-logo.nv-row .nv-type{
+  display:flex;flex-direction:column;align-items:flex-start;
+  gap:calc(var(--nv-leaf) * .12);
+}
+.neoval-logo.nv-row .nv-word{font-size:calc(var(--nv-leaf) * .48)}
+.neoval-logo.nv-row .nv-tag{font-size:calc(var(--nv-leaf) * .115)}
+
+/* ----- surface variants (set by auto-detect, or manually) ----- */
+/* On LIGHT surfaces — the artwork's native treatment */
+.neoval-logo.on-light{
+  --nv-word-grad:linear-gradient(96deg,#0DBFA8 0%,#1C73C4 52%,#1A3A8F 100%);
+  --nv-tag-col:#3C6BA6;
+}
+/* On DARK surfaces — leaf gradient is preserved exactly; the wordmark's
+   deep-blue end is lifted just enough to stay legible on near-black */
+.neoval-logo.on-dark{
+  --nv-word-grad:linear-gradient(96deg,#15D1B8 0%,#3187DE 52%,#3E62C4 100%);
+  --nv-tag-col:rgba(150,182,228,.74);
+}
+/* sensible default before JS runs (dark portal is the common case) */
+.neoval-logo:not(.on-light):not(.on-dark){
+  --nv-word-grad:linear-gradient(96deg,#15D1B8 0%,#3187DE 52%,#3E62C4 100%);
+  --nv-tag-col:rgba(150,182,228,.74);
+}
+
+/* ============================================================
+   SHOWCASE CHROME (not part of the logo)
+   ============================================================ */
+.page{max-width:1080px;margin:0 auto}
+.eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+.title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:34px;letter-spacing:.02em;color:var(--white);margin-bottom:10px}
+.lede{font-size:13px;line-height:1.8;letter-spacing:.02em;color:rgba(245,247,250,.55);max-width:560px}
+
+.specs{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.chip{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,247,250,.6);
+  border:1px solid var(--hair);padding:8px 12px}
+.chip b{color:var(--teal);font-weight:500}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px}
+.surface{
+  position:relative;
+  border:1px solid var(--hair);
+  min-height:300px;
+  display:flex;align-items:center;justify-content:center;
+  padding:48px;
+}
+.surface .lbl{
+  position:absolute;top:14px;left:16px;
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+}
+.surface.dark{background:var(--navy);}
+.surface.dark .lbl{color:rgba(245,247,250,.4)}
+.surface.navy{background:linear-gradient(160deg,#0A1A36,#0A1626);}
+.surface.navy .lbl{color:rgba(245,247,250,.4)}
+.surface.light{background:var(--white);}
+.surface.light .lbl{color:rgba(6,13,24,.4)}
+.surface.paper{background:#EAEFF4;}
+.surface.paper .lbl{color:rgba(6,13,24,.4)}
+
+.section-h{display:flex;align-items:center;gap:16px;margin:64px 0 4px}
+.section-h .k{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,247,250,.55);white-space:nowrap}
+.section-h .rule{height:1px;background:var(--hair);flex:1}
+
+.row-demo{display:flex;flex-wrap:wrap;align-items:center;gap:48px;margin-top:30px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:16px}
+.cell .cap{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,247,250,.4)}
+
+/* a strip that shows the bar lockup in context */
+.barctx{margin-top:30px;border:1px solid var(--hair)}
+.barctx .bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:74px;
+  background:rgba(6,13,24,.82);border-bottom:1px solid var(--hair);
+}
+.barctx .nav{display:flex;gap:26px}
+.barctx .nav span{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,247,250,.5)}
+.barctx .body{height:120px;background:
+  radial-gradient(60% 80% at 50% 0%,rgba(13,191,168,.06),transparent 70%),var(--navy)}
+
+.hint{margin-top:14px;font-size:11px;letter-spacing:.06em;color:rgba(245,247,250,.42);display:flex;align-items:center;gap:8px}
+.hint .dot{width:5px;height:5px;border-radius:50%;background:var(--teal);display:inline-block}
+
+@media(max-width:760px){
+  .grid{grid-template-columns:1fr}
+  body{padding:48px 22px 72px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="eyebrow">Identité · Marque</div>
+  <h1 class="title">Logo Neoval</h1>
+  <p class="lede">Une seule implémentation, posée sur n'importe quelle surface. Le mode clair / sombre se choisit tout seul d'après l'arrière-plan — survolez le logo pour voir la feuille s'élever.</p>
+
+  <div class="specs">
+    <span class="chip">Dégradé feuille&nbsp; <b>#0DBFA8 → #1A3A8F</b></span>
+    <span class="chip">Survol&nbsp; <b>translateY −3px · 200ms</b></span>
+    <span class="chip">Baseline&nbsp; <b>IBM Plex Mono</b></span>
+    <span class="chip">Bascule&nbsp; <b>auto · luminance</b></span>
+  </div>
+
+  <!-- ============ AUTO MODE SWITCHING ============ -->
+  <div class="section-h"><span class="k">Bascule automatique clair / sombre</span><span class="rule"></span></div>
+
+  <div class="grid">
+    <div class="surface dark"><span class="lbl">Portail · Navy</span><span data-logo data-size="92"></span></div>
+    <div class="surface light"><span class="lbl">Surface claire</span><span data-logo data-size="92"></span></div>
+    <div class="surface navy"><span class="lbl">Dégradé sombre</span><span data-logo data-size="92"></span></div>
+    <div class="surface paper"><span class="lbl">Papier · gris clair</span><span data-logo data-size="92"></span></div>
+  </div>
+  <p class="hint"><span class="dot"></span> Aucune classe posée à la main : chaque logo lit la luminance de sa surface et choisit sa version.</p>
+
+  <!-- ============ SCALE ============ -->
+  <div class="section-h"><span class="k">Échelle</span><span class="rule"></span></div>
+  <div class="row-demo">
+    <div class="cell"><span data-logo data-size="120"></span><span class="cap">Grand</span></div>
+    <div class="cell"><span data-logo data-size="78"></span><span class="cap">Moyen</span></div>
+    <div class="cell"><span data-logo data-size="52"></span><span class="cap">Petit</span></div>
+  </div>
+
+  <!-- ============ HORIZONTAL LOCKUP / BAR ============ -->
+  <div class="section-h"><span class="k">Verrouillage horizontal · barre de navigation</span><span class="rule"></span></div>
+  <div class="barctx">
+    <div class="bar">
+      <span data-logo data-row data-size="44"></span>
+      <span class="nav"><span>Catalogue</span><span>Commandes</span><span>Documents</span><span>Compte</span></span>
+    </div>
+    <div class="body"></div>
+  </div>
+  <p class="hint"><span class="dot"></span> Survolez n'importe quel logo : seule la feuille s'élève de 3px, rien d'autre.</p>
+
+</div>
+
+<!-- ===========================================================
+     Reusable factory. Stamps a unique gradient id per instance
+     (SVG gradient ids are document-global), wires the markup,
+     then auto-detects the surface luminance.
+     =========================================================== -->
+<script>
+(function(){
+  var TAGLINE = "SANTÉ · BEAUTÉ · BIEN-ÊTRE";
+  var seq = 0;
+
+  // Leaf gradient is FIXED — teal #0DBFA8 at the tip → deep blue #1A3A8F at the base.
+  function leafSVG(){
+    var id = "nvleaf" + (++seq);
+    return ''
+    + '<svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" '
+    +   'preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><linearGradient id="' + id + '" x1="20%" y1="8%" x2="92%" y2="86%">'
+    +   '<stop offset="0%" stop-color="#0DBFA8"/>'
+    +   '<stop offset="54%" stop-color="#1C73C4"/>'
+    +   '<stop offset="100%" stop-color="#1A3A8F"/>'
+    + '</linearGradient></defs>'
+    + '<g fill="none" stroke="url(#' + id + ')" stroke-width="5" '
+    +   'stroke-linecap="round" stroke-linejoin="round">'
+    +   '<path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/>'
+    +   '<path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/>'
+    +   '<path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/>'
+    +   '<path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/>'
+    +   '<path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/>'
+    + '</g></svg>';
+  }
+
+  function build(el){
+    var size = parseFloat(el.getAttribute('data-size')) || 64;
+    var row  = el.hasAttribute('data-row');
+    el.classList.add('neoval-logo');
+    if(row) el.classList.add('nv-row');
+    el.style.setProperty('--nv-leaf', size + 'px');
+    el.setAttribute('tabindex','0');
+    el.setAttribute('aria-label','Neoval — Santé, Beauté, Bien-être');
+
+    var type = '<span class="nv-word">NEOVAL</span>'
+             + '<span class="nv-tag">' + TAGLINE + '</span>';
+    if(row) type = '<span class="nv-type">' + type + '</span>';
+    el.innerHTML = leafSVG() + type;
+  }
+
+  // ---- auto light/dark by surface luminance ----
+  function parseRGB(str){
+    var m = str.match(/rgba?\(([^)]+)\)/);
+    if(!m) return null;
+    var p = m[1].split(',').map(function(s){return parseFloat(s.trim());});
+    return {r:p[0], g:p[1], b:p[2], a:(p.length>3? p[3] : 1)};
+  }
+  function relLum(c){
+    var a = [c.r,c.g,c.b].map(function(v){
+      v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4);
+    });
+    return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
+  }
+  // walk up until we find an opaque-enough background; fall back to body
+  function surfaceLum(el){
+    var node = el;
+    while(node && node !== document.documentElement){
+      var bg = getComputedStyle(node).backgroundColor;
+      var c = parseRGB(bg);
+      if(c && c.a >= 0.5) return relLum(c);
+      node = node.parentElement;
+    }
+    var bc = parseRGB(getComputedStyle(document.body).backgroundColor);
+    return bc ? relLum(bc) : 0;
+  }
+  function applyMode(el){
+    el.classList.remove('on-dark','on-light');
+    el.classList.add(surfaceLum(el) < 0.5 ? 'on-dark' : 'on-light');
+  }
+
+  function init(){
+    var nodes = document.querySelectorAll('[data-logo]');
+    nodes.forEach(build);
+    // detect after layout/paint so backgrounds are resolved
+    requestAnimationFrame(function(){ nodes.forEach(applyMode); });
+  }
+
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  // expose for portal pages that inject surfaces dynamically
+  window.NeovalLogo = {
+    mount: function(el){ build(el); requestAnimationFrame(function(){ applyMode(el); }); },
+    refresh: function(){ document.querySelectorAll('.neoval-logo').forEach(applyMode); }
+  };
+})();
+</script>
+</body></html>

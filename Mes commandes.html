@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — Mes commandes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#F4F6F9;
+  --navy-2:#FFFFFF;
+  --teal:#0DBFA8;
+  --gold:#C4A03A;
+  --white:#0D1B2A;
+  --body:rgba(13,27,42,.74);
+  --faint:rgba(13,27,42,.52);
+  --hair:rgba(13,27,42,.10);
+  --glass:#FFFFFF;
+  --maxw:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+
+#bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(55% 45% at 18% 0%,rgba(13,191,168,.09) 0%,transparent 60%),
+             radial-gradient(50% 45% at 92% 100%,rgba(196,160,58,.06) 0%,transparent 60%)}
+#bg-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%;position:relative;z-index:5}
+
+/* topbar */
+#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:26px;height:26px;position:relative;flex:0 0 auto}
+/* leaf mark — styled in portal-theme.css */
+.brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:var(--white)}
+.bar-right{display:flex;align-items:center;gap:22px}
+.bar-nav{display:flex;align-items:center;gap:28px}
+.bar-nav a{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);text-decoration:none;transition:color .25s}
+.bar-nav a:hover,.bar-nav a.active{color:var(--teal)}
+.cartlink{position:relative;display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--white);border:1px solid var(--teal);padding:11px 16px;transition:background .25s,color .25s}
+.cartlink:hover{background:var(--teal);color:var(--navy)}
+.cartlink .cn{min-width:20px;height:20px;padding:0 6px;border-radius:11px;background:var(--teal);color:var(--navy);
+  display:inline-grid;place-items:center;font-size:11px;font-weight:500;line-height:1}
+.cartlink:hover .cn{background:var(--navy);color:var(--teal)}
+.cartlink.empty .cn{display:none}
+.who{display:flex;align-items:center;gap:11px}
+.who .av{width:34px;height:34px;border:1px solid var(--teal);display:grid;place-items:center;
+  font-family:'Syne';font-weight:800;font-size:13px;color:var(--teal)}
+.who .meta{display:flex;flex-direction:column;line-height:1.2}
+.who .meta .n{font-size:13.5px;color:var(--white)}
+.who .meta .r{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.logout{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);
+  text-decoration:none;border:1px solid var(--hair);padding:10px 16px;transition:all .25s;white-space:nowrap}
+.logout:hover{color:var(--teal);border-color:var(--teal)}
+
+/* head */
+.head{padding:54px 0 26px}
+.kicker{display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:20px}
+.kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.7}
+.head h1{font-size:clamp(34px,5vw,52px)}
+.head p{color:var(--body);font-size:16px;margin-top:14px;max-width:560px}
+
+/* filter bar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  padding:20px 0 22px;border-top:1px solid var(--hair)}
+.filters{display:flex;align-items:stretch;gap:0;border:1px solid var(--hair);background:var(--glass);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.filters button{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--body);background:transparent;border:0;border-right:1px solid var(--hair);
+  padding:13px 20px;cursor:pointer;transition:color .22s,background .22s;display:inline-flex;align-items:center;gap:9px;white-space:nowrap}
+.filters button:last-child{border-right:0}
+.filters button:hover{color:var(--white)}
+.filters button.active{color:var(--navy);background:var(--teal)}
+.filters button .ct{font-size:10px;min-width:18px;height:18px;padding:0 5px;display:inline-grid;place-items:center;
+  border:1px solid var(--hair);color:var(--faint);line-height:1}
+.filters button.active .ct{border-color:rgba(6,13,24,.35);color:rgba(6,13,24,.7)}
+.tbcount{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+
+/* table */
+.tablehead{display:grid;grid-template-columns:200px 150px 1fr 180px 150px 22px;gap:18px;align-items:center;
+  padding:0 26px 14px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.tablehead .ta-r{text-align:right}
+.list{display:flex;flex-direction:column;background:var(--glass);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);margin-bottom:80px}
+.orow{display:grid;grid-template-columns:200px 150px 1fr 180px 150px 22px;gap:18px;align-items:center;
+  padding:22px 26px;border-bottom:1px solid var(--hair);cursor:pointer;text-align:left;width:100%;
+  background:transparent;border-left:0;border-right:0;border-top:0;color:inherit;font:inherit;
+  position:relative;transition:background .2s}
+.orow:last-child{border-bottom:0}
+.orow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background .2s}
+.orow:hover{background:rgba(13,191,168,.045)}
+.orow:hover::before{background:rgba(13,191,168,.4)}
+.orow.sel{background:rgba(13,191,168,.08)}
+.orow.sel::before{background:var(--teal)}
+.orow .onum{font-family:'IBM Plex Mono';font-size:13.5px;letter-spacing:.06em;color:var(--white)}
+.orow .odate{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.04em;color:var(--body)}
+.orow .oitems{font-size:14px;color:var(--body)}
+.orow .oitems b{color:var(--white);font-weight:500}
+.orow .ototal{text-align:right;font-family:'Syne';font-weight:800;font-size:18px;color:var(--white);white-space:nowrap}
+.orow .ototal small{font-family:'IBM Plex Mono';font-size:11px;font-weight:400;color:var(--faint);margin-left:4px;letter-spacing:.06em}
+.orow .ochev{color:var(--faint);font-size:15px;text-align:right;transition:color .2s,transform .2s}
+.orow:hover .ochev{color:var(--teal);transform:translateX(2px)}
+
+/* status tag */
+.tag{justify-self:start;display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono';
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:7px 12px;border:1px solid var(--hair);white-space:nowrap}
+.tag::before{content:"";width:6px;height:6px;flex:0 0 auto}
+.tag.attente{color:var(--gold);border-color:rgba(196,160,58,.4);background:rgba(196,160,58,.08)}
+.tag.attente::before{background:var(--gold)}
+.tag.confirme{color:var(--teal);border-color:rgba(13,191,168,.4);background:rgba(13,191,168,.08)}
+.tag.confirme::before{background:var(--teal)}
+.tag.livre{color:var(--body);border-color:var(--hair);background:rgba(245,247,250,.04)}
+.tag.livre::before{background:var(--faint)}
+
+/* empty */
+.empty{display:none;text-align:center;padding:70px 26px 96px;background:var(--glass);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);margin-bottom:80px}
+.empty .ic{font-size:40px;color:rgba(13,191,168,.4);font-family:'Syne';margin-bottom:22px}
+.empty h3{font-size:22px;margin-bottom:12px}
+.empty p{color:var(--body);font-size:15px;margin:0 auto 28px;max-width:380px}
+.empty a{display:inline-flex;align-items:center;gap:9px;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--teal);text-decoration:none;
+  border:1px solid var(--teal);padding:15px 26px;transition:background .25s,color .25s}
+.empty a:hover{background:var(--teal);color:var(--navy)}
+
+@media(max-width:980px){
+  .tablehead{grid-template-columns:160px 1fr 150px 22px}
+  .tablehead .th-items,.tablehead .th-date-sub{display:none}
+  .orow{grid-template-columns:160px 1fr 150px 22px}
+  .orow .odate,.orow .oitems{display:none}
+}
+@media(max-width:760px){
+  .bar-nav{display:none}
+}
+@media(max-width:560px){
+  .wrap{padding:0 22px}
+  .who .meta{display:none}
+  .tablehead{display:none}
+  .orow{grid-template-columns:1fr auto;gap:8px 14px;padding:18px 20px}
+  .orow .onum{grid-column:1}
+  .orow .tag{grid-column:2;grid-row:1 / span 2;align-self:center}
+  .orow .ototal{grid-column:1;text-align:left}
+  .orow .ochev{display:none}
+}
+</style>
+<link rel="stylesheet" href="portal-theme.css" />
+</head>
+<body class="theme p-orders dbg-mesh" style="--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono';--teal:#0DBFA8;--gold:#C4A03A;--teal-soft:rgba(13,191,168,.14);--teal-bright:#0aa491;--navy:#F4F6F9;--dot-op:.06">
+
+<div id="bg-glow"></div>
+<div id="bg-grain"></div>
+
+<header id="bar">
+  <div class="wrap">
+    <a class="brand" href="Neoval Pharma.html" style="text-decoration:none">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nvLeafGrad" x1="20%" y1="8%" x2="92%" y2="86%"><stop offset="0%" stop-color="#0DBFA8"/><stop offset="54%" stop-color="#1C73C4"/><stop offset="100%" stop-color="#1A3A8F"/></linearGradient></defs><g fill="none" stroke="url(#nvLeafGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/><path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/><path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/><path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/></g></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+    </a>
+    <nav class="bar-nav">
+      <a href="Dashboard.html">Tableau de bord</a>
+      <a href="Catalogue.html">Catalogue</a>
+      <a href="Mes commandes.html" class="active">Mes commandes</a>
+      <a href="Mes documents.html">Documents</a>
+    </nav>
+    <div class="bar-right">
+      <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
+      <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
+        <span class="av">DR</span>
+        <span class="meta">
+          <span class="n">Dr. Reda Amrani</span>
+          <span class="r">Pharmacie Centrale · Rabat</span>
+        </span>
+      </a>
+      <a class="logout" href="Login.html">Déconnexion</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="head">
+    <span class="kicker">Portail Pharmacie</span>
+    <h1>Mes commandes</h1>
+    <p>Historique de toutes vos commandes validées. Sélectionnez une ligne pour consulter le détail.</p>
+  </div>
+
+  <div class="toolbar" id="toolbar">
+    <div class="filters" id="filters">
+      <button data-f="tous" class="active">Tous <span class="ct" data-ct="tous">0</span></button>
+      <button data-f="attente">En attente <span class="ct" data-ct="attente">0</span></button>
+      <button data-f="confirme">Confirmé <span class="ct" data-ct="confirme">0</span></button>
+      <button data-f="livre">Livré <span class="ct" data-ct="livre">0</span></button>
+    </div>
+    <span class="tbcount" id="tbcount">0 commandes</span>
+  </div>
+
+  <div class="tablehead" id="tablehead">
+    <span>N° Commande</span>
+    <span class="th-date-sub">Date</span>
+    <span class="th-items">Articles</span>
+    <span class="ta-r">Total TTC</span>
+    <span>Statut</span>
+    <span></span>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <div class="empty" id="empty">
+    <div class="ic">◇</div>
+    <h3 id="emptyTitle">Aucune commande pour le moment</h3>
+    <p id="emptyText">Vos commandes validées depuis le catalogue apparaîtront ici. Composez votre première commande pour démarrer votre historique.</p>
+    <a href="Catalogue.html">Parcourir le catalogue →</a>
+  </div>
+</main>
+
+<script src="cart.js"></script>
+<script>
+(function(){
+  var C=window.NeovalCart;
+  function fmt(n){return C.fmt(n);}
+
+  /* cart badge sync (shared topbar behaviour) */
+  function sync(){
+    var n=C.count(), cl=document.getElementById('cartLink');
+    document.getElementById('cartCount').textContent=n;
+    cl.classList.toggle('empty',n===0);
+  }
+  window.addEventListener('cart:change',sync);
+
+  /* ---- status normalization → 3 buckets ---- */
+  var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
+  function bucket(s){
+    s=(s||'').toLowerCase();
+    if(s.indexOf('livr')>-1) return 'livre';
+    if(s.indexOf('attente')>-1) return 'attente';
+    return 'confirme'; /* en préparation, confirmé, validée, expédiée */
+  }
+  function fmtDate(iso){
+    var d=new Date(iso);
+    if(isNaN(d)) return '—';
+    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+  }
+  function tagHTML(b){return '<span class="tag '+b+'">'+LABELS[b]+'</span>';}
+
+  var current='tous';
+  var orders=[];
+
+  function load(){ orders=C.getOrders()||[]; }
+
+  function counts(){
+    var c={tous:orders.length,attente:0,confirme:0,livre:0};
+    orders.forEach(function(o){ c[bucket(o.status)]++; });
+    return c;
+  }
+
+  function render(){
+    var list=document.getElementById('list');
+    var empty=document.getElementById('empty');
+    var thead=document.getElementById('tablehead');
+    var c=counts();
+
+    /* filter chip counts */
+    Object.keys(c).forEach(function(k){
+      var el=document.querySelector('[data-ct="'+k+'"]'); if(el) el.textContent=c[k];
+    });
+
+    var visible=orders.filter(function(o){ return current==='tous'||bucket(o.status)===current; });
+    document.getElementById('tbcount').textContent=visible.length+' commande'+(visible.length>1?'s':'');
+
+    if(!visible.length){
+      list.style.display='none';
+      thead.style.display='none';
+      empty.style.display='block';
+      var t=document.getElementById('emptyTitle'), p=document.getElementById('emptyText');
+      if(orders.length){ /* filtered to nothing */
+        t.textContent='Aucune commande '+LABELS[current].toLowerCase();
+        p.textContent='Aucune commande ne correspond à ce statut pour l’instant. Modifiez le filtre ou consultez toutes vos commandes.';
+      } else {
+        t.textContent='Aucune commande pour le moment';
+        p.textContent='Vos commandes validées depuis le catalogue apparaîtront ici. Composez votre première commande pour démarrer votre historique.';
+      }
+      return;
+    }
+
+    empty.style.display='none';
+    thead.style.display='grid';
+    list.style.display='flex';
+    list.innerHTML=visible.map(function(o){
+      var b=bucket(o.status);
+      var lines=o.lineCount+' référence'+(o.lineCount>1?'s':'');
+      return '<button class="orow" data-id="'+o.id+'">'+
+        '<span class="onum">'+o.id+'</span>'+
+        '<span class="odate">'+fmtDate(o.date)+'</span>'+
+        '<span class="oitems"><b>'+lines+'</b> · '+o.units+' unités</span>'+
+        '<span class="ototal">'+fmt(o.total)+'<small>MAD</small></span>'+
+        tagHTML(b)+
+        '<span class="ochev">→</span>'+
+      '</button>';
+    }).join('');
+  }
+
+  /* ---- filters (live) ---- */
+  document.getElementById('filters').addEventListener('click',function(e){
+    var btn=e.target.closest('button'); if(!btn) return;
+    current=btn.getAttribute('data-f');
+    [].forEach.call(this.querySelectorAll('button'),function(b){b.classList.toggle('active',b===btn);});
+    render();
+  });
+
+  /* ---- row click → standalone detail page ---- */
+  document.getElementById('list').addEventListener('click',function(e){
+    var row=e.target.closest('.orow'); if(!row) return;
+    var id=row.getAttribute('data-id');
+    [].forEach.call(document.querySelectorAll('.orow.sel'),function(r){r.classList.remove('sel');});
+    row.classList.add('sel');
+    location.href='Commande détail.html?id='+encodeURIComponent(id);
+  });
+
+  window.addEventListener('orders:change',function(){ load(); render(); });
+
+  sync(); load(); render();
+})();
+</script>
+<script src="portal-nav.js"></script>
+</body>
+</html>

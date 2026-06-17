@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — Détail commande</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#F4F6F9;
+  --navy-2:#FFFFFF;
+  --teal:#0DBFA8;
+  --gold:#C4A03A;
+  --white:#0D1B2A;
+  --body:rgba(13,27,42,.74);
+  --faint:rgba(13,27,42,.52);
+  --hair:rgba(13,27,42,.10);
+  --glass:#FFFFFF;
+  --maxw:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+
+#bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(55% 45% at 18% 0%,rgba(13,191,168,.09) 0%,transparent 60%),
+             radial-gradient(50% 45% at 92% 100%,rgba(196,160,58,.06) 0%,transparent 60%)}
+#bg-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%;position:relative;z-index:5}
+
+/* topbar */
+#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:26px;height:26px;position:relative;flex:0 0 auto}
+/* leaf mark — styled in portal-theme.css */
+.brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:var(--white)}
+.bar-right{display:flex;align-items:center;gap:22px}
+.bar-nav{display:flex;align-items:center;gap:28px}
+.bar-nav a{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);text-decoration:none;transition:color .25s}
+.bar-nav a:hover,.bar-nav a.active{color:var(--teal)}
+.cartlink{position:relative;display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--white);border:1px solid var(--teal);padding:11px 16px;transition:background .25s,color .25s}
+.cartlink:hover{background:var(--teal);color:var(--navy)}
+.cartlink .cn{min-width:20px;height:20px;padding:0 6px;border-radius:11px;background:var(--teal);color:var(--navy);
+  display:inline-grid;place-items:center;font-size:11px;font-weight:500;line-height:1}
+.cartlink:hover .cn{background:var(--navy);color:var(--teal)}
+.cartlink.empty .cn{display:none}
+.who{display:flex;align-items:center;gap:11px}
+.who .av{width:34px;height:34px;border:1px solid var(--teal);display:grid;place-items:center;
+  font-family:'Syne';font-weight:800;font-size:13px;color:var(--teal)}
+.who .meta{display:flex;flex-direction:column;line-height:1.2}
+.who .meta .n{font-size:13.5px;color:var(--white)}
+.who .meta .r{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.logout{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);
+  text-decoration:none;border:1px solid var(--hair);padding:10px 16px;transition:all .25s;white-space:nowrap}
+.logout:hover{color:var(--teal);border-color:var(--teal)}
+
+/* back */
+.back{display:inline-flex;align-items:center;gap:10px;margin:34px 0 0;font-family:'IBM Plex Mono';
+  font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--body);text-decoration:none;transition:color .2s}
+.back:hover{color:var(--teal)}
+
+/* order header */
+.ohead{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;flex-wrap:wrap;
+  padding:22px 0 30px;border-bottom:1px solid var(--hair);margin-bottom:30px}
+.ohead .left .kick{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+.ohead .left h1{font-family:'IBM Plex Mono';font-weight:500;font-size:clamp(26px,3.4vw,38px);letter-spacing:.02em;color:var(--white)}
+.ohead .left .sub{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;font-size:14px;color:var(--body)}
+.ohead .left .sub b{color:var(--white);font-weight:500}
+.ohead .left .sub .dot{color:var(--faint)}
+.ohead .right{display:flex;flex-direction:column;align-items:flex-end;gap:14px;text-align:right}
+.ohead .right .tl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.ohead .right .tv{font-family:'Syne';font-weight:800;font-size:34px;color:var(--teal);line-height:1}
+.ohead .right .tv small{font-family:'IBM Plex Mono';font-size:13px;font-weight:400;color:var(--body);margin-left:5px;letter-spacing:.06em}
+
+/* status tag */
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;padding:7px 12px;border:1px solid var(--hair);white-space:nowrap}
+.tag::before{content:"";width:6px;height:6px;flex:0 0 auto}
+.tag.attente{color:var(--gold);border-color:rgba(196,160,58,.4);background:rgba(196,160,58,.08)}
+.tag.attente::before{background:var(--gold)}
+.tag.confirme{color:var(--teal);border-color:rgba(13,191,168,.4);background:rgba(13,191,168,.08)}
+.tag.confirme::before{background:var(--teal)}
+.tag.livre{color:var(--body);border-color:var(--hair);background:rgba(245,247,250,.04)}
+.tag.livre::before{background:var(--faint)}
+
+/* timeline */
+.flow{display:flex;align-items:flex-start;background:var(--glass);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);padding:34px 40px;margin-bottom:22px}
+.fstep{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
+.fstep::before{content:"";position:absolute;top:8px;left:-50%;width:100%;height:2px;background:var(--hair);z-index:1}
+.fstep:first-child::before{display:none}
+.fstep.fill::before{background:var(--teal)}
+.fstep .dot{width:18px;height:18px;border:2px solid var(--hair);background:var(--navy-2);position:relative;z-index:2;transform:rotate(45deg)}
+.fstep.done .dot{border-color:var(--teal);background:var(--teal)}
+.fstep.active .dot{border-color:var(--teal);background:var(--teal);box-shadow:0 0 0 5px rgba(13,191,168,.16)}
+.fstep .sl{font-family:'Syne';font-weight:700;font-size:14px;margin-top:18px;color:var(--faint)}
+.fstep.done .sl,.fstep.active .sl{color:var(--white)}
+.fstep .ss{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:7px}
+.fstep.active .ss{color:var(--teal)}
+
+/* main grid */
+.grid{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start;padding-bottom:90px}
+
+/* line items */
+.card{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--hair)}
+.card .ch{display:grid;grid-template-columns:1fr 90px 130px 130px;gap:18px;padding:18px 26px;border-bottom:1px solid var(--hair);
+  font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.card .ch .r{text-align:right}
+.li{display:grid;grid-template-columns:1fr 90px 130px 130px;gap:18px;align-items:center;padding:20px 26px;border-bottom:1px solid var(--hair)}
+.li:last-child{border-bottom:0}
+.li .p{display:flex;align-items:center;gap:16px}
+.li .p .g{width:46px;height:46px;flex:0 0 auto;display:grid;place-items:center;font-family:'Syne';font-weight:800;
+  font-size:22px;color:rgba(13,191,168,.5);border:1px solid var(--hair);background:rgba(13,191,168,.06)}
+.li .p .pn h4{font-size:15px;font-family:'DM Sans';font-weight:500;letter-spacing:0;margin-bottom:4px}
+.li .p .pn .ref{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.li .qt{font-family:'IBM Plex Mono';font-size:13px;color:var(--white)}
+.li .qt span{display:block;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-top:4px}
+.li .pu{font-family:'IBM Plex Mono';font-size:13px;color:var(--body);text-align:right}
+.li .st{font-family:'Syne';font-weight:800;font-size:16px;color:var(--white);text-align:right;white-space:nowrap}
+
+/* totals */
+.sum{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--hair);border-top:3px solid var(--gold);padding:30px 28px;position:sticky;top:96px}
+.sum h2{font-family:'IBM Plex Mono';font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:22px}
+.sr{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;font-size:14px;color:var(--body)}
+.sr .v{font-family:'IBM Plex Mono';color:var(--white)}
+.sr .v.free{color:var(--teal)}
+.sr.tot{border-top:1px solid var(--hair);margin-top:8px;padding-top:18px}
+.sr.tot .k{font-family:'Syne';font-weight:700;font-size:17px;color:var(--white)}
+.sr.tot .v{font-family:'Syne';font-weight:800;font-size:24px;color:var(--teal)}
+.sr.tot .v small{font-size:13px;color:var(--body);font-weight:600;margin-left:3px}
+.sumnote{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.06em;color:var(--faint);text-align:center;margin-top:18px;line-height:1.6}
+.reorder{display:block;width:100%;margin-top:22px;text-align:center;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--teal);text-decoration:none;border:1px solid var(--teal);
+  padding:15px;transition:background .25s,color .25s}
+.reorder:hover{background:var(--teal);color:var(--navy)}
+
+/* documents */
+.docs{margin-top:22px}
+.docs-h{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+.docs h3{font-size:18px;margin-bottom:5px}
+.docs .note{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.docs-all{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--body);
+  text-decoration:none;white-space:nowrap;transition:color .2s}
+.docs-all:hover{color:var(--teal)}
+.doclist{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.doc{border:1px dashed rgba(245,247,250,.16);background:repeating-linear-gradient(135deg,rgba(245,247,250,.012) 0 10px,transparent 10px 20px);
+  padding:22px 24px;display:flex;align-items:center;gap:18px}
+.doc.active{border-style:solid;border-color:var(--hair);background:var(--glass)}
+.doc .di{width:42px;height:42px;flex:0 0 auto;border:1px solid var(--hair);display:grid;place-items:center;
+  font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--faint)}
+.doc.active .di{color:var(--teal);border-color:rgba(13,191,168,.35)}
+.doc .dm{flex:1;min-width:0}
+.doc .dm .dt{font-family:'DM Sans';font-size:14px;color:var(--white);margin-bottom:5px}
+.doc .dm .dd{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc .badge{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+  border:1px solid rgba(196,160,58,.4);background:rgba(196,160,58,.08);padding:5px 9px;white-space:nowrap}
+.doc .dl{display:inline-flex;align-items:center;gap:9px;font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--teal);background:transparent;border:1px solid var(--teal);padding:10px 14px;
+  cursor:pointer;white-space:nowrap;transition:background .22s,color .22s,box-shadow .22s}
+.doc .dl svg{width:13px;height:13px;display:block}
+.doc .dl:hover{background:var(--teal);color:var(--navy);box-shadow:0 0 20px rgba(13,191,168,.28)}
+.doc .dl.busy{opacity:.7;pointer-events:none}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:34px;z-index:120;transform:translate(-50%,24px);opacity:0;
+  pointer-events:none;transition:opacity .3s,transform .3s;background:var(--navy-2);
+  border:1px solid rgba(13,191,168,.3);border-left:3px solid var(--teal);padding:15px 22px;
+  display:flex;align-items:center;gap:14px;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast .tic{width:30px;height:30px;flex:0 0 auto;border:1px solid var(--teal);display:grid;place-items:center;color:var(--teal)}
+#toast .tic svg{width:15px;height:15px}
+#toast .tt{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--white);line-height:1.5}
+#toast .tt b{color:var(--teal);font-weight:500}
+#toast .tt span{display:block;color:var(--faint);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+
+/* not found */
+.nf{display:none;text-align:center;padding:80px 26px 110px}
+.nf .ic{font-size:42px;color:rgba(13,191,168,.4);font-family:'Syne';margin-bottom:22px}
+.nf h2{font-size:24px;margin-bottom:12px}
+.nf p{color:var(--body);font-size:15px;margin:0 auto 28px;max-width:380px}
+.nf a{display:inline-flex;align-items:center;gap:9px;font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--teal);text-decoration:none;border:1px solid var(--teal);padding:15px 26px;transition:background .25s,color .25s}
+.nf a:hover{background:var(--teal);color:var(--navy)}
+
+@media(max-width:860px){
+  .grid{grid-template-columns:1fr}
+  .sum{position:static}
+  .bar-nav{display:none}
+}
+@media(max-width:620px){
+  .wrap{padding:0 22px}
+  .who .meta{display:none}
+  .card .ch{grid-template-columns:1fr 110px}
+  .card .ch .h-pu,.card .ch .h-qt{display:none}
+  .li{grid-template-columns:1fr 110px}
+  .li .qt,.li .pu{display:none}
+  .doclist{grid-template-columns:1fr}
+  .flow{padding:28px 18px}
+  .fstep .sl{font-size:12.5px}
+}
+</style>
+<link rel="stylesheet" href="portal-theme.css" />
+</head>
+<body class="theme p-orders dbg-mesh" style="--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono';--teal:#0DBFA8;--gold:#C4A03A;--teal-soft:rgba(13,191,168,.14);--teal-bright:#0aa491;--navy:#F4F6F9;--dot-op:.06">
+
+<div id="bg-glow"></div>
+<div id="bg-grain"></div>
+
+<header id="bar">
+  <div class="wrap">
+    <a class="brand" href="Neoval Pharma.html" style="text-decoration:none">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nvLeafGrad" x1="20%" y1="8%" x2="92%" y2="86%"><stop offset="0%" stop-color="#0DBFA8"/><stop offset="54%" stop-color="#1C73C4"/><stop offset="100%" stop-color="#1A3A8F"/></linearGradient></defs><g fill="none" stroke="url(#nvLeafGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/><path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/><path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/><path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/></g></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+    </a>
+    <nav class="bar-nav">
+      <a href="Dashboard.html">Tableau de bord</a>
+      <a href="Catalogue.html">Catalogue</a>
+      <a href="Mes commandes.html" class="active">Mes commandes</a>
+      <a href="Mes documents.html">Documents</a>
+    </nav>
+    <div class="bar-right">
+      <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
+      <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
+        <span class="av">DR</span>
+        <span class="meta">
+          <span class="n">Dr. Reda Amrani</span>
+          <span class="r">Pharmacie Centrale · Rabat</span>
+        </span>
+      </a>
+      <a class="logout" href="Login.html">Déconnexion</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <a class="back" href="Mes commandes.html">← Mes commandes</a>
+
+  <div id="detail">
+    <div class="ohead">
+      <div class="left">
+        <div class="kick">Détail de commande</div>
+        <h1 id="oNum">—</h1>
+        <div class="sub">
+          <span>Validée le <b id="oDate">—</b></span>
+          <span class="dot">·</span>
+          <span id="oPharma"><b>Pharmacie Centrale</b> — Rabat</span>
+        </div>
+      </div>
+      <div class="right">
+        <div id="oTag"></div>
+        <div class="tl">Total TTC</div>
+        <div class="tv" id="oTotalBig">0<small>MAD</small></div>
+      </div>
+    </div>
+
+    <div class="flow" id="flow">
+      <div class="fstep" data-step="attente"><span class="dot"></span><div class="sl">En attente</div><div class="ss" id="ss-attente">—</div></div>
+      <div class="fstep" data-step="confirme"><span class="dot"></span><div class="sl">Confirmé</div><div class="ss" id="ss-confirme">—</div></div>
+      <div class="fstep" data-step="livre"><span class="dot"></span><div class="sl">Livré</div><div class="ss" id="ss-livre">—</div></div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <div class="ch">
+            <span>Produit</span>
+            <span class="r h-qt">Qté</span>
+            <span class="r h-pu">PU HT</span>
+            <span class="r">Sous-total HT</span>
+          </div>
+          <div id="lines"></div>
+        </div>
+
+        <div class="docs">
+          <div class="docs-h">
+            <div>
+              <h3>Documents</h3>
+              <div class="note" id="docsNote">Pièces jointes à la commande</div>
+            </div>
+            <a class="docs-all" id="docsAll" href="Mes documents.html">Tous mes documents →</a>
+          </div>
+          <div class="doclist" id="docList"></div>
+        </div>
+      </div>
+
+      <aside class="sum">
+        <h2>Récapitulatif</h2>
+        <div class="sr"><span class="k">Total unités</span><span class="v" id="sUnits">0</span></div>
+        <div class="sr"><span class="k">Sous-total HT</span><span class="v" id="sSub">0 MAD</span></div>
+        <div class="sr"><span class="k">TVA (20%)</span><span class="v" id="sTva">0 MAD</span></div>
+        <div class="sr"><span class="k">Livraison</span><span class="v free">Incluse</span></div>
+        <div class="sr tot"><span class="k">Total TTC</span><span class="v" id="sTot">0<small>MAD</small></span></div>
+        <a class="reorder" id="reorder" href="Catalogue.html">Commander à nouveau</a>
+        <div class="sumnote">Devis confirmé par un conseiller Neoval Pharma. Délais de livraison communiqués sous 24 h ouvrées.</div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="nf" id="notfound">
+    <div class="ic">◇</div>
+    <h2>Commande introuvable</h2>
+    <p>Cette commande n’existe pas ou n’est plus disponible dans votre historique.</p>
+    <a href="Mes commandes.html">← Retour à mes commandes</a>
+  </div>
+</main>
+
+<div id="toast">
+  <div class="tic">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>
+  </div>
+  <div class="tt"><b id="toastName">—</b><span id="toastSub">Téléchargement simulé</span></div>
+</div>
+
+<script src="cart.js"></script>
+<script>
+(function(){
+  var C=window.NeovalCart;
+  function fmt(n){return C.fmt(n);}
+
+  /* cart badge */
+  function sync(){
+    var n=C.count(), cl=document.getElementById('cartLink');
+    document.getElementById('cartCount').textContent=n;
+    cl.classList.toggle('empty',n===0);
+  }
+  window.addEventListener('cart:change',sync);
+  sync();
+
+  var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
+  var ORDER=['attente','confirme','livre'];
+  function bucket(s){
+    s=(s||'').toLowerCase();
+    if(s.indexOf('livr')>-1) return 'livre';
+    if(s.indexOf('attente')>-1) return 'attente';
+    return 'confirme';
+  }
+  function fmtDate(iso){
+    var d=new Date(iso); if(isNaN(d)) return '—';
+    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  }
+
+  var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
+
+  function renderDocs(o,b){
+    var listEl=document.getElementById('docList');
+    var note=document.getElementById('docsNote');
+    var all=document.getElementById('docsAll');
+    var suffix=String(o.id).replace(/^CMD-/,'');
+    var defs=[{t:'BL',label:'Bon de livraison'},{t:'POP',label:'Preuve de paiement'}];
+
+    if(b==='attente'){
+      note.textContent='Émis après confirmation de la commande';
+      all.style.display='none';
+      listEl.innerHTML=defs.map(function(d){
+        return '<div class="doc"><div class="di">'+d.t+'</div>'+
+          '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">En attente de confirmation</div></div>'+
+          '<span class="badge">Bientôt</span></div>';
+      }).join('');
+      return;
+    }
+    note.textContent='Pièces jointes à la commande';
+    all.style.display='';
+    all.href='Mes documents.html?order='+encodeURIComponent(o.id);
+    listEl.innerHTML=defs.map(function(d){
+      var name=d.t+'-'+suffix;
+      return '<div class="doc active"><div class="di">'+d.t+'</div>'+
+        '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">'+name+'.pdf</div></div>'+
+        '<button class="dl" data-name="'+name+'">'+DL_SVG+'PDF</button></div>';
+    }).join('');
+  }
+
+  function getId(){
+    try{ return new URLSearchParams(location.search).get('id'); }catch(e){ return null; }
+  }
+
+  function render(){
+    var id=getId();
+    var orders=C.getOrders()||[];
+    var o=orders.filter(function(x){return x.id===id;})[0];
+
+    if(!o){
+      document.getElementById('detail').style.display='none';
+      document.getElementById('notfound').style.display='block';
+      return;
+    }
+
+    var b=bucket(o.status);
+    document.getElementById('oNum').textContent=o.id;
+    document.getElementById('oDate').textContent=fmtDate(o.date);
+    document.getElementById('oTag').innerHTML='<span class="tag '+b+'">'+LABELS[b]+'</span>';
+    document.getElementById('oTotalBig').innerHTML=fmt(o.total)+'<small>MAD</small>';
+
+    /* timeline */
+    var cur=ORDER.indexOf(b);
+    var steps=document.querySelectorAll('#flow .fstep');
+    var activeWord={attente:'En cours',confirme:'En préparation',livre:'Livrée'};
+    [].forEach.call(steps,function(st,i){
+      st.classList.remove('done','active','fill');
+      if(i<cur){ st.classList.add('done'); }
+      else if(i===cur){ st.classList.add('active'); }
+      if(i<=cur && i>0){ st.classList.add('fill'); }
+      var key=st.getAttribute('data-step');
+      var word = i<cur ? 'Terminé' : (i===cur ? activeWord[key] : 'À venir');
+      st.querySelector('.ss').textContent=word;
+    });
+
+    /* line items */
+    document.getElementById('lines').innerHTML=(o.items||[]).map(function(it){
+      var p=C.byRef(it.ref);
+      var unit=p?p.price:Math.round(it.lineTotal/Math.max(it.units,1));
+      return '<div class="li">'+
+        '<div class="p"><div class="g">'+(it.glyph||'◇')+'</div>'+
+          '<div class="pn"><h4>'+it.name+'</h4><div class="ref">'+it.ref+'</div></div></div>'+
+        '<div class="qt">'+it.units+'<span>'+it.cartons+' carton'+(it.cartons>1?'s':'')+'</span></div>'+
+        '<div class="pu">'+fmt(unit)+' MAD</div>'+
+        '<div class="st">'+fmt(it.lineTotal)+' MAD</div>'+
+      '</div>';
+    }).join('');
+
+    /* totals */
+    document.getElementById('sUnits').textContent=o.units.toLocaleString('fr-FR');
+    document.getElementById('sSub').textContent=fmt(o.subtotal)+' MAD';
+    document.getElementById('sTva').textContent=fmt(o.tva)+' MAD';
+    document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';
+
+    /* documents */
+    renderDocs(o,b);
+  }
+
+  /* download stub + toast */
+  var toast=document.getElementById('toast'), toastTimer;
+  document.getElementById('docList').addEventListener('click',function(e){
+    var btn=e.target.closest('.dl'); if(!btn) return;
+    var name=btn.getAttribute('data-name');
+    btn.classList.add('busy'); var orig=btn.innerHTML;
+    btn.innerHTML=DL_SVG+'…';
+    setTimeout(function(){
+      btn.classList.remove('busy'); btn.innerHTML=orig;
+      document.getElementById('toastName').textContent=name+'.pdf';
+      document.getElementById('toastSub').textContent='Téléchargement simulé · automatisation à venir';
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
+    },600);
+  });
+
+  render();
+})();
+</script>
+<script src="portal-nav.js"></script>
+</body>
+</html>

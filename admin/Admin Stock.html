@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — Stock (Admin)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#F4F6F9;--navy-2:#FFFFFF;--teal:#0DBFA8;--gold:#C4A03A;--white:#0D1B2A;
+  --body:rgba(13,27,42,.74);--faint:rgba(13,27,42,.52);--hair:rgba(13,27,42,.10);
+  --glass:#FFFFFF;--maxw:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+
+#bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(55% 45% at 18% 0%,rgba(13,191,168,.09) 0%,transparent 60%),
+             radial-gradient(50% 45% at 92% 100%,rgba(196,160,58,.06) 0%,transparent 60%)}
+#bg-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%;position:relative;z-index:5}
+
+/* topbar */
+#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:26px;height:26px;position:relative;flex:0 0 auto}
+.brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:var(--white)}
+.brand .apill{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);border:1px solid rgba(196,160,58,.45);background:rgba(196,160,58,.08);padding:4px 8px;margin-left:4px}
+.bar-nav{display:flex;align-items:center;gap:28px}
+.bar-nav a{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);text-decoration:none;transition:color .25s}
+.bar-nav a:hover,.bar-nav a.active{color:var(--teal)}
+.bar-right{display:flex;align-items:center;gap:18px}
+.who{display:flex;align-items:center;gap:11px}
+.who .av{width:34px;height:34px;border:1px solid var(--teal);display:grid;place-items:center;
+  font-family:'Syne';font-weight:800;font-size:13px;color:var(--teal)}
+.who .meta{display:flex;flex-direction:column;line-height:1.2}
+.who .meta .n{font-size:13.5px;color:var(--white)}
+.who .meta .r{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.logout{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);
+  text-decoration:none;border:1px solid var(--hair);padding:10px 16px;transition:all .25s;white-space:nowrap}
+.logout:hover{color:var(--teal);border-color:var(--teal)}
+
+/* head */
+.head{padding:54px 0 26px}
+.kicker{display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:20px}
+.kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.7}
+.head h1{font-size:clamp(34px,5vw,52px)}
+.head p{color:var(--body);font-size:16px;margin-top:14px;max-width:620px}
+
+/* stat strip */
+.stats{display:flex;gap:0;border:1px solid var(--hair);background:var(--glass);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);margin:8px 0 30px}
+.stat{flex:1;padding:20px 24px;border-right:1px solid var(--hair)}
+.stat:last-child{border-right:0}
+.stat .num{font-family:'Syne';font-weight:800;font-size:28px;color:var(--white);line-height:1}
+.stat .num.teal{color:var(--teal)} .stat .num.gold{color:var(--gold)}
+.stat .num.out{color:#e0655c}
+.stat .lbl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:9px}
+
+/* table */
+.tablehead,.srow{display:grid;grid-template-columns:54px 1fr 150px 170px 150px 132px;gap:18px;align-items:center}
+.tablehead{padding:0 26px 14px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.tablehead .ta-c{text-align:center}
+.list{display:flex;flex-direction:column;background:var(--glass);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);margin-bottom:80px}
+.srow{padding:20px 26px;border-bottom:1px solid var(--hair);position:relative}
+.srow:last-child{border-bottom:0}
+.srow.saved{box-shadow:inset 3px 0 0 var(--teal)}
+.srow .g{width:42px;height:42px;display:grid;place-items:center;font-family:'Syne';font-weight:800;
+  font-size:20px;color:rgba(13,191,168,.5);border:1px solid var(--hair);background:rgba(13,191,168,.06)}
+.srow .pn{min-width:0}
+.srow .pn h4{font-size:15px;font-family:'DM Sans';font-weight:500;letter-spacing:0;margin-bottom:4px}
+.srow .pn .ref{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.srow .cat{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--body)}
+
+/* state pill */
+.spill{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono';font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.spill .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.spill.in{color:var(--teal)} .spill.in .dot{background:var(--teal);box-shadow:0 0 8px rgba(13,191,168,.7)}
+.spill.low{color:var(--gold)} .spill.low .dot{background:var(--gold);box-shadow:0 0 8px rgba(196,160,58,.7)}
+.spill.out{color:#e0655c} .spill.out .dot{background:#e0655c}
+
+/* qty editor */
+.qedit{display:flex;align-items:stretch;border:1px solid var(--hair);width:max-content;background:rgba(6,13,24,.45)}
+.qedit button{width:38px;background:transparent;border:0;border-right:1px solid var(--hair);color:var(--body);
+  font-family:'IBM Plex Mono';font-size:16px;cursor:pointer;transition:background .18s,color .18s}
+.qedit button:last-child{border-right:0;border-left:1px solid var(--hair)}
+.qedit button:hover{background:rgba(13,191,168,.12);color:var(--teal)}
+.qedit input{width:72px;background:transparent;border:0;color:var(--white);text-align:center;
+  font-family:'IBM Plex Mono';font-size:15px;padding:11px 4px;-moz-appearance:textfield}
+.qedit input::-webkit-outer-spin-button,.qedit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.qedit input:focus{outline:none;box-shadow:inset 0 -2px 0 var(--teal)}
+.srow.dirty .qedit{border-color:rgba(196,160,58,.5)}
+
+/* save button */
+.qsave{justify-self:end;font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:500;color:var(--faint);background:transparent;border:1px solid var(--hair);padding:11px 16px;
+  cursor:default;white-space:nowrap;transition:background .2s,color .2s,border-color .2s;display:inline-flex;align-items:center;gap:8px}
+.srow.dirty .qsave{color:var(--teal);border-color:var(--teal);cursor:pointer}
+.srow.dirty .qsave:hover{background:rgba(13,191,168,.12);color:#3FE9D2}
+.qsave .ic{width:5px;height:5px;background:currentColor;flex:0 0 auto;transform:rotate(45deg)}
+.qsave.ok{color:var(--teal);border-color:rgba(13,191,168,.4)}
+.qsave.ok .ic{transform:none;border-radius:50%}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:34px;z-index:120;transform:translate(-50%,24px);opacity:0;
+  pointer-events:none;transition:opacity .3s,transform .3s;background:var(--navy-2);
+  border:1px solid rgba(13,191,168,.3);border-left:3px solid var(--teal);padding:15px 22px;
+  display:flex;align-items:center;gap:14px;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast .tic{width:30px;height:30px;flex:0 0 auto;border:1px solid var(--teal);display:grid;place-items:center;color:var(--teal)}
+#toast .tic svg{width:15px;height:15px}
+#toast .tt{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--white);line-height:1.5}
+#toast .tt b{color:var(--teal);font-weight:500}
+#toast .tt span{display:block;color:var(--faint);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+
+@media(max-width:920px){
+  .bar-nav{display:none}
+  .tablehead,.srow{grid-template-columns:42px 1fr 150px 132px}
+  .th-cat,.th-state,.srow .cat,.srow .spill{display:none}
+}
+@media(max-width:600px){
+  .wrap{padding:0 22px}
+  .who .meta{display:none}
+  .stats{flex-wrap:wrap}.stat{flex:1 1 45%;border-right:0;border-bottom:1px solid var(--hair)}
+  .tablehead{display:none}
+  .srow{grid-template-columns:42px 1fr;gap:14px 14px}
+  .srow .qedit{grid-column:1 / -1}
+  .srow .qsave{grid-column:1 / -1;justify-self:start}
+}
+</style>
+<link rel="stylesheet" href="../portal-theme.css" />
+</head>
+<body class="theme p-account dbg-mesh" style="--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono';--teal:#0DBFA8;--gold:#C4A03A;--teal-soft:rgba(13,191,168,.14);--teal-bright:#0aa491;--navy:#F4F6F9;--dot-op:.06">
+
+<div id="bg-glow"></div>
+<div id="bg-grain"></div>
+
+<header id="bar">
+  <div class="wrap">
+    <a class="brand" href="Admin Orders.html" style="text-decoration:none">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nvLeafGrad" x1="20%" y1="8%" x2="92%" y2="86%"><stop offset="0%" stop-color="#0DBFA8"/><stop offset="54%" stop-color="#1C73C4"/><stop offset="100%" stop-color="#1A3A8F"/></linearGradient></defs><g fill="none" stroke="url(#nvLeafGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/><path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/><path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/><path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/></g></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+      <span class="apill">Admin</span>
+    </a>
+    <nav class="bar-nav">
+      <a href="Admin Orders.html">Commandes</a>
+      <a href="Admin Stock.html" class="active">Stock</a>
+    </nav>
+    <div class="bar-right">
+      <span class="who">
+        <span class="av">AD</span>
+        <span class="meta">
+          <span class="n">Administrateur</span>
+          <span class="r">Neoval Pharma · Siège</span>
+        </span>
+      </span>
+      <a class="logout" href="Admin Login.html">Déconnexion</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="head">
+    <span class="kicker">Console Administrateur</span>
+    <h1>Gestion du stock</h1>
+    <p>Quantités en stock par référence. Modifiez la valeur puis enregistrez la ligne — la synchronisation produit est déclenchée à l’enregistrement.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stRefs">8</div><div class="lbl">Références</div></div>
+    <div class="stat"><div class="num teal" id="stUnits">0</div><div class="lbl">Unités en stock</div></div>
+    <div class="stat"><div class="num gold" id="stLow">0</div><div class="lbl">Stock limité</div></div>
+    <div class="stat"><div class="num out" id="stOut">0</div><div class="lbl">En rupture</div></div>
+  </div>
+
+  <div class="tablehead">
+    <span></span>
+    <span>Produit</span>
+    <span class="th-cat">Catégorie</span>
+    <span>Quantité en stock</span>
+    <span class="th-state">État</span>
+    <span class="ta-c"></span>
+  </div>
+
+  <div class="list" id="list"></div>
+</main>
+
+<div id="toast">
+  <div class="tic">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M5 12l5 5L20 7"/></svg>
+  </div>
+  <div class="tt"><b id="toastName">—</b><span id="toastSub">—</span></div>
+</div>
+
+<script src="../cart.js"></script>
+<script src="admin-data.js"></script>
+<script>
+(function(){
+  var A=window.NeovalAdmin;
+  var PRODUCTS=A.PRODUCTS;
+  var STATE_LABEL={in:'En stock',low:'Stock limité',out:'Rupture'};
+
+  var toast=document.getElementById('toast'), toastTimer;
+  function showToast(name,sub){
+    document.getElementById('toastName').textContent=name;
+    document.getElementById('toastSub').textContent=sub;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){toast.classList.remove('show');},2600);
+  }
+
+  function stat(){
+    var totalU=0, low=0, out=0;
+    PRODUCTS.forEach(function(p){
+      var q=A.stockOf(p.ref); totalU+=q;
+      var s=A.stockState(q); if(s==='low') low++; if(s==='out') out++;
+    });
+    document.getElementById('stRefs').textContent=PRODUCTS.length;
+    document.getElementById('stUnits').textContent=totalU.toLocaleString('fr-FR');
+    document.getElementById('stLow').textContent=low;
+    document.getElementById('stOut').textContent=out;
+  }
+
+  function pill(q){
+    var s=A.stockState(q);
+    return '<span class="spill '+s+'"><span class="dot"></span>'+STATE_LABEL[s]+'</span>';
+  }
+
+  function render(){
+    A.getStock(); // ensure seeded
+    document.getElementById('list').innerHTML=PRODUCTS.map(function(p){
+      var q=A.stockOf(p.ref);
+      return '<div class="srow" data-ref="'+p.ref+'" data-saved="'+q+'">'+
+        '<div class="g">'+p.glyph+'</div>'+
+        '<div class="pn"><h4>'+p.name+'</h4><div class="ref">'+p.ref+'</div></div>'+
+        '<div class="cat">'+p.cat+'</div>'+
+        '<div class="qedit">'+
+          '<button data-step="-1" aria-label="Diminuer">−</button>'+
+          '<input type="number" min="0" step="1" value="'+q+'" inputmode="numeric" />'+
+          '<button data-step="1" aria-label="Augmenter">+</button>'+
+        '</div>'+
+        '<div class="state">'+pill(q)+'</div>'+
+        '<button class="qsave"><span class="ic"></span>Enregistré</button>'+
+      '</div>';
+    }).join('');
+    stat();
+  }
+
+  function refresh(row){
+    var saved=parseInt(row.getAttribute('data-saved'),10);
+    var input=row.querySelector('input');
+    var val=parseInt(input.value,10); if(isNaN(val)||val<0){ val=0; }
+    var dirty=(val!==saved);
+    row.classList.toggle('dirty',dirty);
+    var save=row.querySelector('.qsave');
+    save.classList.remove('ok');
+    save.innerHTML=dirty?'<span class="ic"></span>Enregistrer':'<span class="ic"></span>Enregistré';
+    /* live-update the state pill */
+    row.querySelector('.state').innerHTML=pill(isNaN(val)?0:val);
+  }
+
+  var list=document.getElementById('list');
+
+  list.addEventListener('click',function(e){
+    var stepBtn=e.target.closest('.qedit button');
+    var saveBtn=e.target.closest('.qsave');
+    var row=e.target.closest('.srow'); if(!row) return;
+
+    if(stepBtn){
+      var input=row.querySelector('input');
+      var v=parseInt(input.value,10); if(isNaN(v)) v=0;
+      v=Math.max(0,v+parseInt(stepBtn.getAttribute('data-step'),10));
+      input.value=v; refresh(row); return;
+    }
+    if(saveBtn && row.classList.contains('dirty')){
+      var input2=row.querySelector('input');
+      var val=parseInt(input2.value,10); if(isNaN(val)||val<0) val=0;
+      var ref=row.getAttribute('data-ref');
+      var nv=A.setStock(ref,val);                 // placeholder → n8n later
+      row.setAttribute('data-saved',nv);
+      input2.value=nv;
+      row.classList.remove('dirty');
+      var save=row.querySelector('.qsave');
+      save.classList.add('ok');
+      save.innerHTML='<span class="ic"></span>Enregistré';
+      row.classList.add('saved');
+      setTimeout(function(){row.classList.remove('saved');},900);
+      var p=window.NeovalCart.byRef(ref);
+      showToast('Stock mis à jour',(p?p.name:ref)+' · '+nv+' unités');
+      stat();
+    }
+  });
+
+  list.addEventListener('input',function(e){
+    if(e.target.matches('.qedit input')){
+      var row=e.target.closest('.srow'); refresh(row);
+    }
+  });
+
+  render();
+})();
+</script>
+<script src="../portal-nav.js"></script>
+</body>
+</html>
