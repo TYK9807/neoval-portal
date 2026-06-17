@@ -188,33 +188,80 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     c.appendChild(p);
   }
 })();
+</script>
 
-/* ============ LOGIN ============ */
-(function(){
-  var form=document.getElementById('loginForm');
-  var btn=document.getElementById('submitBtn');
-  var emailF=document.getElementById('f-email'), passF=document.getElementById('f-pass');
-  var email=document.getElementById('email'), pass=document.getElementById('password');
+<!-- auth error banner (hidden by default) -->
+<style>
+.auth-error{
+  display:none;margin-top:14px;padding:12px 16px;
+  background:rgba(224,101,92,.12);border:1px solid rgba(224,101,92,.4);
+  font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.08em;
+  color:#e0655c;text-align:center;
+}
+.auth-error.show{display:block}
+</style>
 
-  [['input',emailF],['input',passF]];
-  email.addEventListener('input',function(){emailF.classList.remove('err')});
-  pass.addEventListener('input',function(){passF.classList.remove('err')});
+<script type="module">
+import { supabase } from './supabase-client.js';
 
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    var ok=true;
-    var emailVal=email.value.trim();
-    if(!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)){ emailF.classList.add('err'); ok=false; }
-    if(!pass.value){ passF.classList.add('err'); ok=false; }
-    if(!ok) return;
+const form    = document.getElementById('loginForm');
+const btn     = document.getElementById('submitBtn');
+const emailF  = document.getElementById('f-email');
+const passF   = document.getElementById('f-pass');
+const emailEl = document.getElementById('email');
+const passEl  = document.getElementById('password');
 
-    btn.classList.add('loading');
-    btn.disabled=true;
-    btn.querySelector('.label').textContent='Connexion…';
-    localStorage.setItem('neoval_email',emailVal);
-    setTimeout(function(){ window.location.href='Dashboard.html'; }, 850);
+/* inject error banner after the form */
+const errBanner = document.createElement('div');
+errBanner.className = 'auth-error';
+errBanner.textContent = 'Email ou mot de passe incorrect';
+form.after(errBanner);
+
+emailEl.addEventListener('input', () => { emailF.classList.remove('err'); errBanner.classList.remove('show'); });
+passEl.addEventListener('input',  () => { passF.classList.remove('err');  errBanner.classList.remove('show'); });
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const emailVal = emailEl.value.trim();
+  let ok = true;
+  if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { emailF.classList.add('err'); ok = false; }
+  if (!passEl.value) { passF.classList.add('err'); ok = false; }
+  if (!ok) return;
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.querySelector('.label').textContent = 'Connexion…';
+
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email: emailVal,
+    password: passEl.value
   });
-})();
+
+  if (authError || !authData.user) {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.querySelector('.label').textContent = 'Se connecter';
+    errBanner.classList.add('show');
+    return;
+  }
+
+  /* look up role in public.users table */
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', authData.user.id)
+    .single();
+
+  const role = profile?.role;
+
+  if (role === 'admin') {
+    window.location.href = 'admin/dashboard.html';
+  } else {
+    /* pharmacy (and any unrecognised role) → pharmacy dashboard */
+    window.location.href = 'Dashboard.html';
+  }
+});
 </script>
 </body>
 </html>
