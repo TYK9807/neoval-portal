@@ -177,12 +177,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   <div class="filterbar">
     <div class="filters" id="filters">
       <button class="chip active" data-cat="all">Toutes</button>
-      <button class="chip" data-cat="Articulations">Articulations</button>
-      <button class="chip" data-cat="Vitamines & Minéraux">Vitamines &amp; Minéraux</button>
-      <button class="chip" data-cat="Application locale">Application locale</button>
-      <button class="chip" data-cat="Énergie">Énergie</button>
     </div>
-    <div class="count"><b id="ct">7</b> références</div>
+    <div class="count"><b id="ct">—</b> références</div>
   </div>
 
   <section class="grid" id="grid"></section>
@@ -192,76 +188,108 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 <div id="toast"></div>
 
 <script src="cart.js"></script>
-<script>
-var PRODUCTS=window.NeovalCart.PRODUCTS;
+<script type="module">
+import { supabase } from './supabase-client.js';
+import { guard } from './auth-guard.js';
 
-var STOCK={in:["in","En stock"],low:["low","Stock limité"],out:["out","Rupture"]};
+(async () => {
+  const ctx = await guard('pharmacy', 'Login.html');
+  if (!ctx) return;
 
-function fmt(n){return n.toLocaleString('fr-FR');}
+  /* ---- load products from Supabase ---- */
+  const { data: products } = await supabase
+    .from('products')
+    .select('*')
+    .order('name');
 
-function render(cat){
-  var grid=document.getElementById('grid');
-  var list=cat==='all'?PRODUCTS:PRODUCTS.filter(function(p){return p.cat===cat;});
-  grid.innerHTML='';
-  list.forEach(function(p,i){
-    var s=STOCK[p.stock];
-    var out=p.stock==='out';
-    var el=document.createElement('article');
-    el.className='pcard';
-    el.style.animationDelay=(i*55)+'ms';
-    el.innerHTML=
-      '<div class="vis"><span class="pill">'+p.cat+'</span><span class="glyph">'+p.glyph+'</span></div>'+
-      '<div class="body">'+
-        '<h3>'+p.name+'</h3>'+
-        '<div class="ref">'+p.ref+'</div>'+
-        '<p class="desc">'+p.desc+'</p>'+
-        '<div class="priceblock">'+
-          '<div class="price"><div class="amt">'+fmt(p.price)+'<small>MAD</small></div>'+
-            '<div class="unit">/ unité · carton de '+p.carton+'</div></div>'+
-          '<div class="stock '+s[0]+'"><span class="dot"></span>'+s[1]+'</div>'+
-        '</div>'+
-        '<button class="addbtn" data-ref="'+p.ref+'"'+(out?' disabled':'')+'>'+(out?'Indisponible':'Ajouter à la commande')+'</button>'+
-      '</div>';
-    grid.appendChild(el);
+  const list = products || [];
+
+  /* expose globally so Commande.html can look up by id */
+  window.NeovalProducts = list;
+  window.NeovalProductById = id => list.find(p => p.id === id);
+
+  /* ---- build dynamic category filters ---- */
+  const cats = [...new Set(list.map(p => p.category).filter(Boolean))].sort();
+  const filtersEl = document.getElementById('filters');
+  filtersEl.innerHTML = '<button class="chip active" data-cat="all">Toutes</button>' +
+    cats.map(c => `<button class="chip" data-cat="${encodeURIComponent(c)}" data-label="${c}">${c}</button>`).join('');
+
+  /* ---- stock helpers ---- */
+  const STOCK_LABEL = { in: 'En stock', low: 'Stock limité', out: 'Rupture' };
+  function stockState(qty) { return qty <= 0 ? 'out' : qty < 50 ? 'low' : 'in'; }
+  function glyph(name) { return name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(); }
+  function fmt(n) { return Number(n).toLocaleString('fr-FR'); }
+
+  /* ---- render grid ---- */
+  function render(cat) {
+    const grid = document.getElementById('grid');
+    const filtered = cat === 'all' ? list : list.filter(p => p.category === cat);
+    grid.innerHTML = '';
+    filtered.forEach((p, i) => {
+      const st = stockState(p.stock_quantity);
+      const out = st === 'out';
+      const el = document.createElement('article');
+      el.className = 'pcard';
+      el.style.animationDelay = (i * 55) + 'ms';
+      el.innerHTML =
+        `<div class="vis">
+          <span class="pill">${p.category || ''}</span>
+          <span class="glyph">${glyph(p.name)}</span>
+        </div>
+        <div class="body">
+          <h3>${p.name}</h3>
+          <p class="desc">${p.description || ''}</p>
+          <div class="priceblock">
+            <div class="price">
+              <div class="amt">${fmt(p.price)}<small>MAD</small></div>
+              <div class="unit">/ unité</div>
+            </div>
+            <div class="stock ${st}"><span class="dot"></span>${STOCK_LABEL[st]}</div>
+          </div>
+          <button class="addbtn" data-id="${p.id}"${out ? ' disabled' : ''}>
+            ${out ? 'Indisponible' : 'Ajouter à la commande'}
+          </button>
+        </div>`;
+      grid.appendChild(el);
+    });
+    document.getElementById('ct').textContent = filtered.length;
+    document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
+  }
+
+  /* ---- filter clicks ---- */
+  filtersEl.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    filtersEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    b.classList.add('active');
+    render(b.dataset.cat === 'all' ? 'all' : b.dataset.label);
   });
-  document.getElementById('ct').textContent=list.length;
-  document.getElementById('empty').style.display=list.length?'none':'block';
-}
 
-document.getElementById('filters').addEventListener('click',function(e){
-  var b=e.target.closest('.chip'); if(!b) return;
-  [].forEach.call(this.querySelectorAll('.chip'),function(c){c.classList.remove('active');});
-  b.classList.add('active');
-  render(b.getAttribute('data-cat'));
-});
+  /* ---- cart wiring ---- */
+  let toastTimer;
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function syncBadge() {
+    const n = window.NeovalCart.count();
+    document.getElementById('cartCount').textContent = n;
+    document.getElementById('cartLink').classList.toggle('empty', n === 0);
+  }
+  document.getElementById('grid').addEventListener('click', e => {
+    const b = e.target.closest('.addbtn'); if (!b || b.disabled) return;
+    const prod = window.NeovalProductById(b.dataset.id);
+    window.NeovalCart.add(b.dataset.id, 1);
+    toast('1 unité ajoutée · ' + (prod ? prod.name : ''));
+    syncBadge();
+  });
+  window.addEventListener('cart:change', syncBadge);
 
-/* ---- cart wiring ---- */
-var toastTimer;
-function toast(msg){
-  var t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(function(){ t.classList.remove('show'); },2200);
-}
-function syncBadge(){
-  var n=window.NeovalCart.count();
-  document.getElementById('cartCount').textContent=n;
-  document.getElementById('cartLink').classList.toggle('empty',n===0);
-}
-document.getElementById('grid').addEventListener('click',function(e){
-  var b=e.target.closest('.addbtn'); if(!b||b.disabled) return;
-  var ref=b.getAttribute('data-ref');
-  window.NeovalCart.add(ref,1);
-  var p=window.NeovalCart.byRef(ref);
-  toast('1 carton ajouté · '+p.name);
+  render('all');
   syncBadge();
-});
-window.addEventListener('cart:change',syncBadge);
-
-render('all');
-syncBadge();
+})();
 </script>
 <script src="portal-nav.js"></script>
-<script type="module">import { guard } from './auth-guard.js'; guard('pharmacy','Login.html');</script>
 </body>
 </html>
