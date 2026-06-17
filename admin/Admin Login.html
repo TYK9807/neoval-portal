@@ -185,8 +185,6 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   </div>
 </main>
 
-<script src="../cart.js"></script>
-<script src="admin-data.js"></script>
 <script>
 /* ============ PARTICLES ============ */
 (function(){
@@ -204,41 +202,63 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     c.appendChild(p);
   }
 })();
+</script>
 
-/* ============ ADMIN LOGIN (hardcoded demo creds) ============ */
-(function(){
-  var AUTH=window.NeovalAdmin.AUTH;
-  var form=document.getElementById('loginForm');
-  var btn=document.getElementById('submitBtn');
-  var emailF=document.getElementById('f-email'), passF=document.getElementById('f-pass');
-  var email=document.getElementById('email'), pass=document.getElementById('password');
-  var formErr=document.getElementById('formErr');
+<script type="module">
+import { supabase } from '../supabase-client.js';
 
-  function clearErrs(){ emailF.classList.remove('err'); passF.classList.remove('err'); formErr.classList.remove('show'); }
-  email.addEventListener('input',clearErrs);
-  pass.addEventListener('input',clearErrs);
+const form    = document.getElementById('loginForm');
+const btn     = document.getElementById('submitBtn');
+const emailF  = document.getElementById('f-email');
+const passF   = document.getElementById('f-pass');
+const emailEl = document.getElementById('email');
+const passEl  = document.getElementById('password');
+const formErr = document.getElementById('formErr');
 
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    var ok=true;
-    var emailVal=email.value.trim();
-    if(!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)){ emailF.classList.add('err'); ok=false; }
-    if(!pass.value){ passF.classList.add('err'); ok=false; }
-    if(!ok) return;
+function clearErrs() { emailF.classList.remove('err'); passF.classList.remove('err'); formErr.classList.remove('show'); }
+emailEl.addEventListener('input', clearErrs);
+passEl.addEventListener('input', clearErrs);
 
-    /* hardcoded credential check */
-    if(emailVal.toLowerCase()!==AUTH.email || pass.value!==AUTH.password){
-      formErr.classList.add('show');
-      passF.classList.add('err');
-      return;
-    }
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const emailVal = emailEl.value.trim();
+  let ok = true;
+  if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { emailF.classList.add('err'); ok = false; }
+  if (!passEl.value) { passF.classList.add('err'); ok = false; }
+  if (!ok) return;
 
-    btn.classList.add('loading');
-    btn.disabled=true;
-    btn.querySelector('.label').textContent='Connexion…';
-    setTimeout(function(){ window.location.href='Admin Orders.html'; }, 800);
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.querySelector('.label').textContent = 'Connexion…';
+
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email: emailVal,
+    password: passEl.value
   });
-})();
+
+  if (authError || !authData.user) {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.querySelector('.label').textContent = 'Accéder à l\'administration';
+    formErr.classList.add('show');
+    passF.classList.add('err');
+    return;
+  }
+
+  const { data: profile } = await supabase
+    .from('users').select('role').eq('id', authData.user.id).single();
+
+  if (!profile || profile.role !== 'admin') {
+    await supabase.auth.signOut();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.querySelector('.label').textContent = 'Accéder à l\'administration';
+    formErr.classList.add('show');
+    return;
+  }
+
+  window.location.href = 'Admin Orders.html';
+});
 </script>
 </body>
 </html>
