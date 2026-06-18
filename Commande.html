@@ -170,10 +170,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
       <a href="Commande.html" class="active">Commande</a>
     </nav>
     <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
-      <span class="av">DR</span>
+      <span class="av"></span>
       <span class="meta">
-        <span class="n">Dr. Reda Amrani</span>
-        <span class="r">Pharmacie Centrale · Rabat</span>
+        <span class="n"></span>
+        <span class="r"></span>
       </span>
     </a>
   </div>
@@ -224,6 +224,13 @@ import { guard } from './auth-guard.js';
 (async () => {
   const ctx = await guard('pharmacy', 'Login.html');
   if (!ctx) return;
+
+  const name = ctx.profile.name || ctx.user.email || '';
+  document.querySelector('.who .meta .n').textContent = name;
+  document.querySelector('.who .av').textContent = (name.split(' ').map(w => w[0]||'').join('').slice(0,2) || name.slice(0,2) || '?').toUpperCase();
+  let _ph; try { _ph = JSON.parse(localStorage.getItem('neoval_ph_v1')) || {}; } catch(e) { _ph = {}; }
+  document.querySelector('.who .meta .r').textContent = _ph.phName ? (_ph.phName + (_ph.phCity ? ' · ' + _ph.phCity : '')) : '';
+
 
   const C = window.NeovalCart;
   const TVA = 0.20;

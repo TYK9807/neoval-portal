@@ -263,10 +263,10 @@ window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
     <div class="bar-right">
       <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
       <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
-        <span class="av">DR</span>
+        <span class="av"></span>
         <span class="meta">
-          <span class="n">Dr. Reda Amrani</span>
-          <span class="r">Pharmacie Centrale · Rabat</span>
+          <span class="n"></span>
+          <span class="r"></span>
         </span>
       </a>
       <a class="logout" href="Login.html">Déconnexion</a>
@@ -305,64 +305,6 @@ window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 </main>
 
 <script src="cart.js"></script>
-<script>
-(function(){
-  var C=window.NeovalCart;
-
-  function sync(){
-    var n=C.count();
-    var cl=document.getElementById('cartLink');
-    document.getElementById('cartCount').textContent=n;
-    cl.classList.toggle('empty',n===0);
-  }
-  window.addEventListener('cart:change',sync);
-
-  var DEMO=[
-    {name:'ARCAR 300',units:72,status:'Expédiée'},
-    {name:'FERCAP',units:108,status:'En préparation'},
-    {name:'D-LIQ 400 UI',units:90,status:'Livrée'},
-    {name:'NERCURE',units:54,status:'En attente'}
-  ];
-  var PENDING={'En préparation':1,'En attente':1};
-
-  function rowHTML(label,status){
-    var pending=PENDING[status]?' pending':'';
-    return '<div class="row"><span class="rn">'+label+'</span><span class="rt'+pending+'">'+status+'</span></div>';
-  }
-
-  function render(){
-    var orders=C.getOrders();
-    var box=document.getElementById('recentOrders');
-    var note=document.getElementById('recentNote');
-    var statOrders=document.getElementById('statOrders');
-    var statUnits=document.getElementById('statUnits');
-
-    if(orders.length){
-      note.textContent=orders.length+' commande'+(orders.length>1?'s':'')+' validée'+(orders.length>1?'s':'');
-      var totalUnits=0;
-      box.innerHTML=orders.slice(0,5).map(function(o){
-        totalUnits+=o.units;
-        var lead=o.items[0]?o.items[0].name:o.id;
-        var extra=o.lineCount>1?' +'+(o.lineCount-1):'';
-        return rowHTML(o.id+' · '+lead+extra+' · '+o.units+' unités',o.status);
-      }).join('');
-      // include units from orders not shown in the top 5 too
-      orders.slice(5).forEach(function(o){totalUnits+=o.units;});
-      statOrders.textContent=String(orders.length).padStart(2,'0');
-      statUnits.textContent=totalUnits.toLocaleString('fr-FR');
-    } else {
-      note.textContent='Données de démonstration';
-      box.innerHTML=DEMO.map(function(d){return rowHTML(d.name+' · '+d.units+' unités',d.status);}).join('');
-      statOrders.textContent='04';
-      statUnits.textContent='324';
-    }
-  }
-
-  window.addEventListener('orders:change',render);
-  sync();
-  render();
-})();
-</script>
 
 <script>
 /* ---- build 3D catalogue cards from product data ---- */
@@ -483,6 +425,74 @@ function App(){
 ReactDOM.createRoot(document.getElementById('tweakRoot')).render(<App/>);
 </script>
 <script src="portal-nav.js"></script>
-<script type="module">import { guard } from './auth-guard.js'; guard('pharmacy','Login.html');</script>
+<script type="module">
+import { supabase } from './supabase-client.js';
+import { guard } from './auth-guard.js';
+
+var C=window.NeovalCart;
+function syncCart(){
+  var n=C.count(),cl=document.getElementById('cartLink');
+  document.getElementById('cartCount').textContent=n;
+  cl.classList.toggle('empty',n===0);
+}
+window.addEventListener('cart:change',syncCart);
+syncCart();
+
+var PENDING={'En préparation':1,'En attente':1,'confirme':1};
+function rowHTML(label,status){
+  var pending=(PENDING[status]||status.toLowerCase().indexOf('attente')>-1)?' pending':'';
+  return '<div class="row"><span class="rn">'+label+'</span><span class="rt'+pending+'">'+status+'</span></div>';
+}
+
+(async function(){
+  var ctx=await guard('pharmacy','Login.html');
+  if(!ctx)return;
+
+  var name=ctx.profile.name||ctx.user.email||'';
+  document.querySelector('.who .meta .n').textContent=name;
+  document.querySelector('.who .av').textContent=(name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2)||name.slice(0,2)||'?').toUpperCase();
+  var _ph;try{_ph=JSON.parse(localStorage.getItem('neoval_ph_v1'))||{};}catch(e){_ph={};}
+  document.querySelector('.who .meta .r').textContent=_ph.phName?(_ph.phName+(_ph.phCity?' · '+_ph.phCity:'')):'';
+
+
+
+
+  var {data:orders}=await supabase
+    .from('orders')
+    .select('id,status,created_at,order_items(quantity,products(name))')
+    .eq('placed_by',ctx.user.id)
+    .order('created_at',{ascending:false});
+
+  orders=orders||[];
+  var box=document.getElementById('recentOrders');
+  var note=document.getElementById('recentNote');
+  var statOrders=document.getElementById('statOrders');
+  var statUnits=document.getElementById('statUnits');
+
+  if(orders.length){
+    note.textContent=orders.length+' commande'+(orders.length>1?'s':'')+' passée'+(orders.length>1?'s':'');
+    var totalUnits=0;
+    box.innerHTML=orders.slice(0,5).map(function(o){
+      var items=o.order_items||[];
+      var units=items.reduce(function(s,it){return s+(it.quantity||0);},0);
+      totalUnits+=units;
+      var firstName=items.length&&items[0].products?items[0].products.name:'—';
+      var extra=items.length>1?' +'+(items.length-1):'';
+      var shortId='CMD-'+String(o.id).slice(0,8).toUpperCase();
+      return rowHTML(shortId+' · '+firstName+extra+' · '+units+' unité'+(units>1?'s':''),o.status);
+    }).join('');
+    orders.slice(5).forEach(function(o){
+      (o.order_items||[]).forEach(function(it){totalUnits+=(it.quantity||0);});
+    });
+    statOrders.textContent=String(orders.length).padStart(2,'0');
+    statUnits.textContent=totalUnits.toLocaleString('fr-FR');
+  } else {
+    note.textContent='Aucune commande pour l\'instant';
+    box.innerHTML='<div class="row"><span class="rn" style="color:var(--faint);font-size:13px">Aucune commande passée</span><span class="rt"></span></div>';
+    statOrders.textContent='00';
+    statUnits.textContent='0';
+  }
+})();
+</script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -201,10 +201,10 @@ select.ord option{background:var(--navy-2);color:var(--white)}
     <div class="bar-right">
       <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
       <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
-        <span class="av">DR</span>
+        <span class="av"></span>
         <span class="meta">
-          <span class="n">Dr. Reda Amrani</span>
-          <span class="r">Pharmacie Centrale · Rabat</span>
+          <span class="n"></span>
+          <span class="r"></span>
         </span>
       </a>
       <a class="logout" href="Login.html">Déconnexion</a>
@@ -248,7 +248,7 @@ select.ord option{background:var(--navy-2);color:var(--white)}
   <div class="empty" id="empty">
     <div class="ic">◇</div>
     <h3 id="emptyTitle">Aucun document disponible</h3>
-    <p id="emptyText">Les bons de livraison et preuves de paiement de vos commandes confirmées apparaîtront ici dès qu’ils seront générés.</p>
+    <p id="emptyText">Les bons de livraison et preuves de paiement de vos commandes confirmées apparaîtront ici dès qu'ils seront générés.</p>
     <a href="Mes commandes.html">← Voir mes commandes</a>
   </div>
 </main>
@@ -261,146 +261,140 @@ select.ord option{background:var(--navy-2);color:var(--white)}
 </div>
 
 <script src="cart.js"></script>
-<script>
-(function(){
-  var C=window.NeovalCart;
+<script src="portal-nav.js"></script>
+<script type="module">
+import { supabase } from './supabase-client.js';
+import { guard } from './auth-guard.js?v=2';
 
-  /* cart badge */
-  function sync(){
-    var n=C.count(), cl=document.getElementById('cartLink');
-    document.getElementById('cartCount').textContent=n;
-    cl.classList.toggle('empty',n===0);
-  }
-  window.addEventListener('cart:change',sync);
-  sync();
+var C=window.NeovalCart;
+function syncCart(){
+  var n=C.count(),cl=document.getElementById('cartLink');
+  document.getElementById('cartCount').textContent=n;
+  cl.classList.toggle('empty',n===0);
+}
+window.addEventListener('cart:change',syncCart);
+syncCart();
 
-  function bucket(s){
-    s=(s||'').toLowerCase();
-    if(s.indexOf('livr')>-1) return 'livre';
-    if(s.indexOf('attente')>-1) return 'attente';
-    return 'confirme';
-  }
-  function fmtDate(iso){
-    var d=new Date(iso); if(isNaN(d)) return '—';
-    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
-  }
+function fmtDate(iso){
+  var d=new Date(iso);if(isNaN(d))return '—';
+  return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+}
+var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
 
-  var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
+var docs=[],current='tous',currentOrder='all';
 
-  /* ---- generate mock BL/POP per confirmed order ---- */
-  function buildDocs(){
-    var orders=C.getOrders()||[];
-    var docs=[];
-    orders.forEach(function(o){
-      if(bucket(o.status)==='attente') return; /* pending orders: documents not yet issued */
-      var suffix=String(o.id).replace(/^CMD-/,'');
-      docs.push({name:'BL-'+suffix, type:'BL', order:o.id, date:o.date});
-      docs.push({name:'POP-'+suffix, type:'POP', order:o.id, date:o.date});
-    });
-    return docs;
-  }
-
-  var current='tous', currentOrder='all', docs=[];
-
-  function load(){ docs=buildDocs(); }
-
-  function populateOrderFilter(){
-    var sel=document.getElementById('ordFilter');
-    var seen={}, ids=[];
-    docs.forEach(function(d){ if(!seen[d.order]){ seen[d.order]=1; ids.push(d.order); } });
-    var keep=currentOrder;
-    sel.innerHTML='<option value="all">Toutes les commandes</option>'+
-      ids.map(function(id){return '<option value="'+id+'">'+id+'</option>';}).join('');
-    if(keep!=='all' && seen[keep]) sel.value=keep; else { sel.value='all'; currentOrder='all'; }
-  }
-
-  function counts(){
-    var c={tous:docs.length,BL:0,POP:0};
-    docs.forEach(function(d){ c[d.type]++; });
-    return c;
-  }
-
-  function rowHTML(d){
-    return '<div class="drow" data-type="'+d.type+'" data-order="'+d.order+'">'+
-      '<div class="dname"><span class="ficon"><span class="ext">PDF</span></span><span class="nm">'+d.name+'.pdf</span></div>'+
-      '<div class="ocmd"><a href="Commande détail.html?id='+encodeURIComponent(d.order)+'">'+d.order+'</a></div>'+
-      '<span class="tag '+d.type.toLowerCase()+'">'+d.type+'</span>'+
-      '<div class="ddate">'+fmtDate(d.date)+'</div>'+
-      '<button class="dl" data-name="'+d.name+'">'+DL_SVG+'Télécharger</button>'+
-    '</div>';
-  }
-
-  function render(){
-    var list=document.getElementById('list');
-    var empty=document.getElementById('empty');
-    var thead=document.getElementById('tablehead');
-    var c=counts();
-    Object.keys(c).forEach(function(k){
-      var el=document.querySelector('[data-ct="'+k+'"]'); if(el) el.textContent=c[k];
-    });
-
-    var visible=docs.filter(function(d){
-      return (current==='tous'||d.type===current) && (currentOrder==='all'||d.order===currentOrder);
-    });
-    document.getElementById('tbcount').textContent=visible.length+' document'+(visible.length>1?'s':'');
-
-    if(!visible.length){
-      list.style.display='none'; thead.style.display='none'; empty.style.display='block';
-      var t=document.getElementById('emptyTitle'), p=document.getElementById('emptyText');
-      if(docs.length){
-        t.textContent='Aucun document pour ce filtre';
-        p.textContent='Aucun document ne correspond à la sélection actuelle. Modifiez le type ou la commande.';
-      } else {
-        t.textContent='Aucun document disponible';
-        p.textContent='Les bons de livraison et preuves de paiement de vos commandes confirmées apparaîtront ici dès qu’ils seront générés.';
-      }
-      return;
+function rowHTML(d){
+  return '<div class="drow" data-type="'+d.type+'" data-order="'+d.order+'">'+
+    '<div class="dname"><span class="ficon"><span class="ext">PDF</span></span><span class="nm">'+d.name+'.pdf</span></div>'+
+    '<div class="ocmd"><a href="Commande détail.html?id='+encodeURIComponent(d.uuid)+'">'+d.order+'</a></div>'+
+    '<span class="tag '+d.type.toLowerCase()+'">'+d.type+'</span>'+
+    '<div class="ddate">'+fmtDate(d.date)+'</div>'+
+    '<button class="dl" data-name="'+d.name+'">'+DL_SVG+'Télécharger</button>'+
+  '</div>';
+}
+function counts(){
+  var c={tous:docs.length,BL:0,POP:0};
+  docs.forEach(function(d){c[d.type]++;});
+  return c;
+}
+function populateOrderFilter(){
+  var sel=document.getElementById('ordFilter');
+  var seen={},ids=[];
+  docs.forEach(function(d){if(!seen[d.order]){seen[d.order]=1;ids.push(d.order);}});
+  var keep=currentOrder;
+  sel.innerHTML='<option value="all">Toutes les commandes</option>'+
+    ids.map(function(id){return '<option value="'+id+'">'+id+'</option>';}).join('');
+  if(keep!=='all'&&seen[keep])sel.value=keep;else{sel.value='all';currentOrder='all';}
+}
+function render(){
+  var list=document.getElementById('list');
+  var empty=document.getElementById('empty');
+  var thead=document.getElementById('tablehead');
+  var c=counts();
+  Object.keys(c).forEach(function(k){
+    var el=document.querySelector('[data-ct="'+k+'"]');if(el)el.textContent=c[k];
+  });
+  var visible=docs.filter(function(d){
+    return(current==='tous'||d.type===current)&&(currentOrder==='all'||d.order===currentOrder);
+  });
+  document.getElementById('tbcount').textContent=visible.length+' document'+(visible.length>1?'s':'');
+  if(!visible.length){
+    list.style.display='none';thead.style.display='none';empty.style.display='block';
+    var t=document.getElementById('emptyTitle'),p=document.getElementById('emptyText');
+    if(docs.length){
+      t.textContent='Aucun document pour ce filtre';
+      p.textContent='Aucun document ne correspond à la sélection actuelle. Modifiez le type ou la commande.';
+    } else {
+      t.textContent='Aucun document disponible';
+      p.textContent='Les bons de livraison et preuves de paiement de vos commandes confirmées apparaîtront ici.';
     }
-    empty.style.display='none'; thead.style.display='grid'; list.style.display='flex';
-    list.innerHTML=visible.map(rowHTML).join('');
+    return;
   }
+  empty.style.display='none';thead.style.display='grid';list.style.display='flex';
+  list.innerHTML=visible.map(rowHTML).join('');
+}
 
-  /* type filter */
-  document.getElementById('filters').addEventListener('click',function(e){
-    var btn=e.target.closest('button'); if(!btn) return;
-    current=btn.getAttribute('data-f');
-    [].forEach.call(this.querySelectorAll('button'),function(b){b.classList.toggle('active',b===btn);});
-    render();
+document.getElementById('filters').addEventListener('click',function(e){
+  var btn=e.target.closest('button');if(!btn)return;
+  current=btn.getAttribute('data-f');
+  [].forEach.call(this.querySelectorAll('button'),function(b){b.classList.toggle('active',b===btn);});
+  render();
+});
+document.getElementById('ordFilter').addEventListener('change',function(){
+  currentOrder=this.value;render();
+});
+
+var toast=document.getElementById('toast'),toastTimer;
+document.getElementById('list').addEventListener('click',function(e){
+  var btn=e.target.closest('.dl');if(!btn)return;
+  var name=btn.getAttribute('data-name');
+  btn.classList.add('busy');var orig=btn.innerHTML;
+  btn.innerHTML=DL_SVG+'Préparation…';
+  setTimeout(function(){
+    btn.classList.remove('busy');btn.innerHTML=orig;
+    document.getElementById('toastName').textContent=name+'.pdf';
+    document.getElementById('toastSub').textContent='Téléchargement simulé · automatisation à venir';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
+  },650);
+});
+
+(async function(){
+  var ctx=await guard('pharmacy','Login.html');
+  if(!ctx)return;
+
+  var name=ctx.profile.name||ctx.user.email||'';
+  document.querySelector('.who .meta .n').textContent=name;
+  var initials=(name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2)||name.slice(0,2)||'?').toUpperCase();
+  document.querySelector('.who .av').textContent=initials;
+  var _ph;try{_ph=JSON.parse(localStorage.getItem('neoval_ph_v1'))||{};}catch(e){_ph={};}
+  document.querySelector('.who .meta .r').textContent=_ph.phName?(_ph.phName+(_ph.phCity?' · '+_ph.phCity:'')):'';
+
+
+  var {data:orders}=await supabase
+    .from('orders')
+    .select('id,created_at')
+    .eq('placed_by',ctx.user.id)
+    .in('status',['Confirmé','Livré'])
+    .order('created_at',{ascending:false});
+
+  docs=[];
+  (orders||[]).forEach(function(o){
+    var shortId=String(o.id).slice(0,8).toUpperCase();
+    var cmdId='CMD-'+shortId;
+    docs.push({name:'BL-'+shortId,type:'BL',order:cmdId,uuid:o.id,date:o.created_at});
+    docs.push({name:'POP-'+shortId,type:'POP',order:cmdId,uuid:o.id,date:o.created_at});
   });
-  /* order filter */
-  document.getElementById('ordFilter').addEventListener('change',function(){
-    currentOrder=this.value; render();
-  });
 
-  /* download stub + toast */
-  var toast=document.getElementById('toast'), toastTimer;
-  document.getElementById('list').addEventListener('click',function(e){
-    var btn=e.target.closest('.dl'); if(!btn) return;
-    var name=btn.getAttribute('data-name');
-    btn.classList.add('busy'); var orig=btn.innerHTML;
-    btn.innerHTML=DL_SVG+'Préparation…';
-    setTimeout(function(){
-      btn.classList.remove('busy'); btn.innerHTML=orig;
-      document.getElementById('toastName').textContent=name+'.pdf';
-      document.getElementById('toastSub').textContent='Téléchargement simulé · automatisation à venir';
-      toast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
-    },650);
-  });
-
-  window.addEventListener('orders:change',function(){ load(); populateOrderFilter(); render(); });
-
-  /* deep link: ?order=CMD-xxxx pre-selects the order filter */
   try{
     var qp=new URLSearchParams(location.search).get('order');
-    if(qp) currentOrder=qp;
+    if(qp)currentOrder=qp;
   }catch(e){}
 
-  load(); populateOrderFilter(); render();
+  populateOrderFilter();
+  render();
 })();
 </script>
-<script src="portal-nav.js"></script>
-<script type="module">import { guard } from './auth-guard.js'; guard('pharmacy','Login.html');</script>
 </body>
 </html>

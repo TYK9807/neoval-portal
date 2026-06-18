@@ -1,31 +1,41 @@
 import { supabase } from './supabase-client.js'
 
-/**
- * Call on every protected page.
- * requiredRole: 'pharmacy' | 'admin'
- * loginUrl: where to redirect if check fails (relative to current page)
- * Returns { user, profile } on success, never returns on failure (redirects).
- */
 export async function guard(requiredRole, loginUrl) {
-  const { data: { session } } = await supabase.auth.getSession()
+  try {
+    const result = await supabase.auth.getSession()
+    const session = result?.data?.session
 
-  if (!session) {
-    window.location.replace(loginUrl)
+    if (!session) {
+      window.location.replace(loginUrl)
+      return null
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
+
+    if (profileError || !profile) {
+      console.error('guard: profile error', profileError)
+      await supabase.auth.signOut()
+      window.location.replace(loginUrl)
+      return null
+    }
+
+    if (profile.role !== requiredRole) {
+      await supabase.auth.signOut()
+      window.location.replace(loginUrl)
+      return null
+    }
+
+    document.body.style.visibility = 'visible'
+    return { user: session.user, profile }
+
+  } catch (e) {
+    document.body.style.visibility = 'visible'
+    document.body.innerHTML =
+      '<pre style="padding:32px;color:red;font-size:13px">Guard error: ' + e.message + '\n\n' + e.stack + '</pre>'
     return null
   }
-
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role, name, pharmacy_id')
-    .eq('id', session.user.id)
-    .single()
-
-  if (!profile || profile.role !== requiredRole) {
-    await supabase.auth.signOut()
-    window.location.replace(loginUrl)
-    return null
-  }
-
-  document.body.style.visibility = 'visible'
-  return { user: session.user, profile }
 }

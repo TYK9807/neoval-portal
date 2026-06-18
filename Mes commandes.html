@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -179,10 +179,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     <div class="bar-right">
       <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
       <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
-        <span class="av">DR</span>
+        <span class="av"></span>
         <span class="meta">
-          <span class="n">Dr. Reda Amrani</span>
-          <span class="r">Pharmacie Centrale · Rabat</span>
+          <span class="n"></span>
+          <span class="r"></span>
         </span>
       </a>
       <a class="logout" href="Login.html">Déconnexion</a>
@@ -226,115 +226,161 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   </div>
 </main>
 
-<script src="cart.js"></script>
 <script>
-(function(){
-  var C=window.NeovalCart;
-  function fmt(n){return C.fmt(n);}
-
-  /* cart badge sync (shared topbar behaviour) */
-  function sync(){
-    var n=C.count(), cl=document.getElementById('cartLink');
-    document.getElementById('cartCount').textContent=n;
-    cl.classList.toggle('empty',n===0);
+/* diagnostic fallback — remove after debugging */
+setTimeout(function(){
+  if(document.body.style.visibility!=='visible'){
+    document.body.style.visibility='visible';
+    document.getElementById('empty').style.display='block';
+    document.getElementById('emptyTitle').textContent='Erreur: script non chargé';
+    document.getElementById('emptyText').textContent='Le module JS ne s\'est pas chargé. Ouvrez F12 → Console pour voir l\'erreur.';
   }
-  window.addEventListener('cart:change',sync);
+},2000);
+</script>
+<script src="cart.js"></script>
+<script src="portal-nav.js"></script>
+<script type="module">
+import { supabase } from './supabase-client.js';
+import { guard } from './auth-guard.js';
 
-  /* ---- status normalization → 3 buckets ---- */
-  var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
-  function bucket(s){
-    s=(s||'').toLowerCase();
-    if(s.indexOf('livr')>-1) return 'livre';
-    if(s.indexOf('attente')>-1) return 'attente';
-    return 'confirme'; /* en préparation, confirmé, validée, expédiée */
+(async () => {
+  const ctx = await guard('pharmacy', 'Login.html');
+  if (!ctx) return;
+
+  /* header */
+  const name = ctx.profile.name || ctx.user.email || '';
+  document.querySelector('.who .meta .n').textContent = name;
+  document.querySelector('.who .av').textContent = (name.split(' ').map(w => w[0]||'').join('').slice(0,2) || name.slice(0,2) || '?').toUpperCase();
+  let _ph; try { _ph = JSON.parse(localStorage.getItem('neoval_ph_v1')) || {}; } catch(e) { _ph = {}; }
+  document.querySelector('.who .meta .r').textContent = _ph.phName ? (_ph.phName + (_ph.phCity ? ' · ' + _ph.phCity : '')) : '';
+
+
+  /* cart badge */
+  const C = window.NeovalCart;
+  function syncBadge() {
+    const n = C.count();
+    document.getElementById('cartCount').textContent = n;
+    document.getElementById('cartLink').classList.toggle('empty', n === 0);
   }
-  function fmtDate(iso){
-    var d=new Date(iso);
-    if(isNaN(d)) return '—';
-    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+  window.addEventListener('cart:change', syncBadge);
+  syncBadge();
+
+  const LABELS = { attente:'En attente', confirme:'Confirmé', livre:'Livré' };
+  function bucket(s) {
+    s = (s||'').toLowerCase();
+    if (s.indexOf('livr')    > -1) return 'livre';
+    if (s.indexOf('attente') > -1) return 'attente';
+    return 'confirme';
   }
-  function tagHTML(b){return '<span class="tag '+b+'">'+LABELS[b]+'</span>';}
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return isNaN(d) ? '—' : d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+  }
+  function fmt(n) { return Math.round(n).toLocaleString('fr-FR'); }
+  function tagHTML(b) { return `<span class="tag ${b}">${LABELS[b]}</span>`; }
 
-  var current='tous';
-  var orders=[];
+  let orders = [];
+  let current = 'tous';
 
-  function load(){ orders=C.getOrders()||[]; }
+  async function load() {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('id, status, total, created_at, order_items(quantity, unit_price)')
+      .eq('placed_by', ctx.user.id)
+      .order('created_at', { ascending: false });
 
-  function counts(){
-    var c={tous:orders.length,attente:0,confirme:0,livre:0};
-    orders.forEach(function(o){ c[bucket(o.status)]++; });
+    if (error) {
+      console.error('load orders:', error);
+      document.getElementById('list').style.display = 'none';
+      document.getElementById('tablehead').style.display = 'none';
+      const em = document.getElementById('empty');
+      em.style.display = 'block';
+      document.getElementById('emptyTitle').textContent = 'Erreur de chargement';
+      document.getElementById('emptyText').textContent = error.message || 'Impossible de charger les commandes.';
+      return;
+    }
+
+    orders = (data || []).map(o => ({
+      id:        'CMD-' + o.id.substring(0, 8).toUpperCase(),
+      _uuid:     o.id,
+      date:      o.created_at,
+      status:    o.status,
+      total:     o.total || 0,
+      lineCount: (o.order_items || []).length,
+      units:     (o.order_items || []).reduce((s, it) => s + it.quantity, 0)
+    }));
+
+    render();
+  }
+
+  function counts() {
+    const c = { tous: orders.length, attente: 0, confirme: 0, livre: 0 };
+    orders.forEach(o => c[bucket(o.status)]++);
     return c;
   }
 
-  function render(){
-    var list=document.getElementById('list');
-    var empty=document.getElementById('empty');
-    var thead=document.getElementById('tablehead');
-    var c=counts();
+  function render() {
+    const list  = document.getElementById('list');
+    const empty = document.getElementById('empty');
+    const thead = document.getElementById('tablehead');
+    const c = counts();
 
-    /* filter chip counts */
-    Object.keys(c).forEach(function(k){
-      var el=document.querySelector('[data-ct="'+k+'"]'); if(el) el.textContent=c[k];
+    Object.keys(c).forEach(k => {
+      const el = document.querySelector(`[data-ct="${k}"]`); if (el) el.textContent = c[k];
     });
 
-    var visible=orders.filter(function(o){ return current==='tous'||bucket(o.status)===current; });
-    document.getElementById('tbcount').textContent=visible.length+' commande'+(visible.length>1?'s':'');
+    const visible = orders.filter(o => current === 'tous' || bucket(o.status) === current);
+    document.getElementById('tbcount').textContent = visible.length + ' commande' + (visible.length > 1 ? 's' : '');
 
-    if(!visible.length){
-      list.style.display='none';
-      thead.style.display='none';
-      empty.style.display='block';
-      var t=document.getElementById('emptyTitle'), p=document.getElementById('emptyText');
-      if(orders.length){ /* filtered to nothing */
-        t.textContent='Aucune commande '+LABELS[current].toLowerCase();
-        p.textContent='Aucune commande ne correspond à ce statut pour l’instant. Modifiez le filtre ou consultez toutes vos commandes.';
+    if (!visible.length) {
+      list.style.display  = 'none';
+      thead.style.display = 'none';
+      empty.style.display = 'block';
+      const t = document.getElementById('emptyTitle');
+      const p = document.getElementById('emptyText');
+      if (orders.length) {
+        t.textContent = 'Aucune commande ' + LABELS[current].toLowerCase();
+        p.textContent = 'Aucune commande ne correspond à ce statut pour l\'instant.';
       } else {
-        t.textContent='Aucune commande pour le moment';
-        p.textContent='Vos commandes validées depuis le catalogue apparaîtront ici. Composez votre première commande pour démarrer votre historique.';
+        t.textContent = 'Aucune commande pour le moment';
+        p.textContent = 'Vos commandes validées depuis le catalogue apparaîtront ici.';
       }
       return;
     }
 
-    empty.style.display='none';
-    thead.style.display='grid';
-    list.style.display='flex';
-    list.innerHTML=visible.map(function(o){
-      var b=bucket(o.status);
-      var lines=o.lineCount+' référence'+(o.lineCount>1?'s':'');
-      return '<button class="orow" data-id="'+o.id+'">'+
-        '<span class="onum">'+o.id+'</span>'+
-        '<span class="odate">'+fmtDate(o.date)+'</span>'+
-        '<span class="oitems"><b>'+lines+'</b> · '+o.units+' unités</span>'+
-        '<span class="ototal">'+fmt(o.total)+'<small>MAD</small></span>'+
-        tagHTML(b)+
-        '<span class="ochev">→</span>'+
-      '</button>';
+    empty.style.display = 'none';
+    thead.style.display = 'grid';
+    list.style.display  = 'flex';
+    list.innerHTML = visible.map(o => {
+      const b = bucket(o.status);
+      const lines = o.lineCount + ' référence' + (o.lineCount > 1 ? 's' : '');
+      return `<button class="orow" data-uuid="${o._uuid}">
+        <span class="onum">${o.id}</span>
+        <span class="odate">${fmtDate(o.date)}</span>
+        <span class="oitems"><b>${lines}</b> · ${o.units} unités</span>
+        <span class="ototal">${fmt(o.total)}<small>MAD</small></span>
+        ${tagHTML(b)}
+        <span class="ochev">→</span>
+      </button>`;
     }).join('');
   }
 
-  /* ---- filters (live) ---- */
-  document.getElementById('filters').addEventListener('click',function(e){
-    var btn=e.target.closest('button'); if(!btn) return;
-    current=btn.getAttribute('data-f');
-    [].forEach.call(this.querySelectorAll('button'),function(b){b.classList.toggle('active',b===btn);});
+  document.getElementById('filters').addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    current = btn.getAttribute('data-f');
+    document.querySelectorAll('#filters button').forEach(b => b.classList.toggle('active', b === btn));
     render();
   });
 
-  /* ---- row click → standalone detail page ---- */
-  document.getElementById('list').addEventListener('click',function(e){
-    var row=e.target.closest('.orow'); if(!row) return;
-    var id=row.getAttribute('data-id');
-    [].forEach.call(document.querySelectorAll('.orow.sel'),function(r){r.classList.remove('sel');});
+  document.getElementById('list').addEventListener('click', e => {
+    const row = e.target.closest('.orow'); if (!row) return;
+    document.querySelectorAll('.orow.sel').forEach(r => r.classList.remove('sel'));
     row.classList.add('sel');
-    location.href='Commande détail.html?id='+encodeURIComponent(id);
+    location.href = 'Commande détail.html?id=' + encodeURIComponent(row.dataset.uuid);
   });
 
-  window.addEventListener('orders:change',function(){ load(); render(); });
-
-  sync(); load(); render();
+  await load();
 })();
 </script>
-<script src="portal-nav.js"></script>
-<script type="module">import { guard } from './auth-guard.js'; guard('pharmacy','Login.html');</script>
 </body>
 </html>

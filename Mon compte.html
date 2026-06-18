@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -146,10 +146,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     <div class="bar-right">
       <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
       <a class="who active" href="Mon compte.html">
-        <span class="av">DR</span>
+        <span class="av"></span>
         <span class="meta">
-          <span class="n" id="whoName">Dr. Reda Amrani</span>
-          <span class="r" id="whoSub">Pharmacie Centrale · Rabat</span>
+          <span class="n" id="whoName"></span>
+          <span class="r" id="whoSub"></span>
         </span>
       </a>
       <a class="logout" href="Login.html">Déconnexion</a>
@@ -178,7 +178,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         <div class="field">
           <label for="phIce">Numéro ICE</label>
           <input id="phIce" class="mono" type="text" inputmode="numeric" maxlength="15" />
-          <span class="hint">15 chiffres — Identifiant Commun de l’Entreprise</span>
+          <span class="hint">15 chiffres — Identifiant Commun de l'Entreprise</span>
         </div>
         <div class="field">
           <label for="phCity">Ville</label>
@@ -209,7 +209,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
           <input id="ctEmail" type="email" autocomplete="email" />
         </div>
         <div class="field">
-          <label for="ctPhone">Téléphone</label>
+          <label for="ctPhone">Téléphone <span style="opacity:.5;font-size:.85em">(optionnel)</span></label>
           <input id="ctPhone" type="tel" autocomplete="tel" />
         </div>
       </div>
@@ -222,7 +222,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     <!-- Password change -->
     <section class="acard" data-card="password">
       <h3>Mot de passe</h3>
-      <div class="csub">Sécurité de l’accès au portail</div>
+      <div class="csub">Sécurité de l'accès au portail</div>
       <div class="fgrid">
         <div class="field full">
           <label for="pwCurrent">Mot de passe actuel</label>
@@ -247,113 +247,165 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 </main>
 
 <script src="cart.js"></script>
-<script>
-(function(){
-  var C=window.NeovalCart;
+<script src="portal-nav.js"></script>
+<script type="module">
+import { supabase } from './supabase-client.js';
+import { guard } from './auth-guard.js';
 
-  /* cart badge */
-  function sync(){
-    var n=C?C.count():0, cl=document.getElementById('cartLink');
-    document.getElementById('cartCount').textContent=n;
-    cl.classList.toggle('empty',n===0);
-  }
-  if(C){ window.addEventListener('cart:change',sync); sync(); }
+var C=window.NeovalCart;
+function syncCart(){
+  var n=C?C.count():0,cl=document.getElementById('cartLink');
+  document.getElementById('cartCount').textContent=n;
+  cl.classList.toggle('empty',n===0);
+}
+if(C){window.addEventListener('cart:change',syncCart);syncCart();}
 
-  /* ---- mock account data (persisted locally) ---- */
-  var KEY='neoval_account_v1';
-  var DEFAULTS={
-    phName:'Pharmacie Centrale',
-    phIce:'001234567000045',
-    phCity:'Rabat',
-    phAddr:'12 Avenue Mohammed V',
-    ctName:'Dr. Reda Amrani',
-    ctEmail:'reda.amrani@pharmaciecentrale.ma',
-    ctPhone:'+212 6 12 34 56 78'
-  };
-  function read(){
-    try{ return Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(KEY))||{}); }
-    catch(e){ return Object.assign({},DEFAULTS); }
-  }
-  function write(data){ localStorage.setItem(KEY,JSON.stringify(data)); }
+var PH_KEY='neoval_ph_v1';
+function phRead(){try{return JSON.parse(localStorage.getItem(PH_KEY))||{};}catch(e){return{};}}
+function phWrite(d){localStorage.setItem(PH_KEY,JSON.stringify(d));}
 
-  var data=read();
-  Object.keys(DEFAULTS).forEach(function(id){
-    var el=document.getElementById(id); if(el) el.value=data[id]||'';
-  });
-  // reflect identity in topbar
-  document.getElementById('whoName').textContent=data.ctName||DEFAULTS.ctName;
-  document.getElementById('whoSub').textContent=(data.phName||DEFAULTS.phName)+' · '+(data.phCity||DEFAULTS.phCity);
-
-  /* ---- generic card wiring ---- */
-  function setupCard(name, onSave){
-    var card=document.querySelector('[data-card="'+name+'"]');
-    var inputs=[].slice.call(card.querySelectorAll('input'));
-    var saveBtn=card.querySelector('.save');
-    var statusEl=card.querySelector('[data-status]');
-    function status(type,msg){ statusEl.className='status '+(type||''); statusEl.textContent=msg||''; }
-    function clearInvalid(){ inputs.forEach(function(i){i.classList.remove('invalid');}); }
-
-    inputs.forEach(function(i){
-      i.addEventListener('input',function(){
-        i.classList.remove('invalid');
-        saveBtn.disabled=false;
-        status('dirty','Modifications non enregistrées');
-      });
+function val(id){return document.getElementById(id).value.trim();}
+function flag(id){document.getElementById(id).classList.add('invalid');}
+function clearFlags(card){[].forEach.call(card.querySelectorAll('input'),function(i){i.classList.remove('invalid');});}
+function setStatus(card,type,msg){
+  var el=card.querySelector('[data-status]');
+  el.className='status '+(type||'');el.textContent=msg||'';
+}
+function watchCard(card,btn){
+  [].forEach.call(card.querySelectorAll('input'),function(i){
+    i.addEventListener('input',function(){
+      i.classList.remove('invalid');btn.disabled=false;
+      setStatus(card,'dirty','Modifications non enregistrées');
     });
+  });
+  btn.disabled=true;
+}
 
-    saveBtn.disabled=true;
-    saveBtn.addEventListener('click',function(){
-      clearInvalid();
-      var ok=onSave({card:card, inputs:inputs, status:status});
-      if(ok){ saveBtn.disabled=true; }
-    });
-  }
+function updateHeaderName(name){
+  document.getElementById('whoName').textContent=name;
+  var inits=(name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2)||'DR').toUpperCase();
+  document.querySelector('.who .av').textContent=inits;
+}
+function updateHeaderSub(){
+  var ph=phRead();
+  var sub=ph.phName?(ph.phName+(ph.phCity?' · '+ph.phCity:'')):'';
+  document.getElementById('whoSub').textContent=sub;
+}
 
-  function val(id){ return document.getElementById(id).value.trim(); }
-  function flag(id){ document.getElementById(id).classList.add('invalid'); }
+(async function(){
+  var ctx=await guard('pharmacy','Login.html');
+  if(!ctx)return;
 
-  /* Pharmacy */
-  setupCard('pharma',function(ctx){
-    var name=val('phName'), ice=val('phIce'), city=val('phCity'), addr=val('phAddr');
-    if(!name){ flag('phName'); ctx.status('err','Le nom de la pharmacie est requis'); return false; }
-    if(!/^\d{15}$/.test(ice)){ flag('phIce'); ctx.status('err','Le numéro ICE doit comporter 15 chiffres'); return false; }
-    if(!addr){ flag('phAddr'); ctx.status('err','L’adresse est requise'); return false; }
-    if(!city){ flag('phCity'); ctx.status('err','La ville est requise'); return false; }
-    data.phName=name; data.phIce=ice; data.phCity=city; data.phAddr=addr; write(data);
-    document.getElementById('whoSub').textContent=name+' · '+city;
-    ctx.status('ok','Informations enregistrées');
-    return true;
+  var profile=ctx.profile;
+  var email=ctx.user.email||'';
+  var name=profile.name||email||'';
+
+  updateHeaderName(name);
+  updateHeaderSub();
+
+  /* pharmacy card — localStorage */
+  var ph=phRead();
+  document.getElementById('phName').value=ph.phName||'';
+  document.getElementById('phIce').value=ph.phIce||'';
+  document.getElementById('phCity').value=ph.phCity||'';
+  document.getElementById('phAddr').value=ph.phAddr||'';
+
+  /* contact card — from Supabase profile */
+  document.getElementById('ctName').value=name;
+  document.getElementById('ctEmail').value=email;
+  document.getElementById('ctPhone').value=profile.phone||'';
+
+  /* ---- Pharmacy card (localStorage) ---- */
+  var pharmaCard=document.querySelector('[data-card="pharma"]');
+  var pharmaSave=pharmaCard.querySelector('.save');
+  watchCard(pharmaCard,pharmaSave);
+  pharmaSave.addEventListener('click',function(){
+    clearFlags(pharmaCard);
+    var n=val('phName'),ice=val('phIce'),city=val('phCity'),addr=val('phAddr');
+    if(!n){flag('phName');setStatus(pharmaCard,'err','Le nom de la pharmacie est requis');return;}
+    if(!/^\d{15}$/.test(ice)){flag('phIce');setStatus(pharmaCard,'err','Le numéro ICE doit comporter 15 chiffres');return;}
+    if(!addr){flag('phAddr');setStatus(pharmaCard,'err',"L'adresse est requise");return;}
+    if(!city){flag('phCity');setStatus(pharmaCard,'err','La ville est requise');return;}
+    phWrite({phName:n,phIce:ice,phCity:city,phAddr:addr});
+    updateHeaderSub();
+    pharmaSave.disabled=true;
+    setStatus(pharmaCard,'ok','Informations enregistrées');
   });
 
-  /* Contact */
-  setupCard('contact',function(ctx){
-    var name=val('ctName'), email=val('ctEmail'), phone=val('ctPhone');
-    var emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(!name){ flag('ctName'); ctx.status('err','Le nom du contact est requis'); return false; }
-    if(!emailRe.test(email)){ flag('ctEmail'); ctx.status('err','Adresse e-mail invalide'); return false; }
-    if(phone.replace(/[^\d]/g,'').length<8){ flag('ctPhone'); ctx.status('err','Numéro de téléphone invalide'); return false; }
-    data.ctName=name; data.ctEmail=email; data.ctPhone=phone; write(data);
-    document.getElementById('whoName').textContent=name;
-    ctx.status('ok','Coordonnées enregistrées');
-    return true;
+  /* ---- Contact card — name + phone → Supabase; email → auth if changed ---- */
+  var contactCard=document.querySelector('[data-card="contact"]');
+  var contactSave=contactCard.querySelector('.save');
+  watchCard(contactCard,contactSave);
+  contactSave.addEventListener('click',async function(){
+    clearFlags(contactCard);
+    var n=val('ctName'),emailVal=val('ctEmail'),phone=val('ctPhone');
+    if(!n){flag('ctName');setStatus(contactCard,'err','Le nom du contact est requis');return;}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)){flag('ctEmail');setStatus(contactCard,'err','Adresse e-mail invalide');return;}
+    if(phone&&phone.replace(/[^\d]/g,'').length<8){flag('ctPhone');setStatus(contactCard,'err','Numéro de téléphone invalide');return;}
+    contactSave.disabled=true;
+
+    var update={name:n,phone:phone||null};
+    var {data:updated,error:dbErr}=await supabase.from('users').update(update).eq('id',ctx.user.id).select('id');
+    if(dbErr){
+      contactSave.disabled=false;
+      setStatus(contactCard,'err','Erreur Supabase: '+dbErr.message);
+      return;
+    }
+    if(!updated||updated.length===0){
+      contactSave.disabled=false;
+      setStatus(contactCard,'err','Accès refusé — exécutez policies.sql dans le SQL Editor Supabase');
+      return;
+    }
+
+    var emailChanged=emailVal!==ctx.user.email;
+    if(emailChanged){
+      var {error:emailErr}=await supabase.auth.updateUser({email:emailVal});
+      if(emailErr){
+        contactSave.disabled=false;
+        setStatus(contactCard,'err',emailErr.message||"Erreur lors du changement d'e-mail");
+        return;
+      }
+      ctx.user.email=emailVal;
+    }
+
+    profile.name=n;profile.phone=phone;
+    updateHeaderName(n);
+    setStatus(contactCard,'ok',emailChanged
+      ?'Profil enregistré — un lien de confirmation a été envoyé à '+emailVal
+      :'Coordonnées enregistrées');
   });
 
-  /* Password */
-  setupCard('password',function(ctx){
-    var cur=val('pwCurrent'), nw=val('pwNew'), cf=val('pwConfirm');
-    if(!cur){ flag('pwCurrent'); ctx.status('err','Saisissez votre mot de passe actuel'); return false; }
-    if(nw.length<8){ flag('pwNew'); ctx.status('err','8 caractères minimum pour le nouveau mot de passe'); return false; }
-    if(nw===cur){ flag('pwNew'); ctx.status('err','Le nouveau mot de passe doit être différent de l’actuel'); return false; }
-    if(nw!==cf){ flag('pwConfirm'); ctx.status('err','Les mots de passe ne correspondent pas'); return false; }
-    // mock: no real auth — clear the fields on success
-    ctx.inputs.forEach(function(i){ i.value=''; });
-    ctx.status('ok','Mot de passe mis à jour');
-    return true;
-  });
+  /* ---- Password card — verifies current password first, then updates ---- */
+  var pwCard=document.querySelector('[data-card="password"]');
+  var pwSave=pwCard.querySelector('.save');
+  watchCard(pwCard,pwSave);
+  pwSave.addEventListener('click',async function(){
+    clearFlags(pwCard);
+    var cur=val('pwCurrent'),nw=val('pwNew'),cf=val('pwConfirm');
+    if(!cur){flag('pwCurrent');setStatus(pwCard,'err','Saisissez votre mot de passe actuel');return;}
+    if(nw.length<8){flag('pwNew');setStatus(pwCard,'err','8 caractères minimum');return;}
+    if(nw===cur){flag('pwNew');setStatus(pwCard,'err','Le nouveau mot de passe doit être différent de l\'actuel');return;}
+    if(nw!==cf){flag('pwConfirm');setStatus(pwCard,'err','Les mots de passe ne correspondent pas');return;}
+    pwSave.disabled=true;
 
+    var {error:signInErr}=await supabase.auth.signInWithPassword({email:ctx.user.email,password:cur});
+    if(signInErr){
+      flag('pwCurrent');
+      pwSave.disabled=false;
+      setStatus(pwCard,'err','Mot de passe actuel incorrect');
+      return;
+    }
+
+    var {error:updateErr}=await supabase.auth.updateUser({password:nw});
+    if(updateErr){
+      pwSave.disabled=false;
+      setStatus(pwCard,'err',updateErr.message||'Erreur lors de la mise à jour');
+      return;
+    }
+    [].forEach.call(pwCard.querySelectorAll('input'),function(i){i.value='';});
+    setStatus(pwCard,'ok','Mot de passe mis à jour');
+  });
 })();
 </script>
-<script src="portal-nav.js"></script>
-<script type="module">import { guard } from './auth-guard.js'; guard('pharmacy','Login.html');</script>
 </body>
 </html>

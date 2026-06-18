@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -235,10 +235,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     <div class="bar-right">
       <a class="cartlink empty" id="cartLink" href="Commande.html">Commande <span class="cn" id="cartCount">0</span></a>
       <a class="who" href="Mon compte.html" style="text-decoration:none;cursor:pointer">
-        <span class="av">DR</span>
+        <span class="av"></span>
         <span class="meta">
-          <span class="n">Dr. Reda Amrani</span>
-          <span class="r">Pharmacie Centrale · Rabat</span>
+          <span class="n"></span>
+          <span class="r"></span>
         </span>
       </a>
       <a class="logout" href="Login.html">Déconnexion</a>
@@ -257,7 +257,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         <div class="sub">
           <span>Validée le <b id="oDate">—</b></span>
           <span class="dot">·</span>
-          <span id="oPharma"><b>Pharmacie Centrale</b> — Rabat</span>
+          <span id="oPharma"></span>
         </div>
       </div>
       <div class="right">
@@ -313,7 +313,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   <div class="nf" id="notfound">
     <div class="ic">◇</div>
     <h2>Commande introuvable</h2>
-    <p>Cette commande n’existe pas ou n’est plus disponible dans votre historique.</p>
+    <p>Cette commande n'existe pas ou n'est plus disponible dans votre historique.</p>
     <a href="Mes commandes.html">← Retour à mes commandes</a>
   </div>
 </main>
@@ -326,142 +326,155 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 </div>
 
 <script src="cart.js"></script>
-<script>
-(function(){
-  var C=window.NeovalCart;
-  function fmt(n){return C.fmt(n);}
+<script src="portal-nav.js"></script>
+<script type="module">
+import { supabase } from './supabase-client.js';
+import { guard } from './auth-guard.js';
 
-  /* cart badge */
-  function sync(){
-    var n=C.count(), cl=document.getElementById('cartLink');
-    document.getElementById('cartCount').textContent=n;
-    cl.classList.toggle('empty',n===0);
-  }
-  window.addEventListener('cart:change',sync);
-  sync();
+var C=window.NeovalCart;
+function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function glyph(name){return(name||'').trim().slice(0,2).toUpperCase()||'◇';}
 
-  var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
-  var ORDER=['attente','confirme','livre'];
-  function bucket(s){
-    s=(s||'').toLowerCase();
-    if(s.indexOf('livr')>-1) return 'livre';
-    if(s.indexOf('attente')>-1) return 'attente';
-    return 'confirme';
-  }
-  function fmtDate(iso){
-    var d=new Date(iso); if(isNaN(d)) return '—';
-    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
-  }
+function syncCart(){
+  var n=C.count(),cl=document.getElementById('cartLink');
+  document.getElementById('cartCount').textContent=n;
+  cl.classList.toggle('empty',n===0);
+}
+window.addEventListener('cart:change',syncCart);
+syncCart();
 
-  var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
+var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
+var ORDER=['attente','confirme','livre'];
+function bucket(s){
+  s=(s||'').toLowerCase();
+  if(s.indexOf('livr')>-1)return 'livre';
+  if(s.indexOf('attente')>-1)return 'attente';
+  return 'confirme';
+}
+function fmtDate(iso){
+  var d=new Date(iso);if(isNaN(d))return '—';
+  return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+}
 
-  function renderDocs(o,b){
-    var listEl=document.getElementById('docList');
-    var note=document.getElementById('docsNote');
-    var all=document.getElementById('docsAll');
-    var suffix=String(o.id).replace(/^CMD-/,'');
-    var defs=[{t:'BL',label:'Bon de livraison'},{t:'POP',label:'Preuve de paiement'}];
+var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
 
-    if(b==='attente'){
-      note.textContent='Émis après confirmation de la commande';
-      all.style.display='none';
-      listEl.innerHTML=defs.map(function(d){
-        return '<div class="doc"><div class="di">'+d.t+'</div>'+
-          '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">En attente de confirmation</div></div>'+
-          '<span class="badge">Bientôt</span></div>';
-      }).join('');
-      return;
-    }
-    note.textContent='Pièces jointes à la commande';
-    all.style.display='';
-    all.href='Mes documents.html?order='+encodeURIComponent(o.id);
+function renderDocs(shortId,b){
+  var listEl=document.getElementById('docList');
+  var note=document.getElementById('docsNote');
+  var all=document.getElementById('docsAll');
+  var defs=[{t:'BL',label:'Bon de livraison'},{t:'POP',label:'Preuve de paiement'}];
+  if(b==='attente'){
+    note.textContent='Émis après confirmation de la commande';
+    all.style.display='none';
     listEl.innerHTML=defs.map(function(d){
-      var name=d.t+'-'+suffix;
-      return '<div class="doc active"><div class="di">'+d.t+'</div>'+
-        '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">'+name+'.pdf</div></div>'+
-        '<button class="dl" data-name="'+name+'">'+DL_SVG+'PDF</button></div>';
+      return '<div class="doc"><div class="di">'+d.t+'</div>'+
+        '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">En attente de confirmation</div></div>'+
+        '<span class="badge">Bientôt</span></div>';
     }).join('');
+    return;
+  }
+  note.textContent='Pièces jointes à la commande';
+  all.style.display='';
+  all.href='Mes documents.html?order='+encodeURIComponent('CMD-'+shortId);
+  listEl.innerHTML=defs.map(function(d){
+    var name=d.t+'-'+shortId;
+    return '<div class="doc active"><div class="di">'+d.t+'</div>'+
+      '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">'+name+'.pdf</div></div>'+
+      '<button class="dl" data-name="'+name+'">'+DL_SVG+'PDF</button></div>';
+  }).join('');
+}
+
+var toast=document.getElementById('toast'),toastTimer;
+document.getElementById('docList').addEventListener('click',function(e){
+  var btn=e.target.closest('.dl');if(!btn)return;
+  var name=btn.getAttribute('data-name');
+  btn.classList.add('busy');var orig=btn.innerHTML;
+  btn.innerHTML=DL_SVG+'…';
+  setTimeout(function(){
+    btn.classList.remove('busy');btn.innerHTML=orig;
+    document.getElementById('toastName').textContent=name+'.pdf';
+    document.getElementById('toastSub').textContent='Téléchargement simulé · automatisation à venir';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
+  },600);
+});
+
+(async function(){
+  var ctx=await guard('pharmacy','Login.html');
+  if(!ctx)return;
+
+  var name=ctx.profile.name||ctx.user.email||'';
+  document.querySelector('.who .meta .n').textContent=name;
+  document.querySelector('.who .av').textContent=(name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2)||name.slice(0,2)||'?').toUpperCase();
+  var _ph;try{_ph=JSON.parse(localStorage.getItem('neoval_ph_v1'))||{};}catch(e){_ph={};}
+  document.querySelector('.who .meta .r').textContent=_ph.phName?(_ph.phName+(_ph.phCity?' · '+_ph.phCity:'')):'';
+
+  var uuid=new URLSearchParams(location.search).get('id');
+  if(!uuid){
+    document.getElementById('detail').style.display='none';
+    document.getElementById('notfound').style.display='block';
+    return;
   }
 
-  function getId(){
-    try{ return new URLSearchParams(location.search).get('id'); }catch(e){ return null; }
+  var {data:o,error}=await supabase
+    .from('orders')
+    .select('id,status,total,created_at,order_items(quantity,unit_price,products(name,category))')
+    .eq('id',uuid)
+    .eq('placed_by',ctx.user.id)
+    .single();
+
+  if(error||!o){
+    document.getElementById('detail').style.display='none';
+    document.getElementById('notfound').style.display='block';
+    return;
   }
 
-  function render(){
-    var id=getId();
-    var orders=C.getOrders()||[];
-    var o=orders.filter(function(x){return x.id===id;})[0];
+  var shortId=String(o.id).slice(0,8).toUpperCase();
+  var b=bucket(o.status);
 
-    if(!o){
-      document.getElementById('detail').style.display='none';
-      document.getElementById('notfound').style.display='block';
-      return;
-    }
+  document.getElementById('oNum').textContent='CMD-'+shortId;
+  document.getElementById('oDate').textContent=fmtDate(o.created_at);
+  document.getElementById('oPharma').innerHTML='<b>'+ctx.profile.name+'</b>';
+  document.getElementById('oTag').innerHTML='<span class="tag '+b+'">'+LABELS[b]+'</span>';
+  document.getElementById('oTotalBig').innerHTML=fmt(o.total)+'<small>MAD</small>';
 
-    var b=bucket(o.status);
-    document.getElementById('oNum').textContent=o.id;
-    document.getElementById('oDate').textContent=fmtDate(o.date);
-    document.getElementById('oTag').innerHTML='<span class="tag '+b+'">'+LABELS[b]+'</span>';
-    document.getElementById('oTotalBig').innerHTML=fmt(o.total)+'<small>MAD</small>';
-
-    /* timeline */
-    var cur=ORDER.indexOf(b);
-    var steps=document.querySelectorAll('#flow .fstep');
-    var activeWord={attente:'En cours',confirme:'En préparation',livre:'Livrée'};
-    [].forEach.call(steps,function(st,i){
-      st.classList.remove('done','active','fill');
-      if(i<cur){ st.classList.add('done'); }
-      else if(i===cur){ st.classList.add('active'); }
-      if(i<=cur && i>0){ st.classList.add('fill'); }
-      var key=st.getAttribute('data-step');
-      var word = i<cur ? 'Terminé' : (i===cur ? activeWord[key] : 'À venir');
-      st.querySelector('.ss').textContent=word;
-    });
-
-    /* line items */
-    document.getElementById('lines').innerHTML=(o.items||[]).map(function(it){
-      var p=C.byRef(it.ref);
-      var unit=p?p.price:Math.round(it.lineTotal/Math.max(it.units,1));
-      return '<div class="li">'+
-        '<div class="p"><div class="g">'+(it.glyph||'◇')+'</div>'+
-          '<div class="pn"><h4>'+it.name+'</h4><div class="ref">'+it.ref+'</div></div></div>'+
-        '<div class="qt">'+it.units+'<span>'+it.cartons+' carton'+(it.cartons>1?'s':'')+'</span></div>'+
-        '<div class="pu">'+fmt(unit)+' MAD</div>'+
-        '<div class="st">'+fmt(it.lineTotal)+' MAD</div>'+
-      '</div>';
-    }).join('');
-
-    /* totals */
-    document.getElementById('sUnits').textContent=o.units.toLocaleString('fr-FR');
-    document.getElementById('sSub').textContent=fmt(o.subtotal)+' MAD';
-    document.getElementById('sTva').textContent=fmt(o.tva)+' MAD';
-    document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';
-
-    /* documents */
-    renderDocs(o,b);
-  }
-
-  /* download stub + toast */
-  var toast=document.getElementById('toast'), toastTimer;
-  document.getElementById('docList').addEventListener('click',function(e){
-    var btn=e.target.closest('.dl'); if(!btn) return;
-    var name=btn.getAttribute('data-name');
-    btn.classList.add('busy'); var orig=btn.innerHTML;
-    btn.innerHTML=DL_SVG+'…';
-    setTimeout(function(){
-      btn.classList.remove('busy'); btn.innerHTML=orig;
-      document.getElementById('toastName').textContent=name+'.pdf';
-      document.getElementById('toastSub').textContent='Téléchargement simulé · automatisation à venir';
-      toast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
-    },600);
+  var cur=ORDER.indexOf(b);
+  var steps=document.querySelectorAll('#flow .fstep');
+  var activeWord={attente:'En cours',confirme:'En préparation',livre:'Livrée'};
+  [].forEach.call(steps,function(st,i){
+    st.classList.remove('done','active','fill');
+    if(i<cur){st.classList.add('done');}
+    else if(i===cur){st.classList.add('active');}
+    if(i<=cur&&i>0){st.classList.add('fill');}
+    var word=i<cur?'Terminé':(i===cur?activeWord[st.getAttribute('data-step')]:'À venir');
+    st.querySelector('.ss').textContent=word;
   });
 
-  render();
+  var items=o.order_items||[];
+  var subtotal=0,units=0;
+  document.getElementById('lines').innerHTML=items.map(function(it){
+    var lineTotal=(it.quantity||0)*(it.unit_price||0);
+    subtotal+=lineTotal;units+=(it.quantity||0);
+    var name=(it.products&&it.products.name)||'—';
+    var cat=(it.products&&it.products.category)||'';
+    return '<div class="li">'+
+      '<div class="p"><div class="g">'+glyph(name)+'</div>'+
+        '<div class="pn"><h4>'+name+'</h4><div class="ref">'+cat+'</div></div></div>'+
+      '<div class="qt">'+it.quantity+'</div>'+
+      '<div class="pu">'+fmt(it.unit_price)+' MAD</div>'+
+      '<div class="st">'+fmt(lineTotal)+' MAD</div>'+
+    '</div>';
+  }).join('');
+
+  var tva=subtotal*0.20;
+  document.getElementById('sUnits').textContent=units.toLocaleString('fr-FR');
+  document.getElementById('sSub').textContent=fmt(subtotal)+' MAD';
+  document.getElementById('sTva').textContent=fmt(tva)+' MAD';
+  document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';
+
+  renderDocs(shortId,b);
 })();
 </script>
-<script src="portal-nav.js"></script>
-<script type="module">import { guard } from './auth-guard.js'; guard('pharmacy','Login.html');</script>
 </body>
 </html>
