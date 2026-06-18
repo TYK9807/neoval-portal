@@ -1,5 +1,11 @@
 import { supabase } from './supabase-client.js'
 
+/**
+ * Guard function for all protected pages.
+ * @param {string|string[]} requiredRole  - role or array of roles allowed
+ * @param {string}          loginUrl      - redirect target when auth fails
+ * @returns {{ user, profile } | null}
+ */
 export async function guard(requiredRole, loginUrl) {
   try {
     const result = await supabase.auth.getSession()
@@ -17,19 +23,32 @@ export async function guard(requiredRole, loginUrl) {
       .single()
 
     if (profileError || !profile) {
-      console.error('guard: profile error', profileError)
       await supabase.auth.signOut()
       window.location.replace(loginUrl)
       return null
     }
 
-    if (profile.role !== requiredRole) {
+    const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
+    if (!allowed.includes(profile.role)) {
       await supabase.auth.signOut()
       window.location.replace(loginUrl)
       return null
     }
 
     document.body.style.visibility = 'visible'
+
+    // Wire all logout links so they call signOut() before navigating.
+    // This clears the Supabase session from localStorage so the next
+    // page load doesn't auto-authenticate.
+    document.querySelectorAll('a.logout').forEach(link => {
+      link.addEventListener('click', async e => {
+        e.preventDefault()
+        const href = link.getAttribute('href') || loginUrl
+        await supabase.auth.signOut()
+        window.location.replace(href)
+      })
+    })
+
     return { user: session.user, profile }
 
   } catch (e) {

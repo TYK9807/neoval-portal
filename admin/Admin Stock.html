@@ -207,12 +207,13 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   <div class="tt"><b id="toastName">—</b><span id="toastSub">—</span></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../cart.js"></script>
 <script src="admin-data.js"></script>
 <script>
 (function(){
   var A=window.NeovalAdmin;
-  var PRODUCTS=A.PRODUCTS;
+  var PRODUCTS=[];
   var STATE_LABEL={in:'En stock',low:'Stock limité',out:'Rupture'};
 
   var toast=document.getElementById('toast'), toastTimer;
@@ -300,7 +301,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
       save.innerHTML='<span class="ic"></span>Enregistré';
       row.classList.add('saved');
       setTimeout(function(){row.classList.remove('saved');},900);
-      var p=window.NeovalCart.byRef(ref);
+      var p=PRODUCTS.find(function(x){return x.ref===ref;});
       showToast('Stock mis à jour',(p?p.name:ref)+' · '+nv+' unités');
       stat();
     }
@@ -312,10 +313,49 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     }
   });
 
-  render();
+  /* load products from Supabase then render */
+  var sb = window.supabase.createClient(
+    'https://nxlvdwqvkvgjvellmnic.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM'
+  );
+
+  sb.from('products').select('*').order('name').then(function(res){
+    if (res.error) { console.error('stock load:', res.error); return; }
+    PRODUCTS = (res.data || []).map(function(p){
+      return { ref: p.id, name: p.name, cat: p.category, glyph: p.name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(), qty: p.stock_quantity || 0 };
+    });
+    render();
+  });
+
+  function stockOf(ref){ var p = PRODUCTS.find(function(x){ return x.ref===ref; }); return p ? p.qty : 0; }
+  function stockState(qty){ return qty<=0?'out':qty<50?'low':'in'; }
+  A.stockOf    = stockOf;
+  A.stockState = stockState;
+
+  A.setStock = function(ref, qty){
+    qty = Math.max(0, Math.round(qty||0));
+    var p = PRODUCTS.find(function(x){ return x.ref===ref; });
+    if(p) p.qty = qty;
+    sb.from('products').update({ stock_quantity: qty }).eq('id', ref)
+      .then(function(res){ if(res.error) console.error('setStock:', res.error); });
+    return qty;
+  };
+
 })();
 </script>
 <script src="../portal-nav.js"></script>
-<script type="module">import { guard } from '../auth-guard.js'; guard('admin','Admin Login.html');</script>
+<script type="module">
+import { guard } from '../auth-guard.js';
+(async () => {
+  const ctx = await guard('admin', 'Admin Login.html');
+  if (!ctx) return;
+  const n = ctx.profile.name || 'Admin';
+  const av = n.split(' ').map(w => w[0]||'').join('').slice(0,2) || n.slice(0,2) || 'A';
+  const nameEl = document.querySelector('.who .meta .n');
+  const avEl   = document.querySelector('.who .av');
+  if (nameEl) nameEl.textContent = n;
+  if (avEl)   avEl.textContent   = av.toUpperCase();
+})();
+</script>
 </body>
 </html>

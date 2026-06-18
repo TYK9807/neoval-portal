@@ -333,172 +333,215 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   <div class="tt"><b id="toastName">—</b><span id="toastSub">—</span></div>
 </div>
 
-<script src="../cart.js"></script>
-<script src="admin-data.js"></script>
-<script>
-(function(){
-  var A=window.NeovalAdmin;
-  var LABELS=A.LABELS, ORDER=A.ORDER, bucket=A.bucket, fmt=A.fmt;
+<script src="../portal-nav.js"></script>
+<script type="module">
+import { supabase } from '../supabase-client.js';
+import { guard } from '../auth-guard.js';
 
-  function fmtDate(iso){
-    var d=new Date(iso); if(isNaN(d)) return '—';
-    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
-  }
-  function getId(){ try{ return new URLSearchParams(location.search).get('id'); }catch(e){ return null; } }
+var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
+var ORDER=['attente','confirme','livre'];
+function bucket(s){
+  s=(s||'').toLowerCase();
+  if(s.indexOf('livr')>-1)return 'livre';
+  if(s.indexOf('attente')>-1)return 'attente';
+  return 'confirme';
+}
+function fmtDate(iso){
+  var d=new Date(iso);if(isNaN(d))return '—';
+  return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+}
+function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function glyph(name){return(name||'').trim().slice(0,2).toUpperCase()||'◇';}
 
-  var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
+var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
 
-  var toast=document.getElementById('toast'), toastTimer;
-  function showToast(name,sub,gold){
-    document.getElementById('toastName').textContent=name;
-    document.getElementById('toastSub').textContent=sub;
-    toast.classList.toggle('gold',!!gold);
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){toast.classList.remove('show');},3000);
-  }
+var toast=document.getElementById('toast'),toastTimer;
+function showToast(name,sub,gold){
+  document.getElementById('toastName').textContent=name;
+  document.getElementById('toastSub').textContent=sub;
+  toast.classList.toggle('gold',!!gold);
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toast.classList.remove('show');},3000);
+}
 
-  function renderDocs(o,b){
-    var listEl=document.getElementById('docList');
-    var note=document.getElementById('docsNote');
-    var suffix=String(o.id).replace(/^CMD-/,'');
-    var defs=[{t:'BL',label:'Bon de livraison'},{t:'POP',label:'Preuve de paiement'}];
+var currentUUID=null;
 
-    if(!o.blGenerated){
-      note.textContent='Le BL sera généré à la confirmation';
-      listEl.innerHTML=defs.map(function(d){
-        return '<div class="doc"><div class="di">'+d.t+'</div>'+
-          '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">Non généré</div></div>'+
-          '<span class="badge">En attente</span></div>';
-      }).join('');
-      return;
-    }
-    note.textContent='Pièces générées pour cette commande';
+function renderDocs(shortId,blGenerated){
+  var listEl=document.getElementById('docList');
+  var note=document.getElementById('docsNote');
+  var defs=[{t:'BL',label:'Bon de livraison'},{t:'POP',label:'Preuve de paiement'}];
+  if(!blGenerated){
+    note.textContent='Le BL sera généré à la confirmation';
     listEl.innerHTML=defs.map(function(d){
-      var name=d.t+'-'+suffix;
-      return '<div class="doc active"><div class="di">'+d.t+'</div>'+
-        '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">'+name+'.pdf</div></div>'+
-        '<button class="dl" data-name="'+name+'">'+DL_SVG+'PDF</button></div>';
+      return '<div class="doc"><div class="di">'+d.t+'</div>'+
+        '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">Non généré</div></div>'+
+        '<span class="badge">En attente</span></div>';
     }).join('');
+    return;
+  }
+  note.textContent='Pièces générées pour cette commande';
+  listEl.innerHTML=defs.map(function(d){
+    var name=d.t+'-'+shortId;
+    return '<div class="doc active"><div class="di">'+d.t+'</div>'+
+      '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">'+name+'.pdf</div></div>'+
+      '<button class="dl" data-name="'+name+'">'+DL_SVG+'PDF</button></div>';
+  }).join('');
+}
+
+function renderActions(b,blGenerated){
+  var hint=document.getElementById('actHint');
+  var stack=document.getElementById('btnstack');
+  var rows='';
+  if(b==='attente'){
+    hint.textContent='Commande en attente de validation. Confirmez pour générer le bon de livraison et notifier la pharmacie.';
+    rows+='<button class="abtn" data-act="confirm"><span class="ic"></span>Confirmer la commande</button>';
+  } else if(b==='confirme'){
+    hint.textContent='Commande confirmée et en préparation. Marquez-la livrée une fois la réception confirmée par la pharmacie.';
+    rows+='<button class="abtn" data-act="deliver"><span class="ic"></span>Marquer livré</button>';
+  } else {
+    hint.textContent='Commande livrée. Cycle terminé — les documents restent disponibles ci-dessous.';
+    rows+='<div class="adone">Commande livrée · cycle terminé</div>';
+  }
+  rows+=blGenerated
+    ?'<button class="abtn gold" data-act="bl"><span class="ic"></span>Régénérer le BL</button>'
+    :'<button class="abtn gold" data-act="bl"><span class="ic"></span>Générer le BL</button>';
+  stack.innerHTML=rows;
+}
+
+async function loadAndRender(){
+  var uuid=new URLSearchParams(location.search).get('id');
+  if(!uuid){
+    document.getElementById('detail').style.display='none';
+    document.getElementById('notfound').style.display='block';
+    return;
+  }
+  currentUUID=uuid;
+
+  var {data:o,error}=await supabase
+    .from('orders')
+    .select('id,status,total,created_at,users!placed_by(name,email),order_items(quantity,unit_price,products(name,category))')
+    .eq('id',uuid)
+    .single();
+
+  if(error||!o){
+    document.getElementById('detail').style.display='none';
+    document.getElementById('notfound').style.display='block';
+    return;
   }
 
-  function renderActions(o,b){
-    var hint=document.getElementById('actHint');
-    var stack=document.getElementById('btnstack');
-    var rows='';
+  var shortId=String(o.id).slice(0,8).toUpperCase();
+  var b=bucket(o.status);
+  var blGenerated=(b==='confirme'||b==='livre');
 
-    if(b==='attente'){
-      hint.textContent='Commande en attente de validation. Confirmez pour générer le bon de livraison et notifier la pharmacie.';
-      rows+='<button class="abtn" data-act="confirm"><span class="ic"></span>Confirmer la commande</button>';
-    } else if(b==='confirme'){
-      hint.textContent='Commande confirmée et en préparation. Marquez-la livrée une fois la réception confirmée par la pharmacie.';
-      rows+='<button class="abtn" data-act="deliver"><span class="ic"></span>Marquer livré</button>';
-    } else {
-      hint.textContent='Commande livrée. Cycle terminé — les documents restent disponibles ci-dessous.';
-      rows+='<div class="adone">Commande livrée · cycle terminé</div>';
-    }
+  document.getElementById('oNum').textContent='CMD-'+shortId;
+  document.getElementById('oDate').textContent=fmtDate(o.created_at);
+  var pharmaName=(o.users&&o.users.name)||'—';
+  document.getElementById('oPharma').innerHTML='<b>'+pharmaName+'</b>';
+  document.getElementById('oTag').innerHTML='<span class="tag '+b+'">'+LABELS[b]+'</span>';
+  document.getElementById('oTotalBig').innerHTML=fmt(o.total)+'<small>MAD</small>';
 
-    /* manual BL generation — always available as a manual trigger */
-    if(o.blGenerated){
-      rows+='<button class="abtn gold" data-act="bl"><span class="ic"></span>Régénérer le BL</button>';
-    } else {
-      rows+='<button class="abtn gold" data-act="bl"><span class="ic"></span>Générer le BL</button>';
-    }
-    stack.innerHTML=rows;
-  }
-
-  function render(){
-    var id=getId();
-    var o=A.getOrder(id);
-    if(!o){
-      document.getElementById('detail').style.display='none';
-      document.getElementById('notfound').style.display='block';
-      return;
-    }
-    var b=bucket(o.status);
-    document.getElementById('oNum').textContent=o.id;
-    document.getElementById('oDate').textContent=fmtDate(o.date);
-    document.getElementById('oPharma').innerHTML='<b>'+o.pharmacy+'</b> — '+o.city;
-    document.getElementById('oTag').innerHTML='<span class="tag '+b+'">'+LABELS[b]+'</span>';
-    document.getElementById('oTotalBig').innerHTML=fmt(o.total)+'<small>MAD</small>';
-
-    /* timeline */
-    var cur=ORDER.indexOf(b);
-    var steps=document.querySelectorAll('#flow .fstep');
-    var activeWord={attente:'En cours',confirme:'En préparation',livre:'Livrée'};
-    [].forEach.call(steps,function(st,i){
-      st.classList.remove('done','active','fill');
-      if(i<cur){ st.classList.add('done'); }
-      else if(i===cur){ st.classList.add('active'); }
-      if(i<=cur && i>0){ st.classList.add('fill'); }
-      var key=st.getAttribute('data-step');
-      var word = i<cur ? 'Terminé' : (i===cur ? activeWord[key] : 'À venir');
-      st.querySelector('.ss').textContent=word;
-    });
-
-    /* line items */
-    document.getElementById('lines').innerHTML=(o.items||[]).map(function(it){
-      var p=window.NeovalCart.byRef(it.ref);
-      var unit=p?p.price:Math.round(it.lineTotal/Math.max(it.units,1));
-      return '<div class="li">'+
-        '<div class="p"><div class="g">'+(it.glyph||'◇')+'</div>'+
-          '<div class="pn"><h4>'+it.name+'</h4><div class="ref">'+it.ref+'</div></div></div>'+
-        '<div class="qt">'+it.units+'<span>'+it.cartons+' carton'+(it.cartons>1?'s':'')+'</span></div>'+
-        '<div class="pu">'+fmt(unit)+' MAD</div>'+
-        '<div class="st">'+fmt(it.lineTotal)+' MAD</div>'+
-      '</div>';
-    }).join('');
-
-    /* totals */
-    document.getElementById('sUnits').textContent=o.units.toLocaleString('fr-FR');
-    document.getElementById('sSub').textContent=fmt(o.subtotal)+' MAD';
-    document.getElementById('sTva').textContent=fmt(o.tva)+' MAD';
-    document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';
-
-    renderActions(o,b);
-    renderDocs(o,b);
-  }
-
-  /* action clicks */
-  document.querySelector('#detail').addEventListener('click',function(e){
-    var btn=e.target.closest('.abtn'); if(!btn) return;
-    var id=getId();
-    var act=btn.getAttribute('data-act');
-    if(act==='confirm'){
-      A.confirmOrder(id);
-      showToast('Commande confirmée','BL généré · pharmacie notifiée');
-    } else if(act==='deliver'){
-      A.markDelivered(id);
-      showToast('Commande marquée livrée','Statut mis à jour');
-    } else if(act==='bl'){
-      btn.classList.add('busy'); var orig=btn.innerHTML;
-      btn.innerHTML='<span class="ic"></span>Génération…';
-      setTimeout(function(){
-        A.generateBL(id);
-        showToast('BL généré','BL-'+String(id).replace(/^CMD-/,'')+'.pdf · automatisation à venir',true);
-        render();
-      },700);
-      return;
-    }
-    render();
+  var cur=ORDER.indexOf(b);
+  var steps=document.querySelectorAll('#flow .fstep');
+  var activeWord={attente:'En cours',confirme:'En préparation',livre:'Livrée'};
+  [].forEach.call(steps,function(st,i){
+    st.classList.remove('done','active','fill');
+    if(i<cur){st.classList.add('done');}
+    else if(i===cur){st.classList.add('active');}
+    if(i<=cur&&i>0){st.classList.add('fill');}
+    var word=i<cur?'Terminé':(i===cur?activeWord[st.getAttribute('data-step')]:'À venir');
+    st.querySelector('.ss').textContent=word;
   });
 
-  /* doc download stub */
-  document.getElementById('docList').addEventListener('click',function(e){
-    var btn=e.target.closest('.dl'); if(!btn) return;
-    var name=btn.getAttribute('data-name');
-    btn.classList.add('busy'); var orig=btn.innerHTML;
-    btn.innerHTML=DL_SVG+'…';
-    setTimeout(function(){
-      btn.classList.remove('busy'); btn.innerHTML=orig;
-      showToast(name+'.pdf','Téléchargement simulé',true);
-    },600);
-  });
+  var items=o.order_items||[];
+  var subtotal=0,units=0;
+  document.getElementById('lines').innerHTML=items.map(function(it){
+    var lineTotal=(it.quantity||0)*(it.unit_price||0);
+    subtotal+=lineTotal;units+=(it.quantity||0);
+    var name=(it.products&&it.products.name)||'—';
+    var cat=(it.products&&it.products.category)||'';
+    return '<div class="li">'+
+      '<div class="p"><div class="g">'+glyph(name)+'</div>'+
+        '<div class="pn"><h4>'+name+'</h4><div class="ref">'+cat+'</div></div></div>'+
+      '<div class="qt">'+it.quantity+'</div>'+
+      '<div class="pu">'+fmt(it.unit_price)+' MAD</div>'+
+      '<div class="st">'+fmt(lineTotal)+' MAD</div>'+
+    '</div>';
+  }).join('');
 
-  render();
+  var tva=subtotal*0.20;
+  document.getElementById('sUnits').textContent=units.toLocaleString('fr-FR');
+  document.getElementById('sSub').textContent=fmt(subtotal)+' MAD';
+  document.getElementById('sTva').textContent=fmt(tva)+' MAD';
+  document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';
+
+  renderActions(b,blGenerated);
+  renderDocs(shortId,blGenerated);
+}
+
+document.querySelector('#detail').addEventListener('click',async function(e){
+  var btn=e.target.closest('.abtn');if(!btn||!currentUUID)return;
+  var act=btn.getAttribute('data-act');
+  btn.classList.add('busy');
+  btn.disabled=true;
+
+  if(act==='confirm'){
+    var r=await supabase.from('orders').update({
+      status:       'Confirmé',
+      confirmed_by: ctx.user.id,
+      confirmed_at: new Date().toISOString()
+    }).eq('id',currentUUID);
+    if(r.error){
+      showToast('Erreur','Impossible de confirmer la commande. Réessayez.',false);
+      btn.classList.remove('busy'); btn.disabled=false; return;
+    }
+    showToast('Commande confirmée','Stock mis à jour · pharmacie notifiée');
+    await loadAndRender();
+
+  } else if(act==='deliver'){
+    var r=await supabase.from('orders').update({
+      status:       'Livré',
+      delivered_by: ctx.user.id,
+      delivered_at: new Date().toISOString()
+    }).eq('id',currentUUID);
+    if(r.error){
+      showToast('Erreur','Impossible de marquer la commande livrée. Réessayez.',false);
+      btn.classList.remove('busy'); btn.disabled=false; return;
+    }
+    showToast('Commande marquée livrée','Statut mis à jour');
+    await loadAndRender();
+
+  } else if(act==='bl'){
+    btn.innerHTML='<span class="ic"></span>Génération…';
+    setTimeout(async function(){
+      var shortId=currentUUID.slice(0,8).toUpperCase();
+      showToast('BL généré','BL-'+shortId+'.pdf · automatisation à venir',true);
+      await loadAndRender();
+    },700);
+  }
+});
+
+document.getElementById('docList').addEventListener('click',function(e){
+  var btn=e.target.closest('.dl');if(!btn)return;
+  var name=btn.getAttribute('data-name');
+  btn.classList.add('busy');var orig=btn.innerHTML;
+  btn.innerHTML=DL_SVG+'…';
+  setTimeout(function(){
+    btn.classList.remove('busy');btn.innerHTML=orig;
+    showToast(name+'.pdf','Téléchargement simulé',true);
+  },600);
+});
+
+var ctx=null;
+(async function(){
+  ctx=await guard('admin','Admin Login.html');
+  if(!ctx)return;
+  var n=ctx.profile.name||'Administrateur';
+  var av=n.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2)||n.slice(0,2)||'A';
+  document.querySelector('.who .meta .n').textContent=n;
+  document.querySelector('.who .av').textContent=av.toUpperCase();
+  await loadAndRender();
 })();
 </script>
-<script src="../portal-nav.js"></script>
-<script type="module">import { guard } from '../auth-guard.js'; guard('admin','Admin Login.html');</script>
 </body>
 </html>

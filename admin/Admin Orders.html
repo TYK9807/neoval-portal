@@ -213,6 +213,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   <div class="list" id="list"></div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../cart.js"></script>
 <script src="admin-data.js"></script>
 <script>
@@ -258,7 +259,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
     document.getElementById('list').innerHTML=visible.map(function(o){
       var b=bucket(o.status);
-      return '<div class="orow" data-id="'+o.id+'">'+
+      return '<div class="orow" data-id="'+o._uuid+'">'+
         '<span class="onum">'+o.id+'</span>'+
         '<span class="opharm"><div class="pn">'+o.pharmacy+'</div><div class="pc">'+o.city+'</div></span>'+
         '<span class="odate">'+fmtDate(o.date)+'</span>'+
@@ -280,15 +281,20 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
   /* row + action clicks */
   document.getElementById('list').addEventListener('click',function(e){
-    var act=e.target.closest('.rowact'); 
+    var act=e.target.closest('.rowact');
     var row=e.target.closest('.orow'); if(!row) return;
     var id=row.getAttribute('data-id');
     if(act && act.getAttribute('data-act')){
       e.preventDefault(); e.stopPropagation();
       var kind=act.getAttribute('data-act');
+      // Disable the button immediately to prevent double-click.
+      // Do NOT call render() here — the admin:orders event fires after
+      // the DB round-trip and triggers a re-render with the real new state.
+      act.disabled=true;
+      act.style.opacity='0.5';
+      act.textContent='…';
       if(kind==='confirm') A.confirmOrder(id);
       else if(kind==='deliver') A.markDelivered(id);
-      render();
       return;
     }
     location.href='Admin Order détail.html?id='+encodeURIComponent(id);
@@ -299,6 +305,18 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 })();
 </script>
 <script src="../portal-nav.js"></script>
-<script type="module">import { guard } from '../auth-guard.js'; guard('admin','Admin Login.html');</script>
+<script type="module">
+import { guard } from '../auth-guard.js';
+(async () => {
+  const ctx = await guard('admin', 'Admin Login.html');
+  if (!ctx) return;
+  const n = ctx.profile.name || 'Admin';
+  const av = n.split(' ').map(w => w[0]||'').join('').slice(0,2) || n.slice(0,2) || 'A';
+  const nameEl = document.querySelector('.who .meta .n');
+  const avEl   = document.querySelector('.who .av');
+  if (nameEl) nameEl.textContent = n;
+  if (avEl)   avEl.textContent   = av.toUpperCase();
+})();
+</script>
 </body>
 </html>

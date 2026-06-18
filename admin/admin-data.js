@@ -1,150 +1,130 @@
-/* ============================================================
-   Neoval Pharma — ADMIN data layer
-   Orders across ALL pharmacies + stock. Same order shape as
-   cart.js (saveOrder) with an added `pharmacy` / `city` field,
-   so it integrates with the live n8n workflow later.
-
-   Action mutators (confirmOrder / markDelivered / generateBL)
-   are PLACEHOLDERS — they update local state and emit an event.
-   In Claude Code these get wired to n8n webhooks.
-   ============================================================ */
 (function(){
-  var ORDERS_KEY = 'neoval_admin_orders_v2';
-  var STOCK_KEY  = 'neoval_admin_stock_v2';
+  var SUPABASE_URL = 'https://nxlvdwqvkvgjvellmnic.supabase.co';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  var C = window.NeovalCart;             // shared product catalogue + helpers
-  var TVA = C ? C.TVA_RATE : 0.20;
-
-  /* ---- demo credentials (admin, separate from pharmacy login) ---- */
-  var AUTH = { email:'admin@neoval.ma', password:'neoval-admin' };
-
-  /* ---- status buckets (identical mapping to the portal) ---- */
   var LABELS = { attente:'En attente', confirme:'Confirmé', livre:'Livré' };
   var ORDER  = ['attente','confirme','livre'];
+
   function bucket(s){
-    s=(s||'').toLowerCase();
-    if(s.indexOf('livr')>-1) return 'livre';
-    if(s.indexOf('attente')>-1) return 'attente';
-    return 'confirme';                   // confirmé / en préparation / validée
+    s = (s||'').toLowerCase();
+    if(s.indexOf('livr')    > -1) return 'livre';
+    if(s.indexOf('attente') > -1) return 'attente';
+    return 'confirme';
   }
   function fmt(n){ return Math.round(n).toLocaleString('fr-FR'); }
 
-  /* ---- build a full order object from a compact line spec ---- */
-  function buildOrder(spec){
-    var items=[], subtotal=0, units=0;
-    spec.lines.forEach(function(l){
-      var p=C.byRef(l[0]); if(!p) return;
-      var cartons=l[1], u=cartons*p.carton, lineTotal=u*p.price;
-      subtotal+=lineTotal; units+=u;
-      items.push({ref:p.ref,name:p.name,glyph:p.glyph,cartons:cartons,units:u,lineTotal:lineTotal});
+  var _orders = [];
+
+  function emit(event, detail){
+    try{ window.dispatchEvent(new CustomEvent(event, {detail: detail})); }catch(e){}
+  }
+
+  function shapeOrder(row){
+    var user  = row.users || {};
+    var items = (row.order_items || []).map(function(it){
+      return {
+        name:      it.products ? it.products.name : '—',
+        qty:       it.quantity,
+        unit_price:it.unit_price,
+        lineTotal: it.quantity * it.unit_price
+      };
     });
-    var tva=subtotal*TVA;
-    var iso=new Date(Date.now()-spec.daysAgo*86400000 - (spec.h||0)*3600000).toISOString();
     return {
-      id:spec.id, date:iso, status:spec.status,
-      pharmacy:spec.pharmacy, city:spec.city,
-      units:units, lineCount:items.length,
-      subtotal:subtotal, tva:tva, total:subtotal+tva,
-      blGenerated: bucket(spec.status)!=='attente',   // BL exists once confirmed
-      items:items
+      id:        'CMD-' + row.id.substring(0, 8).toUpperCase(),
+      _uuid:     row.id,
+      date:      row.created_at,
+      status:    row.status,
+      total:     row.total || 0,
+      pharmacy:  user.name || user.email || '—',
+      city:      '—',
+      items:     items,
+      lineCount: items.length,
+      units:     items.reduce(function(s, it){ return s + it.qty; }, 0),
+      blGenerated: bucket(row.status) !== 'attente'
     };
   }
 
-  /* ---- seed: 11 orders across 6 pharmacies, mixed statuses ---- */
-  var SEED=[
-    {id:'CMD-204871', daysAgo:0, h:2,  pharmacy:'Pharmacie Al Andalous', city:'Casablanca', status:'En attente', lines:[['NV-ARC-300',3],['NV-FER-30',2],['NV-NER-30',4]]},
-    {id:'CMD-204856', daysAgo:0, h:6,  pharmacy:'Pharmacie Atlas',       city:'Marrakech',  status:'En attente', lines:[['NV-LIB-100',2],['NV-SOU-30',3]]},
-    {id:'CMD-204834', daysAgo:1, h:3,  pharmacy:'Pharmacie Centrale',    city:'Rabat',      status:'En attente', lines:[['NV-MAC-40',2],['NV-DLQ-400',5],['NV-NER-30',2]]},
-    {id:'CMD-204798', daysAgo:1, h:9,  pharmacy:'Pharmacie Zerktouni',   city:'Casablanca', status:'En attente', lines:[['NV-FER-30',4]]},
-    {id:'CMD-204755', daysAgo:2, h:4,  pharmacy:'Pharmacie du Détroit',  city:'Tanger',     status:'Confirmé',   lines:[['NV-ARC-300',4],['NV-MAC-40',3]]},
-    {id:'CMD-204712', daysAgo:3, h:7,  pharmacy:'Pharmacie El Manar',    city:'Fès',        status:'Confirmé',   lines:[['NV-FER-30',6],['NV-NER-30',3],['NV-SOU-30',2]]},
-    {id:'CMD-204689', daysAgo:4, h:2,  pharmacy:'Pharmacie Atlas',       city:'Marrakech',  status:'Confirmé',   lines:[['NV-LIB-100',2],['NV-DLQ-400',1]]},
-    {id:'CMD-204641', daysAgo:6, h:5,  pharmacy:'Pharmacie Centrale',    city:'Rabat',      status:'Livré',      lines:[['NV-SOU-30',3],['NV-ARC-300',2]]},
-    {id:'CMD-204603', daysAgo:7, h:8,  pharmacy:'Pharmacie Al Andalous', city:'Casablanca', status:'Livré',      lines:[['NV-NER-30',5],['NV-FER-30',2]]},
-    {id:'CMD-204567', daysAgo:9, h:3,  pharmacy:'Pharmacie du Détroit',  city:'Tanger',     status:'Livré',      lines:[['NV-MAC-40',6]]},
-    {id:'CMD-204529', daysAgo:12,h:6,  pharmacy:'Pharmacie El Manar',    city:'Fès',        status:'Livré',      lines:[['NV-LIB-100',2],['NV-SOU-30',1],['NV-ARC-300',1]]}
-  ];
-
-  function seedOrders(){
-    var raw=null;
-    try{ raw=JSON.parse(localStorage.getItem(ORDERS_KEY)); }catch(e){}
-    if(raw && raw.length) return raw;
-    var built=SEED.map(buildOrder);
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(built));
-    return built;
+  function loadOrders(){
+    return sb
+      .from('orders')
+      .select('*, users!placed_by(name, email), order_items(quantity, unit_price, products(name))')
+      .order('created_at', { ascending: false })
+      .then(function(res){
+        if(res.error){ console.error('Admin loadOrders:', res.error); return; }
+        _orders = (res.data || []).map(shapeOrder);
+        emit('admin:orders', _orders);
+      });
   }
 
-  /* ---- stock seed: numeric on-hand units per reference ---- */
-  var STOCK_SEED={
-    'NV-ARC-300':360, 'NV-LIB-100':280, 'NV-FER-30':540, 'NV-MAC-40':96,
-    'NV-SOU-30':240,  'NV-DLQ-400':420, 'NV-NER-30':84
-  };
-  function seedStock(){
-    var raw=null;
-    try{ raw=JSON.parse(localStorage.getItem(STOCK_KEY)); }catch(e){}
-    if(raw && Object.keys(raw).length) return raw;
-    localStorage.setItem(STOCK_KEY, JSON.stringify(STOCK_SEED));
-    return Object.assign({}, STOCK_SEED);
+  function findOrder(id){
+    return _orders.filter(function(o){ return o.id === id || o._uuid === id; })[0] || null;
   }
 
-  function readOrders(){ try{ return JSON.parse(localStorage.getItem(ORDERS_KEY))||[]; }catch(e){ return []; } }
-  function writeOrders(arr){
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(arr));
-    try{ window.dispatchEvent(new CustomEvent('admin:orders',{detail:arr})); }catch(e){}
-  }
-  function readStock(){ try{ return JSON.parse(localStorage.getItem(STOCK_KEY))||{}; }catch(e){ return {}; } }
-  function writeStock(map){
-    localStorage.setItem(STOCK_KEY, JSON.stringify(map));
-    try{ window.dispatchEvent(new CustomEvent('admin:stock',{detail:map})); }catch(e){}
+  // Returns the current admin user ID from the shared session, or null.
+  function currentUserId(){
+    return sb.auth.getSession().then(function(res){
+      return res.data && res.data.session ? res.data.session.user.id : null;
+    });
   }
 
-  function setStatus(id,status,extra){
-    var arr=readOrders(), hit=null;
-    arr.forEach(function(o){ if(o.id===id){ if(status) o.status=status; if(extra) Object.assign(o,extra); hit=o; } });
-    if(hit) writeOrders(arr);
-    return hit;
-  }
+  var Admin = {
+    LABELS: LABELS, ORDER: ORDER, bucket: bucket, fmt: fmt,
+    PRODUCTS: [],
 
-  var Admin={
-    AUTH:AUTH,
-    LABELS:LABELS, ORDER:ORDER, bucket:bucket, fmt:fmt,
-    PRODUCTS: C ? C.PRODUCTS : [],
+    getOrders: function(){ return _orders.slice(); },
+    getOrder:  function(id){ return findOrder(id); },
 
-    /* orders — newest first */
-    getOrders:function(){
-      seedOrders();
-      return readOrders().slice().sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
-    },
-    getOrder:function(id){ seedOrders(); return readOrders().filter(function(o){return o.id===id;})[0]||null; },
-
-    /* ---- ACTION PLACEHOLDERS → wire to n8n webhooks in Claude Code ---- */
-    confirmOrder:function(id){
-      // TODO(n8n): POST /webhook/order-confirm  { orderId:id }
-      console.log('[n8n placeholder] confirmOrder', id);
-      return setStatus(id,'Confirmé',{blGenerated:true});
-    },
-    markDelivered:function(id){
-      // TODO(n8n): POST /webhook/order-delivered  { orderId:id }
-      console.log('[n8n placeholder] markDelivered', id);
-      return setStatus(id,'Livré');
-    },
-    generateBL:function(id){
-      // TODO(n8n): POST /webhook/generate-bl  { orderId:id }
-      console.log('[n8n placeholder] generateBL', id);
-      return setStatus(id,null,{blGenerated:true});
+    confirmOrder: function(id){
+      var o = findOrder(id); if(!o) return Promise.resolve();
+      return currentUserId().then(function(uid){
+        return sb.from('orders')
+          .update({
+            status:       'Confirmé',
+            confirmed_by: uid,
+            confirmed_at: new Date().toISOString()
+          })
+          .eq('id', o._uuid)
+          .then(function(r){
+            if(r.error){ console.error('confirmOrder:', r.error); }
+            return loadOrders();
+          });
+      });
     },
 
-    /* stock */
-    getStock:function(){ return seedStock(); },
-    stockOf:function(ref){ var s=readStock(); return (ref in s)?s[ref]:0; },
-    setStock:function(ref,qty){
-      // TODO(n8n): POST /webhook/stock-update  { ref, qty }
-      console.log('[n8n placeholder] setStock', ref, qty);
-      var s=readStock(); s[ref]=Math.max(0,Math.round(qty||0)); writeStock(s); return s[ref];
+    markDelivered: function(id){
+      var o = findOrder(id); if(!o) return Promise.resolve();
+      return currentUserId().then(function(uid){
+        return sb.from('orders')
+          .update({
+            status:       'Livré',
+            delivered_by: uid,
+            delivered_at: new Date().toISOString()
+          })
+          .eq('id', o._uuid)
+          .then(function(r){
+            if(r.error){ console.error('markDelivered:', r.error); }
+            return loadOrders();
+          });
+      });
     },
-    /** qualitative state derived from on-hand units */
-    stockState:function(qty){ if(qty<=0) return 'out'; if(qty<120) return 'low'; return 'in'; }
+
+    generateBL: function(id){
+      console.log('[placeholder] generateBL', id);
+    },
+
+    getStock:   function(){ return {}; },
+    stockOf:    function(){ return 0; },
+    setStock:   function(ref, qty){ console.log('[placeholder] setStock', ref, qty); },
+    // Consistent with Catalogue.html (< 50 → low, 0 → out)
+    stockState: function(qty){ if(qty <= 0) return 'out'; if(qty < 50) return 'low'; return 'in'; },
+
+    reload: loadOrders
   };
 
-  window.NeovalAdmin=Admin;
+  window.NeovalAdmin = Admin;
+
+  document.addEventListener('DOMContentLoaded', function(){
+    loadOrders();
+  });
 })();

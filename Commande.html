@@ -344,7 +344,7 @@ import { guard } from './auth-guard.js';
     }
 
     /* insert order items */
-    await supabase.from('order_items').insert(
+    const { error: itemsErr } = await supabase.from('order_items').insert(
       sum.items.map(it => ({
         order_id:   order.id,
         product_id: it.product.id,
@@ -352,6 +352,15 @@ import { guard } from './auth-guard.js';
         unit_price: it.product.price
       }))
     );
+
+    if (itemsErr) {
+      // Roll back the orphaned order so the DB stays consistent
+      await supabase.from('orders').delete().eq('id', order.id);
+      btn.disabled = false;
+      btn.textContent = 'Valider la commande';
+      alert('Erreur lors de l\'enregistrement des articles. Veuillez réessayer.');
+      return;
+    }
 
     C.clear();
     const ref = 'CMD-' + order.id.substring(0, 8).toUpperCase();
