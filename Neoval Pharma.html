@@ -735,6 +735,11 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
   .join .glass{padding:44px 26px}
   .modal-panel{padding:36px 24px}
   .mspec .row{grid-template-columns:1fr;gap:6px}
+  /* Syne 800 + letter-spacing:.14em makes the brand name ~200px+ wide at 17px.
+     At 375px portrait with 48px padding and a 32px gap, brand+gap+burger > available width
+     and the burger is clipped by html{overflow-x:hidden}. Tighten both to restore room. */
+  #nav .wrap{gap:12px}
+  .brand .name{letter-spacing:.05em}
 }
 /* ============================================================
    MOBILE PARALLAX + PERFORMANCE
@@ -761,6 +766,20 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
   /* Particle blur: each filter:blur() on 22 elements creates a stacking context
      and forces a compositing layer — remove on mobile */
   .pt{filter:none}
+}
+/* ============================================================
+   LANDSCAPE MOBILE — background coverage
+   In landscape the viewport height is ~375px and width exceeds the 768px
+   breakpoint, so the portrait rules above don't apply. Desktop defaults
+   (top:-20%;height:140%) are mathematically fine, but sub-pixel rounding
+   on high-DPI retina screens can leave 1px gaps at viewport edges which
+   show as white hairlines because body.nv-dark #bg-stage is near-white.
+   Fix: extend #bg-stage 1px beyond each edge and add 10% extra height
+   headroom so there is zero chance of edge bleed at any DPR.
+   ============================================================ */
+@media (max-width:980px) and (orientation:landscape){
+  #bg-stage{inset:-1px}
+  .bg-image{top:-25%;height:150%}
 }
 /* ============================================================
    LIGHT THEME — surface, scrim & control overrides (token-driven; all 3 options)
@@ -1136,7 +1155,7 @@ body.nv-dark{
   background:#F4F6F9 !important;
   color:var(--white);
 }
-body.nv-dark #bg-stage{background:#F4F6F9}
+body.nv-dark #bg-stage{background:#1C3347}
 /* images are a core design element — no overlay wash on top of them */
 body.nv-dark #bg-overlay{background:none}
 body.nv-dark #bg-vign{background:none}
