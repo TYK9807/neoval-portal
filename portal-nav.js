@@ -108,7 +108,8 @@
       burger.classList.add('active');
       burger.setAttribute('aria-expanded', 'true');
       drawer.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
+      /* Avoid body overflow:hidden — it causes iOS Safari to misplace position:fixed elements.
+         The drawer itself has overscroll-behavior:contain to prevent scroll bleed-through. */
     }
     function close() {
       drawer.classList.remove('open');
@@ -116,7 +117,6 @@
       burger.classList.remove('active');
       burger.setAttribute('aria-expanded', 'false');
       drawer.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
     }
     function toggle() { drawer.classList.contains('open') ? close() : open(); }
 
