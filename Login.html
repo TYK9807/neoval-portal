@@ -250,11 +250,17 @@ form.addEventListener('submit', async (e) => {
     .eq('id', authData.user.id)
     .single();
 
-  if (profile?.role === 'admin') {
-    window.location.href = 'admin/Admin Orders.html';
-  } else {
-    window.location.href = 'Dashboard.html';
+  if (!profile || profile.role !== 'pharmacy') {
+    await supabase.auth.signOut();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.querySelector('.label').textContent = 'Se connecter';
+    errBanner.textContent = 'Accès réservé aux comptes pharmacie';
+    errBanner.classList.add('show');
+    return;
   }
+
+  window.location.href = 'Dashboard.html';
 });
 </script>
 </body>

@@ -207,166 +207,157 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   <div class="tt"><b id="toastName">—</b><span id="toastSub">—</span></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../cart.js"></script>
-<script src="admin-data.js"></script>
-<script>
-(function(){
-  var A=window.NeovalAdmin;
-  var PRODUCTS=[];
-  var STATE_LABEL={in:'En stock',low:'Stock limité',out:'Rupture'};
-
-  var toast=document.getElementById('toast'), toastTimer;
-  function showToast(name,sub){
-    document.getElementById('toastName').textContent=name;
-    document.getElementById('toastSub').textContent=sub;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){toast.classList.remove('show');},2600);
-  }
-
-  function stat(){
-    var totalU=0, low=0, out=0;
-    PRODUCTS.forEach(function(p){
-      var q=A.stockOf(p.ref); totalU+=q;
-      var s=A.stockState(q); if(s==='low') low++; if(s==='out') out++;
-    });
-    document.getElementById('stRefs').textContent=PRODUCTS.length;
-    document.getElementById('stUnits').textContent=totalU.toLocaleString('fr-FR');
-    document.getElementById('stLow').textContent=low;
-    document.getElementById('stOut').textContent=out;
-  }
-
-  function pill(q){
-    var s=A.stockState(q);
-    return '<span class="spill '+s+'"><span class="dot"></span>'+STATE_LABEL[s]+'</span>';
-  }
-
-  function render(){
-    A.getStock(); // ensure seeded
-    document.getElementById('list').innerHTML=PRODUCTS.map(function(p){
-      var q=A.stockOf(p.ref);
-      return '<div class="srow" data-ref="'+p.ref+'" data-saved="'+q+'">'+
-        '<div class="g">'+p.glyph+'</div>'+
-        '<div class="pn"><h4>'+p.name+'</h4><div class="ref">'+p.ref+'</div></div>'+
-        '<div class="cat">'+p.cat+'</div>'+
-        '<div class="qedit">'+
-          '<button data-step="-1" aria-label="Diminuer">−</button>'+
-          '<input type="number" min="0" step="1" value="'+q+'" inputmode="numeric" />'+
-          '<button data-step="1" aria-label="Augmenter">+</button>'+
-        '</div>'+
-        '<div class="state">'+pill(q)+'</div>'+
-        '<button class="qsave"><span class="ic"></span>Enregistré</button>'+
-      '</div>';
-    }).join('');
-    stat();
-  }
-
-  function refresh(row){
-    var saved=parseInt(row.getAttribute('data-saved'),10);
-    var input=row.querySelector('input');
-    var val=parseInt(input.value,10); if(isNaN(val)||val<0){ val=0; }
-    var dirty=(val!==saved);
-    row.classList.toggle('dirty',dirty);
-    var save=row.querySelector('.qsave');
-    save.classList.remove('ok');
-    save.innerHTML=dirty?'<span class="ic"></span>Enregistrer':'<span class="ic"></span>Enregistré';
-    /* live-update the state pill */
-    row.querySelector('.state').innerHTML=pill(isNaN(val)?0:val);
-  }
-
-  var list=document.getElementById('list');
-
-  list.addEventListener('click',function(e){
-    var stepBtn=e.target.closest('.qedit button');
-    var saveBtn=e.target.closest('.qsave');
-    var row=e.target.closest('.srow'); if(!row) return;
-
-    if(stepBtn){
-      var input=row.querySelector('input');
-      var v=parseInt(input.value,10); if(isNaN(v)) v=0;
-      v=Math.max(0,v+parseInt(stepBtn.getAttribute('data-step'),10));
-      input.value=v; refresh(row); return;
-    }
-    if(saveBtn && row.classList.contains('dirty')){
-      var input2=row.querySelector('input');
-      var val=parseInt(input2.value,10); if(isNaN(val)||val<0) val=0;
-      var ref=row.getAttribute('data-ref');
-      var save=row.querySelector('.qsave');
-      save.innerHTML='<span class="ic"></span>Sauvegarde…';
-      save.style.pointerEvents='none';
-      sb.from('products').update({stock_quantity:val}).eq('id',ref).select('id')
-        .then(function(res){
-          save.style.pointerEvents='';
-          if(res.error||!res.data||!res.data.length){
-            console.error('setStock:',res.error);
-            showToast('Erreur','Impossible de mettre à jour le stock — permission refusée');
-            save.innerHTML='<span class="ic"></span>Enregistrer';
-            return;
-          }
-          var p=PRODUCTS.find(function(x){return x.ref===ref;});
-          if(p) p.qty=val;
-          row.setAttribute('data-saved',val);
-          input2.value=val;
-          row.classList.remove('dirty');
-          save.classList.add('ok');
-          save.innerHTML='<span class="ic"></span>Enregistré';
-          row.classList.add('saved');
-          setTimeout(function(){row.classList.remove('saved');},900);
-          showToast('Stock mis à jour',(p?p.name:ref)+' · '+val+' unité'+(val!==1?'s':''));
-          stat();
-        });
-    }
-  });
-
-  list.addEventListener('input',function(e){
-    if(e.target.matches('.qedit input')){
-      var row=e.target.closest('.srow'); refresh(row);
-    }
-  });
-
-  /* load products from Supabase then render */
-  var sb = window.supabase.createClient(
-    'https://nxlvdwqvkvgjvellmnic.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM'
-  );
-
-  sb.from('products').select('*').order('name').then(function(res){
-    if (res.error) { console.error('stock load:', res.error); return; }
-    PRODUCTS = (res.data || []).map(function(p){
-      return { ref: p.id, name: p.name, cat: p.category, glyph: p.name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(), qty: p.stock_quantity || 0 };
-    });
-    render();
-  });
-
-  function stockOf(ref){ var p = PRODUCTS.find(function(x){ return x.ref===ref; }); return p ? p.qty : 0; }
-  function stockState(qty){ return qty<=0?'out':qty<50?'low':'in'; }
-  A.stockOf    = stockOf;
-  A.stockState = stockState;
-
-  A.setStock = function(ref, qty){
-    qty = Math.max(0, Math.round(qty||0));
-    var p = PRODUCTS.find(function(x){ return x.ref===ref; });
-    if(p) p.qty = qty;
-    sb.from('products').update({ stock_quantity: qty }).eq('id', ref)
-      .then(function(res){ if(res.error) console.error('setStock:', res.error); });
-    return qty;
-  };
-
-})();
-</script>
 <script src="../portal-nav.js"></script>
 <script type="module">
+import { supabase } from '../supabase-client.js';
 import { guard } from '../auth-guard.js';
+
 (async () => {
   const ctx = await guard('admin', 'Admin Login.html');
   if (!ctx) return;
-  const n = ctx.profile.name || 'Admin';
+
+  const n  = ctx.profile.name || 'Admin';
   const av = n.split(' ').map(w => w[0]||'').join('').slice(0,2) || n.slice(0,2) || 'A';
   const nameEl = document.querySelector('.who .meta .n');
   const avEl   = document.querySelector('.who .av');
   if (nameEl) nameEl.textContent = n;
   if (avEl)   avEl.textContent   = av.toUpperCase();
+
+  const STATE_LABEL = { in: 'En stock', low: 'Stock limité', out: 'Rupture' };
+  let PRODUCTS = [];
+
+  const toastEl = document.getElementById('toast');
+  let toastTimer;
+  function showToast(name, sub) {
+    document.getElementById('toastName').textContent = name;
+    document.getElementById('toastSub').textContent  = sub;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+  }
+
+  function stockState(qty) { return qty <= 0 ? 'out' : qty < 50 ? 'low' : 'in'; }
+
+  function stat() {
+    let totalU = 0, low = 0, out = 0;
+    PRODUCTS.forEach(p => {
+      totalU += p.qty;
+      const s = stockState(p.qty);
+      if (s === 'low') low++;
+      if (s === 'out') out++;
+    });
+    document.getElementById('stRefs').textContent  = PRODUCTS.length;
+    document.getElementById('stUnits').textContent = totalU.toLocaleString('fr-FR');
+    document.getElementById('stLow').textContent   = low;
+    document.getElementById('stOut').textContent   = out;
+  }
+
+  function pill(q) {
+    const s = stockState(q);
+    return `<span class="spill ${s}"><span class="dot"></span>${STATE_LABEL[s]}</span>`;
+  }
+
+  function render() {
+    document.getElementById('list').innerHTML = PRODUCTS.map(p => {
+      const q = p.qty;
+      return `<div class="srow" data-ref="${p.ref}" data-saved="${q}">
+        <div class="g">${p.glyph}</div>
+        <div class="pn"><h4>${p.name}</h4><div class="ref">${p.cat}</div></div>
+        <div class="cat">${p.cat}</div>
+        <div class="qedit">
+          <button data-step="-1" aria-label="Diminuer">−</button>
+          <input type="number" min="0" step="1" value="${q}" inputmode="numeric" />
+          <button data-step="1" aria-label="Augmenter">+</button>
+        </div>
+        <div class="state">${pill(q)}</div>
+        <button class="qsave"><span class="ic"></span>Enregistré</button>
+      </div>`;
+    }).join('');
+    stat();
+  }
+
+  function refresh(row) {
+    const saved = parseInt(row.getAttribute('data-saved'), 10);
+    const input = row.querySelector('input');
+    let val = parseInt(input.value, 10);
+    if (isNaN(val) || val < 0) val = 0;
+    const dirty = val !== saved;
+    row.classList.toggle('dirty', dirty);
+    const save = row.querySelector('.qsave');
+    save.classList.remove('ok');
+    save.innerHTML = dirty ? '<span class="ic"></span>Enregistrer' : '<span class="ic"></span>Enregistré';
+    row.querySelector('.state').innerHTML = pill(isNaN(val) ? 0 : val);
+  }
+
+  const list = document.getElementById('list');
+
+  list.addEventListener('click', async e => {
+    const stepBtn = e.target.closest('.qedit button');
+    const saveBtn = e.target.closest('.qsave');
+    const row     = e.target.closest('.srow');
+    if (!row) return;
+
+    if (stepBtn) {
+      const input = row.querySelector('input');
+      let v = parseInt(input.value, 10); if (isNaN(v)) v = 0;
+      v = Math.max(0, v + parseInt(stepBtn.getAttribute('data-step'), 10));
+      input.value = v; refresh(row); return;
+    }
+
+    if (saveBtn && row.classList.contains('dirty')) {
+      const input2 = row.querySelector('input');
+      let val = parseInt(input2.value, 10); if (isNaN(val) || val < 0) val = 0;
+      const ref  = row.getAttribute('data-ref');
+      const save = row.querySelector('.qsave');
+      save.innerHTML = '<span class="ic"></span>Sauvegarde…';
+      save.style.pointerEvents = 'none';
+
+      const { data, error } = await supabase
+        .from('products')
+        .update({ stock_quantity: val })
+        .eq('id', ref)
+        .select('id');
+
+      save.style.pointerEvents = '';
+
+      if (error || !data || !data.length) {
+        console.error('setStock:', error);
+        showToast('Erreur', 'Impossible de mettre à jour le stock — réessayez');
+        save.innerHTML = '<span class="ic"></span>Enregistrer';
+        return;
+      }
+
+      const p = PRODUCTS.find(x => x.ref === ref);
+      if (p) p.qty = val;
+      row.setAttribute('data-saved', val);
+      input2.value = val;
+      row.classList.remove('dirty');
+      save.classList.add('ok');
+      save.innerHTML = '<span class="ic"></span>Enregistré';
+      row.classList.add('saved');
+      setTimeout(() => row.classList.remove('saved'), 900);
+      showToast('Stock mis à jour', (p ? p.name : ref) + ' · ' + val + ' unité' + (val !== 1 ? 's' : ''));
+      stat();
+    }
+  });
+
+  list.addEventListener('input', e => {
+    if (e.target.matches('.qedit input')) refresh(e.target.closest('.srow'));
+  });
+
+  const { data: products, error } = await supabase
+    .from('products').select('*').order('name');
+  if (error) { console.error('stock load:', error); return; }
+
+  PRODUCTS = (products || []).map(p => ({
+    ref:   p.id,
+    name:  p.name,
+    cat:   p.category || '',
+    glyph: p.name.replace(/[^A-Z0-9]/gi, '').substring(0, 3).toUpperCase(),
+    qty:   p.stock_quantity || 0
+  }));
+
+  render();
 })();
 </script>
 </body>
