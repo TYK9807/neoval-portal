@@ -231,8 +231,11 @@
       document.body.insertBefore(container, document.body.firstChild);
     }
 
-    /* skip parallax for reduced-motion users */
+    /* skip parallax for reduced-motion users and touch-only devices
+       (touch devices have no mousemove to drive the lerp, so a perpetual
+       rAF loop would run at 60fps doing nothing useful — pure wasted CPU) */
     if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    if (window.matchMedia('(hover:none)').matches) return;
 
     /* smooth mouse-parallax: lerp cursor → orb position each frame */
     var tx = 0, ty = 0, cx = 0, cy = 0;

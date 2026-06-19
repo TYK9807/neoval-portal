@@ -686,7 +686,7 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
     backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
     opacity:0;visibility:hidden;transition:opacity .45s ease,visibility .45s}
   .nav-backdrop.show{opacity:1;visibility:visible}
-  .burger{display:flex;z-index:10000;position:relative}
+  .burger{display:flex;z-index:10000;position:relative;min-width:44px;min-height:44px;padding:11px 9px}
   .burger span{transition:transform .35s cubic-bezier(.16,1,.3,1),opacity .25s}
   .burger.active span:nth-child(1){transform:translateY(7px) rotate(45deg)}
   .burger.active span:nth-child(2){opacity:0}
@@ -704,26 +704,30 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
   .mspec .row{grid-template-columns:1fr;gap:6px}
 }
 /* ============================================================
-   MOBILE PARALLAX — portrait viewports crop landscape photos aggressively
-   when the outer .bg-image is 140% tall + the JS scale pushes to 1.28.
-   On mobile we shrink the oversizing to 110% (enough for scale 1.06) and
-   shift each scene's background-position so the key subject stays in frame.
-   The JS scale is also clamped (see setBg) — parallax stays fully active.
+   MOBILE PARALLAX + PERFORMANCE
+   Portrait viewports see only ~32% of a 2600px landscape image with cover.
+   The JS now requests portrait-cropped Unsplash URLs on mobile (<768px),
+   so cover shows ~79% of content. The JS scale is clamped to 1.06 (setBg).
+   GPU layers are also limited — see rules below.
    ============================================================ */
 @media(max-width:768px){
+  /* Reduce oversizing — 110% is enough headroom for the 1.06 mobile scale */
   .bg-image{top:-5%;height:110%}
-  /* lab scientists — subject typically upper-centre */
-  #bg-hero .bg-anim{background-position:50% 28%}
-  /* researcher in goggles — face upper-left, shift right/up to frame it */
-  #bg-labo .bg-anim{background-position:55% 22%}
-  /* pipetting / vials table — equipment centred, slight upper bias */
-  #bg-fab  .bg-anim{background-position:50% 40%}
-  /* supplement capsules flat-lay — centred composition */
-  #bg-prod .bg-anim{background-position:50% 50%}
-  /* blister packs — slight upper lean keeps the packaging visible */
-  #bg-cert .bg-anim{background-position:50% 38%}
-  /* partnership / people — faces in upper half */
-  #bg-join .bg-anim{background-position:50% 30%}
+  /* background-position stays at default center/50% — Unsplash portrait crop
+     (crop=faces,center) already places the key subject in the centre of the image,
+     so no per-scene shift is needed or helpful */
+
+  /* ---- Performance: reduce GPU layer count on mobile ----
+     Each will-change:transform creates a compositing layer consuming VRAM.
+     Promoting all 6 bg-image + 6 bg-anim simultaneously is too heavy on mobile;
+     restrict promotion to the currently active scene only. */
+  .bg-image:not(.active){will-change:auto}
+  /* CSS filter (saturate/brightness/contrast) on a large fixed element forces
+     a separate compositing surface — skip it on mobile where it's imperceptible */
+  .bg-image{filter:none !important}
+  /* Particle blur: each filter:blur() on 22 elements creates a stacking context
+     and forces a compositing layer — remove on mobile */
+  .pt{filter:none}
 }
 /* ============================================================
    LIGHT THEME — surface, scrim & control overrides (token-driven; all 3 options)
@@ -2046,7 +2050,17 @@ document.documentElement.classList.add('js');
 /* Bright, airy photographic set — one curated set shared across all three light
    palettes (the palette grades them via CSS filter, so imagery shifts per option
    while subject matter stays true to each section). */
-var U='https://images.unsplash.com/', Q='?auto=format&fit=crop&w=2600&q=82';
+var U='https://images.unsplash.com/';
+/* On portrait mobile the viewport is typically ~375×812px.
+   A landscape image (2600px wide) with background-size:cover only shows ~32% of its width
+   no matter how background-position is tweaked — most of the subject is cut off.
+   Requesting a portrait-cropped version (800×1300, crop=faces,center) fixes this:
+   cover then fills ~79% of the image width, and Unsplash auto-focuses on faces/centre.
+   Desktop keeps the full-width landscape for the cinematic look. */
+var isMob = window.innerWidth < 768;
+var Q = isMob
+  ? '?auto=format&fit=crop&w=800&h=1300&crop=faces,center&q=80'
+  : '?auto=format&fit=crop&w=2600&q=82';
 var PHOTOS = {
   hero:'photo-1581093450021-4a7360e9a6b5', /* pharmaceutical laboratory — scientists at reagent bench */
   labo:'photo-1581093588401-fbb62a02f120', /* researcher in goggles — airy R&D */
