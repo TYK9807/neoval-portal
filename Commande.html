@@ -245,7 +245,7 @@ import { guard } from './auth-guard.js';
     if (!ids.length) return [];
     const { data } = await supabase
       .from('products')
-      .select('id, name, category, price')
+      .select('id, name, category, price, stock_quantity')
       .in('id', ids);
     return data || [];
   }
@@ -287,6 +287,7 @@ import { guard } from './auth-guard.js';
           <h3>${it.product.name}</h3>
           <div class="ref">${it.product.category || ''}</div>
           <div class="meta">${fmt(it.product.price)} MAD / unité · <b>${it.qty} unité${it.qty > 1 ? 's' : ''}</b></div>
+          ${(it.product.stock_quantity || 0) < it.qty ? `<div class="meta" style="color:#e0655c;margin-top:4px">⚠ Stock insuffisant (${it.product.stock_quantity || 0} disponible${(it.product.stock_quantity || 0) > 1 ? 's' : ''})</div>` : ''}
         </div>
         <div class="right">
           <div class="stepper" data-id="${it.product.id}">
@@ -319,6 +320,12 @@ import { guard } from './auth-guard.js';
   document.getElementById('confirmBtn').addEventListener('click', async () => {
     const sum = buildSummary(products);
     if (!sum.items.length) return;
+
+    const outOfStock = sum.items.filter(it => (it.product.stock_quantity || 0) < it.qty);
+    if (outOfStock.length) {
+      alert('Certains produits sont en rupture de stock : ' + outOfStock.map(it => it.product.name).join(', ') + '. Veuillez les retirer de votre commande.');
+      return;
+    }
 
     const btn = document.getElementById('confirmBtn');
     btn.disabled = true;
