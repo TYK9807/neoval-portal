@@ -503,8 +503,7 @@ document.querySelector('#detail').addEventListener('click',async function(e){
     }
     var r=await supabase.from('orders').update({
       status:       'Confirmé',
-      confirmed_by: ctx.user.id,
-      confirmed_at: new Date().toISOString()
+      confirmed_by: ctx.user.id
     }).eq('id',currentUUID);
     if(r.error){
       showToast('Erreur','Impossible de confirmer la commande. Réessayez.',false);

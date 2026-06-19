@@ -44,6 +44,7 @@ create table if not exists orders (
   status text check (status in ('En attente', 'Confirmé', 'Livré')) default 'En attente',
   total numeric,
   confirmed_by uuid references users(id),
+  confirmed_at timestamptz,
   delivered_by uuid references users(id),
   delivered_at timestamptz,
   created_at timestamptz default now()
