@@ -659,7 +659,9 @@ body.theme .mnav-logout:hover{color:var(--teal);border-color:var(--teal)}
 }
 
 /* ---- breakpoint switch: swap full nav → hamburger ---- */
-@media(max-width:880px){
+/* 900px matches Dashboard.html's own bar-nav hide breakpoint, closing the
+   881–900px gap where the bar-nav was hidden but the burger hadn't appeared yet */
+@media(max-width:900px){
   body.theme #bar .bar-nav{display:none}
   body.theme .nav-burger{display:flex}
   /* push brand left so cart/avatar/burger cluster cleanly at the right */

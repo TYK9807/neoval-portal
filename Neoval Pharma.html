@@ -125,6 +125,18 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .bg-anim{position:absolute;inset:0;transform-origin:50% 50%;
   background-position:center 50%;background-repeat:no-repeat;background-size:cover;
   transform:scale(1.0);will-change:transform;backface-visibility:hidden;}
+/* Per-scene focal points — each image has its subject at a different position.
+   X controls which horizontal slice is shown when the portrait crop overflows
+   the mobile viewport width; Y controls the vertical slice on desktop.
+   Values determined by inspecting the actual photos:
+   hero: two scientists upper-center-right | labo: face heavily right, mid-height
+   fab: scientist upper-center | cert: packs center-right | join: two faces spread upper */
+#bg-hero .bg-anim{background-position:60% 20%}
+#bg-labo .bg-anim{background-position:65% 40%}
+#bg-fab  .bg-anim{background-position:55% 20%}
+#bg-cert .bg-anim{background-position:55% 40%}
+#bg-join .bg-anim{background-position:center 20%}
+/* #bg-prod: colorful pills fill the frame uniformly — center 50% default is correct */
 
 /* ============ HOMEPAGE BACKGROUND — smooth crossfade + POV zoom ============ */
 /* The fixed #bg-stage holds one photo per scene and crossfades between them as

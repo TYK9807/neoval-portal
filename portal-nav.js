@@ -129,7 +129,7 @@
     });
     /* close if the viewport grows back to desktop */
     window.addEventListener('resize', function () {
-      if (window.innerWidth > 880 && drawer.classList.contains('open')) close();
+      if (window.innerWidth > 900 && drawer.classList.contains('open')) close();
     });
   }
 
