@@ -32,6 +32,7 @@ create policy "Users can update own profile"
 
 drop policy if exists "Pharmacy users can place orders"   on orders;
 drop policy if exists "Pharmacy users can read own orders" on orders;
+drop policy if exists "Pharmacy users can delete own pending orders" on orders;
 drop policy if exists "Admins can read all orders"         on orders;
 drop policy if exists "Admins can update orders"           on orders;
 
@@ -45,6 +46,14 @@ create policy "Pharmacy users can place orders"
 create policy "Pharmacy users can read own orders"
   on orders for select to authenticated
   using (placed_by = auth.uid());
+
+-- Allows rollback of a just-placed order if order_items insert fails
+create policy "Pharmacy users can delete own pending orders"
+  on orders for delete to authenticated
+  using (
+    placed_by = auth.uid()
+    and status = 'En attente'
+  );
 
 create policy "Admins can read all orders"
   on orders for select to authenticated

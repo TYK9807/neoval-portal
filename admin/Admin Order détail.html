@@ -480,7 +480,7 @@ async function loadAndRender(){
 }
 
 document.querySelector('#detail').addEventListener('click',async function(e){
-  var btn=e.target.closest('.abtn');if(!btn||!currentUUID)return;
+  var btn=e.target.closest('.abtn');if(!btn||!currentUUID||!ctx)return;
   var act=btn.getAttribute('data-act');
   btn.classList.add('busy');
   btn.disabled=true;
@@ -501,12 +501,12 @@ document.querySelector('#detail').addEventListener('click',async function(e){
       showToast('Stock insuffisant',insufficient.map(function(it){return it.products?it.products.name:'—';}).join(', ')+' · stock insuffisant',false);
       btn.classList.remove('busy');btn.disabled=false;return;
     }
-    var r=await supabase.from('orders').update({
+    var rConfirm=await supabase.from('orders').update({
       status:       'Confirmé',
       confirmed_by: ctx.user.id,
       confirmed_at: new Date().toISOString()
     }).eq('id',currentUUID);
-    if(r.error){
+    if(rConfirm.error){
       showToast('Erreur','Impossible de confirmer la commande. Réessayez.',false);
       btn.classList.remove('busy'); btn.disabled=false; return;
     }
@@ -520,12 +520,12 @@ document.querySelector('#detail').addEventListener('click',async function(e){
     await loadAndRender();
 
   } else if(act==='deliver'){
-    var r=await supabase.from('orders').update({
+    var rDeliver=await supabase.from('orders').update({
       status:       'Livré',
       delivered_by: ctx.user.id,
       delivered_at: new Date().toISOString()
     }).eq('id',currentUUID);
-    if(r.error){
+    if(rDeliver.error){
       showToast('Erreur','Impossible de marquer la commande livrée. Réessayez.',false);
       btn.classList.remove('busy'); btn.disabled=false; return;
     }

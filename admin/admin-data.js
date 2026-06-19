@@ -78,16 +78,38 @@
     confirmOrder: function(id){
       var o = findOrder(id); if(!o) return Promise.resolve();
       return currentUserId().then(function(uid){
-        return sb.from('orders')
-          .update({
-            status:       'Confirmé',
-            confirmed_by: uid,
-            confirmed_at: new Date().toISOString()
-          })
-          .eq('id', o._uuid)
-          .then(function(r){
-            if(r.error){ console.error('confirmOrder:', r.error); }
-            return loadOrders();
+        // First fetch order items with current stock to check availability
+        return sb.from('order_items')
+          .select('quantity,products(id,name,stock_quantity)')
+          .eq('order_id', o._uuid)
+          .then(function(itemsRes){
+            if(itemsRes.error){ console.error('confirmOrder stock check:', itemsRes.error); return loadOrders(); }
+            var items = itemsRes.data || [];
+            var insufficient = items.filter(function(it){
+              return !it.products || (it.products.stock_quantity || 0) < it.quantity;
+            });
+            if(insufficient.length){
+              var names = insufficient.map(function(it){ return it.products ? it.products.name : '—'; }).join(', ');
+              alert('Stock insuffisant pour : ' + names + '. Commande non confirmée.');
+              return loadOrders();
+            }
+            return sb.from('orders')
+              .update({
+                status:       'Confirmé',
+                confirmed_by: uid,
+                confirmed_at: new Date().toISOString()
+              })
+              .eq('id', o._uuid)
+              .then(function(r){
+                if(r.error){ console.error('confirmOrder:', r.error); return loadOrders(); }
+                // Decrement stock for each item
+                var decrements = items.map(function(si){
+                  return sb.from('products')
+                    .update({ stock_quantity: si.products.stock_quantity - si.quantity })
+                    .eq('id', si.products.id);
+                });
+                return Promise.all(decrements).then(function(){ return loadOrders(); });
+              });
           });
       });
     },
