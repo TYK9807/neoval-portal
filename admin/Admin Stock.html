@@ -292,18 +292,30 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
       var input2=row.querySelector('input');
       var val=parseInt(input2.value,10); if(isNaN(val)||val<0) val=0;
       var ref=row.getAttribute('data-ref');
-      var nv=A.setStock(ref,val);                 // placeholder → n8n later
-      row.setAttribute('data-saved',nv);
-      input2.value=nv;
-      row.classList.remove('dirty');
       var save=row.querySelector('.qsave');
-      save.classList.add('ok');
-      save.innerHTML='<span class="ic"></span>Enregistré';
-      row.classList.add('saved');
-      setTimeout(function(){row.classList.remove('saved');},900);
-      var p=PRODUCTS.find(function(x){return x.ref===ref;});
-      showToast('Stock mis à jour',(p?p.name:ref)+' · '+nv+' unités');
-      stat();
+      save.innerHTML='<span class="ic"></span>Sauvegarde…';
+      save.style.pointerEvents='none';
+      sb.from('products').update({stock_quantity:val}).eq('id',ref).select('id')
+        .then(function(res){
+          save.style.pointerEvents='';
+          if(res.error||!res.data||!res.data.length){
+            console.error('setStock:',res.error);
+            showToast('Erreur','Impossible de mettre à jour le stock — permission refusée');
+            save.innerHTML='<span class="ic"></span>Enregistrer';
+            return;
+          }
+          var p=PRODUCTS.find(function(x){return x.ref===ref;});
+          if(p) p.qty=val;
+          row.setAttribute('data-saved',val);
+          input2.value=val;
+          row.classList.remove('dirty');
+          save.classList.add('ok');
+          save.innerHTML='<span class="ic"></span>Enregistré';
+          row.classList.add('saved');
+          setTimeout(function(){row.classList.remove('saved');},900);
+          showToast('Stock mis à jour',(p?p.name:ref)+' · '+val+' unité'+(val!==1?'s':''));
+          stat();
+        });
     }
   });
 

@@ -81,6 +81,14 @@ create policy "Admins can update order items"
   on order_items for update to authenticated
   using (public.current_user_role() = 'admin');
 
+-- ---- PRODUCTS ----
+
+drop policy if exists "Admins can update products" on products;
+
+create policy "Admins can update products"
+  on products for update to authenticated
+  using (public.current_user_role() = 'admin');
+
 -- ---- PHARMACIES ----
 
 drop policy if exists "Authenticated users can read pharmacies" on pharmacies;
