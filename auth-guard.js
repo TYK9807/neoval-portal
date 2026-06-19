@@ -23,7 +23,9 @@ export async function guard(requiredRole, loginUrl) {
       .single()
 
     if (profileError || !profile) {
-      await supabase.auth.signOut()
+      // Do NOT sign out here — the token may just need a refresh.
+      // Destroying the refresh token would force a full re-login unnecessarily.
+      // Redirect without touching the session; the login page will recover it.
       window.location.replace(loginUrl)
       return null
     }

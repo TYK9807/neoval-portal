@@ -1,7 +1,7 @@
 (function(){
   var SUPABASE_URL = 'https://nxlvdwqvkvgjvellmnic.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
-  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var sb = null; // initialised in DOMContentLoaded after ES modules have run
 
   var LABELS = { attente:'En attente', confirme:'Confirmé', livre:'Livré' };
   var ORDER  = ['attente','confirme','livre'];
@@ -147,6 +147,9 @@
   window.NeovalAdmin = Admin;
 
   document.addEventListener('DOMContentLoaded', function(){
+    // window._sb is set by supabase-client.js (ES module) which runs before DOMContentLoaded.
+    // Fall back to the UMD global only if the module client is somehow unavailable.
+    sb = window._sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     loadOrders();
   });
 })();

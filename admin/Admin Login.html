@@ -202,6 +202,15 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 <script type="module">
 import { supabase } from '../supabase-client.js';
 
+// If a valid admin session is already stored, skip the login form entirely.
+;(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return
+  const { data: profile } = await supabase
+    .from('users').select('role').eq('id', session.user.id).single()
+  if (profile?.role === 'admin') window.location.replace('Admin Orders.html')
+})()
+
 const form    = document.getElementById('loginForm');
 const btn     = document.getElementById('submitBtn');
 const emailF  = document.getElementById('f-email');
