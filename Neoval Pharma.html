@@ -704,6 +704,28 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
   .mspec .row{grid-template-columns:1fr;gap:6px}
 }
 /* ============================================================
+   MOBILE PARALLAX — portrait viewports crop landscape photos aggressively
+   when the outer .bg-image is 140% tall + the JS scale pushes to 1.28.
+   On mobile we shrink the oversizing to 110% (enough for scale 1.06) and
+   shift each scene's background-position so the key subject stays in frame.
+   The JS scale is also clamped (see setBg) — parallax stays fully active.
+   ============================================================ */
+@media(max-width:768px){
+  .bg-image{top:-5%;height:110%}
+  /* lab scientists — subject typically upper-centre */
+  #bg-hero .bg-anim{background-position:50% 28%}
+  /* researcher in goggles — face upper-left, shift right/up to frame it */
+  #bg-labo .bg-anim{background-position:55% 22%}
+  /* pipetting / vials table — equipment centred, slight upper bias */
+  #bg-fab  .bg-anim{background-position:50% 40%}
+  /* supplement capsules flat-lay — centred composition */
+  #bg-prod .bg-anim{background-position:50% 50%}
+  /* blister packs — slight upper lean keeps the packaging visible */
+  #bg-cert .bg-anim{background-position:50% 38%}
+  /* partnership / people — faces in upper half */
+  #bg-join .bg-anim{background-position:50% 30%}
+}
+/* ============================================================
    LIGHT THEME — surface, scrim & control overrides (token-driven; all 3 options)
    ============================================================ */
 #bg-overlay{background:var(--scrim)}
@@ -2115,7 +2137,10 @@ function setBg(key){
      over its dwell; outgoing scenes keep their own push as they fade, so the
      camera dissolves continuously forward with no reset */
   var anim=t.querySelector('.bg-anim');
-  if(anim) push(anim,1.0,1.28,26000);
+  /* use a modest scale on portrait mobile — large zoom + cover crop = only a sliver
+     of the landscape photo visible; 1.06 preserves the parallax feel without clipping */
+  var pushTo = window.innerWidth < 768 ? 1.06 : 1.28;
+  if(anim) push(anim,1.0,pushTo,26000);
 }
 /* scroll selects which scene shows — each section has its dedicated photo */
 function pickBg(){
