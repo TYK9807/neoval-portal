@@ -262,6 +262,7 @@ select.ord option{background:var(--navy-2);color:var(--white)}
 
 <script src="cart.js"></script>
 <script src="portal-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import { supabase } from './supabase-client.js';
 import { guard } from './auth-guard.js';
@@ -279,6 +280,9 @@ function fmtDate(iso){
   var d=new Date(iso);if(isNaN(d))return '—';
   return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
 }
+function fmtMoney(n){
+  return (Math.round((n||0)*100)/100).toFixed(2)+' MAD';
+}
 var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
 
 var docs=[],current='tous',currentOrder='all';
@@ -289,7 +293,7 @@ function rowHTML(d){
     '<div class="ocmd"><a href="Commande détail.html?id='+encodeURIComponent(d.uuid)+'">'+d.order+'</a></div>'+
     '<span class="tag '+d.type.toLowerCase()+'">'+d.type+'</span>'+
     '<div class="ddate">'+fmtDate(d.date)+'</div>'+
-    '<button class="dl" data-name="'+d.name+'">'+DL_SVG+'Télécharger</button>'+
+    '<button class="dl" data-uuid="'+d.uuid+'" data-type="'+d.type+'" data-name="'+d.name+'">'+DL_SVG+'Télécharger</button>'+
   '</div>';
 }
 function counts(){
@@ -344,20 +348,199 @@ document.getElementById('ordFilter').addEventListener('change',function(){
   currentOrder=this.value;render();
 });
 
+function generatePDF(doc){
+  var jsPDF=window.jspdf.jsPDF;
+  var pdf=new jsPDF({unit:'mm',format:'a4'});
+  var o=doc.orderData;
+  var isbl=doc.type==='BL';
+  var title=isbl?'BON DE LIVRAISON':'PREUVE DE PAIEMENT';
+  var dateVal=isbl?(o.confirmed_at||o.created_at):(o.delivered_at||o.created_at);
+
+  // Teal header bar
+  pdf.setFillColor(13,191,168);
+  pdf.rect(0,0,210,22,'F');
+  pdf.setFont('helvetica','bold');
+  pdf.setFontSize(13);
+  pdf.setTextColor(255,255,255);
+  pdf.text('NEOVAL PHARMA',14,10);
+  pdf.setFont('helvetica','normal');
+  pdf.setFontSize(8);
+  pdf.text('PORTAIL B2B — DOCUMENT OFFICIEL',14,17);
+  pdf.setTextColor(220,252,248);
+  pdf.text(new Date().toLocaleDateString('fr-FR'),196,10,{align:'right'});
+
+  // Title
+  pdf.setTextColor(13,27,42);
+  pdf.setFont('helvetica','bold');
+  pdf.setFontSize(22);
+  pdf.text(title,14,40);
+
+  // Teal rule
+  pdf.setDrawColor(13,191,168);
+  pdf.setLineWidth(0.5);
+  pdf.line(14,44,196,44);
+
+  // Meta block
+  pdf.setFont('helvetica','normal');
+  pdf.setFontSize(10);
+  pdf.setTextColor(60,70,80);
+  pdf.text('Référence:',14,54);
+  pdf.setFont('helvetica','bold');
+  pdf.text(doc.order,50,54);
+  pdf.setFont('helvetica','normal');
+  pdf.text('Date:',14,62);
+  pdf.setFont('helvetica','bold');
+  pdf.text(fmtDate(dateVal),50,62);
+  var startY=74;
+  if(doc.pharmacyName){
+    pdf.setFont('helvetica','normal');
+    pdf.text('Pharmacie:',14,70);
+    pdf.setFont('helvetica','bold');
+    pdf.text(doc.pharmacyName,50,70);
+    startY=82;
+  }
+
+  if(isbl){
+    var items=o.order_items||[];
+    if(items.length){
+      // Table header
+      pdf.setFillColor(240,244,248);
+      pdf.rect(14,startY-5,182,9,'F');
+      pdf.setFont('helvetica','bold');
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(40,50,65);
+      pdf.text('PRODUIT',17,startY);
+      pdf.text('QTÉ',128,startY,{align:'right'});
+      pdf.text('PRIX UNIT.',160,startY,{align:'right'});
+      pdf.text('SOUS-TOTAL',195,startY,{align:'right'});
+      var y=startY+10;
+      pdf.setFont('helvetica','normal');
+      pdf.setFontSize(9.5);
+      items.forEach(function(item,i){
+        var pname=(item.products&&item.products.name)?item.products.name:'Produit';
+        var sub=(item.quantity||0)*(item.unit_price||0);
+        if(i%2===1){pdf.setFillColor(250,251,252);pdf.rect(14,y-5,182,8,'F');}
+        pdf.setTextColor(13,27,42);
+        pdf.text(pname.slice(0,55),17,y);
+        pdf.setTextColor(60,70,80);
+        pdf.text(String(item.quantity||0),128,y,{align:'right'});
+        pdf.text(fmtMoney(item.unit_price),160,y,{align:'right'});
+        pdf.text(fmtMoney(sub),195,y,{align:'right'});
+        y+=9;
+        pdf.setDrawColor(220,225,230);
+        pdf.setLineWidth(0.2);
+        pdf.line(14,y-4,196,y-4);
+      });
+      // Total row
+      y+=4;
+      pdf.setFillColor(13,27,42);
+      pdf.rect(130,y-5,66,9,'F');
+      pdf.setFont('helvetica','bold');
+      pdf.setFontSize(9.5);
+      pdf.setTextColor(255,255,255);
+      pdf.text('TOTAL',135,y);
+      pdf.text(fmtMoney(o.total),195,y,{align:'right'});
+    }
+  } else {
+    // POP: amount box
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(60,70,80);
+    pdf.text('Ce document certifie la réception et le paiement de la commande '+doc.order+'.',14,startY);
+    var y2=startY+18;
+    pdf.setFillColor(240,254,250);
+    pdf.setDrawColor(13,191,168);
+    pdf.setLineWidth(0.4);
+    pdf.roundedRect(14,y2-6,182,28,2,2,'FD');
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(13,100,90);
+    pdf.text('Montant total réglé',24,y2+4);
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(20);
+    pdf.setTextColor(13,191,168);
+    pdf.text(fmtMoney(o.total),24,y2+16);
+  }
+
+  // Footer
+  pdf.setFont('helvetica','normal');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(160,160,160);
+  pdf.setDrawColor(200,200,200);
+  pdf.setLineWidth(0.2);
+  pdf.line(14,280,196,280);
+  pdf.text('Neoval Pharma — Document généré automatiquement via le portail B2B',14,286);
+  pdf.text('Ce document est valide sans signature.',196,286,{align:'right'});
+
+  return pdf.output('blob');
+}
+
 var toast=document.getElementById('toast'),toastTimer;
-document.getElementById('list').addEventListener('click',function(e){
+function showToast(name,sub){
+  document.getElementById('toastName').textContent=name;
+  document.getElementById('toastSub').textContent=sub;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
+}
+
+document.getElementById('list').addEventListener('click',async function(e){
   var btn=e.target.closest('.dl');if(!btn)return;
+  var uuid=btn.getAttribute('data-uuid');
+  var type=btn.getAttribute('data-type');
   var name=btn.getAttribute('data-name');
-  btn.classList.add('busy');var orig=btn.innerHTML;
-  btn.innerHTML=DL_SVG+'Préparation…';
-  setTimeout(function(){
-    btn.classList.remove('busy');btn.innerHTML=orig;
-    document.getElementById('toastName').textContent=name+'.pdf';
-    document.getElementById('toastSub').textContent='Téléchargement simulé · automatisation à venir';
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
-  },650);
+
+  btn.classList.add('busy');
+  var orig=btn.innerHTML;
+  btn.innerHTML=DL_SVG+'Génération…';
+
+  try{
+    var doc=docs.find(function(d){return d.uuid===uuid&&d.type===type;});
+    var storagePath;
+
+    if(doc.fileUrl){
+      storagePath=doc.fileUrl;
+    } else {
+      var shortId=String(uuid).slice(0,8).toUpperCase();
+      storagePath=uuid+'/'+type+'-'+shortId+'.pdf';
+      var pdfBlob=generatePDF(doc);
+
+      var {error:uploadErr}=await supabase.storage
+        .from('documents')
+        .upload(storagePath,pdfBlob,{contentType:'application/pdf',upsert:false});
+      // 409 = file already exists in storage (race or retry), safe to continue
+      if(uploadErr&&uploadErr.statusCode!=='409')throw uploadErr;
+
+      var {error:dbErr}=await supabase.from('documents').upsert(
+        {order_id:uuid,type:type,file_url:storagePath},
+        {onConflict:'order_id,type',ignoreDuplicates:true}
+      );
+      if(dbErr)throw dbErr;
+
+      doc.fileUrl=storagePath;
+    }
+
+    var {data:signed,error:signErr}=await supabase.storage
+      .from('documents')
+      .createSignedUrl(storagePath,3600);
+    if(signErr)throw signErr;
+
+    var a=document.createElement('a');
+    a.href=signed.signedUrl;
+    a.download=name+'.pdf';
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    showToast(name+'.pdf','Téléchargement en cours');
+  } catch(err){
+    console.error('Download error:',err);
+    showToast('Erreur',err.message||'Une erreur est survenue');
+  } finally {
+    btn.classList.remove('busy');
+    btn.innerHTML=orig;
+  }
 });
 
 (async function(){
@@ -370,21 +553,40 @@ document.getElementById('list').addEventListener('click',function(e){
   document.querySelector('.who .av').textContent=initials;
   var _ph;try{_ph=JSON.parse(localStorage.getItem('neoval_ph_v1'))||{};}catch(e){_ph={};}
   document.querySelector('.who .meta .r').textContent=_ph.phName?(_ph.phName+(_ph.phCity?' · '+_ph.phCity:'')):'';
+  var pharmacyName=_ph.phName||'';
 
-
-  var {data:orders}=await supabase
+  var {data:orders,error:ordErr}=await supabase
     .from('orders')
-    .select('id,created_at')
+    .select('id,created_at,total,confirmed_at,delivered_at,order_items(quantity,unit_price,products(name))')
     .eq('placed_by',ctx.user.id)
     .in('status',['Confirmé','Livré'])
     .order('created_at',{ascending:false});
+  if(ordErr){console.error(ordErr);return;}
+
+  var orderIds=(orders||[]).map(function(o){return o.id;});
+  var docMap={};
+  if(orderIds.length){
+    var {data:existingDocs}=await supabase
+      .from('documents')
+      .select('order_id,type,file_url')
+      .in('order_id',orderIds);
+    (existingDocs||[]).forEach(function(d){
+      if(!docMap[d.order_id])docMap[d.order_id]={};
+      docMap[d.order_id][d.type]=d.file_url;
+    });
+  }
 
   docs=[];
   (orders||[]).forEach(function(o){
     var shortId=String(o.id).slice(0,8).toUpperCase();
     var cmdId='CMD-'+shortId;
-    docs.push({name:'BL-'+shortId,type:'BL',order:cmdId,uuid:o.id,date:o.created_at});
-    docs.push({name:'POP-'+shortId,type:'POP',order:cmdId,uuid:o.id,date:o.created_at});
+    ['BL','POP'].forEach(function(type){
+      docs.push({
+        name:type+'-'+shortId,type:type,order:cmdId,uuid:o.id,date:o.created_at,
+        fileUrl:(docMap[o.id]&&docMap[o.id][type])||null,
+        orderData:o,pharmacyName:pharmacyName
+      });
+    });
   });
 
   try{

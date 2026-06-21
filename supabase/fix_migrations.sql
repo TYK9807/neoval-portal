@@ -54,3 +54,22 @@ drop trigger if exists trg_decrement_stock on orders;
 create trigger trg_decrement_stock
   after update of status on orders
   for each row execute function public.decrement_stock_on_confirm();
+
+-- ── documents: pharmacy insert + unique constraint ────────
+-- Pharmacy users generate PDFs client-side and upload them;
+-- they need INSERT on the documents table to record the path.
+drop policy if exists "Pharmacy users can insert own documents" on documents;
+create policy "Pharmacy users can insert own documents"
+  on documents for insert to authenticated
+  with check (
+    exists (
+      select 1 from orders o
+      where o.id = order_id and o.placed_by = auth.uid()
+    )
+  );
+
+-- Prevents duplicate BL/POP rows per order (needed for upsert).
+alter table documents
+  drop constraint if exists documents_order_type_unique;
+alter table documents
+  add constraint documents_order_type_unique unique (order_id, type);

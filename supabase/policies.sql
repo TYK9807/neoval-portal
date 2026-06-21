@@ -101,7 +101,21 @@ create policy "Admins can update products"
 -- ---- PHARMACIES ----
 
 drop policy if exists "Authenticated users can read pharmacies" on pharmacies;
+drop policy if exists "Pharmacy users can read own pharmacy"    on pharmacies;
+drop policy if exists "Admins can insert pharmacies"           on pharmacies;
+drop policy if exists "Admins can update pharmacies"           on pharmacies;
 
-create policy "Authenticated users can read pharmacies"
+create policy "Pharmacy users can read own pharmacy"
   on pharmacies for select to authenticated
-  using (true);
+  using (
+    id = (select pharmacy_id from users where id = auth.uid())
+    or public.current_user_role() = 'admin'
+  );
+
+create policy "Admins can insert pharmacies"
+  on pharmacies for insert to authenticated
+  with check (public.current_user_role() = 'admin');
+
+create policy "Admins can update pharmacies"
+  on pharmacies for update to authenticated
+  using (public.current_user_role() = 'admin');
