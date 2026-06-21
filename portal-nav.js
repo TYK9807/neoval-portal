@@ -152,7 +152,7 @@
     /* container: sits above the dot-grid (z:1), below content (z:5) */
     '.bg-orbs{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden;}',
     /* parallax wrapper — JS writes transform here; no animation so it composes cleanly */
-    '.bg-op{position:absolute;inset:0;}',
+    '.bg-op{position:absolute;inset:0;will-change:transform;}',
     /* base orb style */
     '.bg-orb{position:absolute;border-radius:50%;will-change:transform;}',
 
@@ -237,16 +237,21 @@
     if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
     if (window.matchMedia('(hover:none)').matches) return;
 
-    /* smooth mouse-parallax: lerp cursor → orb position each frame */
+    /* smooth mouse-parallax: lerp cursor → orb position each frame.
+       Demand-driven: rAF only queued while lerp hasn't converged, so
+       zero CPU/GPU cost when the mouse is idle. */
     var tx = 0, ty = 0, cx = 0, cy = 0;
+    var rafId = 0;
     function lerp(a, b, t) { return a + (b - a) * t; }
 
     document.addEventListener('mousemove', function (e) {
       tx = (e.clientX / window.innerWidth  - 0.5) * 2; /* -1 → +1 */
       ty = (e.clientY / window.innerHeight - 0.5) * 2;
+      if (!rafId) rafId = requestAnimationFrame(tick);
     });
 
-    (function tick() {
+    function tick() {
+      rafId = 0;
       cx = lerp(cx, tx, 0.055);
       cy = lerp(cy, ty, 0.055);
       ops.forEach(function (op) {
@@ -255,8 +260,10 @@
           'translate(' + (cx * d * 30).toFixed(2) + 'px,' +
                          (cy * d * 22).toFixed(2) + 'px)';
       });
-      requestAnimationFrame(tick);
-    })();
+      if (Math.abs(cx - tx) > 0.0005 || Math.abs(cy - ty) > 0.0005) {
+        rafId = requestAnimationFrame(tick);
+      }
+    }
   }
 
   if (document.readyState === 'loading') {
