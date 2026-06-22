@@ -84,14 +84,19 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .tbcount{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
 
 /* table */
-.tablehead,.rrow{display:grid;grid-template-columns:1fr 130px 190px 120px 120px 110px 240px;gap:14px;align-items:center}
+.tablehead,.rrow{display:grid;grid-template-columns:1fr 130px 190px 120px 120px 110px 24px;gap:14px;align-items:center}
 .tablehead{padding:0 24px 14px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
 .list{display:flex;flex-direction:column;background:var(--glass);backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);margin-bottom:80px}
-.rrow{padding:18px 24px;border-bottom:1px solid var(--hair);text-align:left;width:100%;position:relative}
+.rrow{padding:18px 24px;border-bottom:1px solid var(--hair);text-align:left;width:100%;position:relative;
+  cursor:pointer;transition:background .2s;text-decoration:none;display:grid}
 .rrow:last-child{border-bottom:0}
 .rrow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background .2s}
+.rrow:hover{background:rgba(13,191,168,.04)}
+.rrow:hover::before{background:rgba(13,191,168,.4)}
 .rrow.pending::before{background:rgba(196,160,58,.5)}
+.rrow .rchev{color:var(--faint);font-size:14px;text-align:right;transition:color .2s,transform .2s}
+.rrow:hover .rchev{color:var(--teal);transform:translateX(2px)}
 .rrow .rpharm{min-width:0}
 .rrow .rpharm .pn{font-size:14.5px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
 .rrow .rpharm .pc{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:3px}
@@ -234,7 +239,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     <span class="th-phone">Téléphone</span>
     <span class="th-date">Date</span>
     <span>Statut</span>
-    <span>Actions</span>
+    <span></span>
   </div>
 
   <div class="list" id="list">
@@ -288,16 +293,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     return '<span class="tag ' + status + '">' + (labels[status] || status) + '</span>';
   }
 
-  function actionsHTML(reg){
-    if (reg.status === 'pending') {
-      return '<div class="actcell">' +
-        '<button class="rowact approve" data-id="' + reg.id + '" data-act="approve">Approuver</button>' +
-        '<button class="rowact reject" data-id="' + reg.id + '" data-act="reject">Rejeter</button>' +
-      '</div>';
-    }
-    if (reg.status === 'approved') return '<div class="actcell"><span style="font-family:IBM Plex Mono;font-size:11px;letter-spacing:.08em;color:var(--teal)">✓ Approuvé</span></div>';
-    return '<div class="actcell"><span style="font-family:IBM Plex Mono;font-size:11px;letter-spacing:.08em;color:var(--faint)">Rejeté</span></div>';
-  }
+  function chevron(){ return '<span class="rchev">→</span>'; }
 
   function counts(){
     var c = { all: _regs.length, pending:0, approved:0, rejected:0 };
@@ -327,7 +323,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     }
 
     list.innerHTML = visible.map(function(r){
-      return '<div class="rrow ' + r.status + '" data-id="' + r.id + '">' +
+      var href = 'Admin Registration d%C3%A9tail.html?id=' + encodeURIComponent(r.id);
+      return '<a class="rrow ' + r.status + '" href="' + href + '">' +
         '<span class="rpharm"><div class="pn">' + esc(r.pharmacy_name) + '</div>' +
           (r.address ? '<div class="pc">' + esc(r.address) + '</div>' : '') +
         '</span>' +
@@ -336,8 +333,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         '<span class="rcell rphone">' + esc(r.phone || '—') + '</span>' +
         '<span class="rdate">' + fmtDate(r.submitted_at) + '</span>' +
         tagHTML(r.status) +
-        actionsHTML(r) +
-      '</div>';
+        chevron() +
+      '</a>';
     }).join('');
   }
 
@@ -410,17 +407,6 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     current = btn.getAttribute('data-f');
     [].forEach.call(this.querySelectorAll('button'), function(b){ b.classList.toggle('active', b === btn); });
     render();
-  });
-
-  /* action buttons (delegated) */
-  document.getElementById('list').addEventListener('click', function(e){
-    var btn = e.target.closest('[data-act]'); if (!btn) return;
-    var id = btn.getAttribute('data-id');
-    var act = btn.getAttribute('data-act');
-    var row = btn.closest('.rrow');
-    var approvBtn = row ? row.querySelector('[data-act="approve"]') : null;
-    var rejectBtn = row ? row.querySelector('[data-act="reject"]') : null;
-    callAction(id, act, btn, act === 'approve' ? rejectBtn : approvBtn);
   });
 
   /* credentials modal */

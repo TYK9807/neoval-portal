@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — Détail de la demande (Admin)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#F4F6F9;--teal:#0DBFA8;--gold:#C4A03A;--white:#0D1B2A;
+  --body:rgba(13,27,42,.74);--faint:rgba(13,27,42,.46);--hair:rgba(13,27,42,.10);
+  --glass:#FFFFFF;--maxw:1240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+
+#bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(55% 45% at 18% 0%,rgba(13,191,168,.09) 0%,transparent 60%),
+             radial-gradient(50% 45% at 92% 100%,rgba(196,160,58,.06) 0%,transparent 60%)}
+#bg-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%;position:relative;z-index:5}
+
+/* ── topbar ── */
+#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:#fff}
+.brand .apill{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);border:1px solid rgba(196,160,58,.45);background:rgba(196,160,58,.08);padding:4px 8px;margin-left:4px}
+.bar-nav{display:flex;align-items:center;gap:28px}
+.bar-nav a{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:rgba(13,27,42,.55);text-decoration:none;transition:color .25s}
+.bar-nav a:hover,.bar-nav a.active{color:var(--teal)}
+.bar-right{display:flex;align-items:center;gap:18px}
+.who{display:flex;align-items:center;gap:11px}
+.who .av{width:34px;height:34px;border:1px solid var(--teal);display:grid;place-items:center;
+  font-family:'Syne';font-weight:800;font-size:13px;color:var(--teal)}
+.who .meta{display:flex;flex-direction:column;line-height:1.2}
+.who .meta .n{font-size:13.5px;color:var(--white)}
+.who .meta .r{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.logout{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);
+  text-decoration:none;border:1px solid var(--hair);padding:10px 16px;transition:all .25s;white-space:nowrap}
+.logout:hover{color:var(--teal);border-color:var(--teal)}
+
+/* ── back link ── */
+.back{padding:32px 0 0}
+.back a{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);text-decoration:none;display:inline-flex;align-items:center;gap:9px;transition:color .25s}
+.back a:hover{color:var(--teal)}
+
+/* ── page header ── */
+.phead{padding:26px 0 36px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.phead-left h1{font-size:clamp(28px,4vw,44px);margin-bottom:10px}
+.phead-left .sub{font-size:15px;color:var(--body);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.phead-left .sub .sep{width:3px;height:3px;border-radius:50%;background:var(--faint);flex:0 0 auto}
+
+/* ── status tag ── */
+.stag{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono';font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;border:1px solid var(--hair);white-space:nowrap;
+  align-self:flex-start;margin-top:6px}
+.stag::before{content:"";width:7px;height:7px;flex:0 0 auto}
+.stag.pending{color:var(--gold);border-color:rgba(196,160,58,.4);background:rgba(196,160,58,.08)}
+.stag.pending::before{background:var(--gold)}
+.stag.approved{color:var(--teal);border-color:rgba(13,191,168,.4);background:rgba(13,191,168,.08)}
+.stag.approved::before{background:var(--teal)}
+.stag.rejected{color:var(--faint);border-color:var(--hair);background:transparent}
+.stag.rejected::before{background:var(--faint)}
+
+/* ── info grid ── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.icard{background:var(--glass);border:1px solid var(--hair);padding:36px 40px}
+.icard-head{display:flex;align-items:center;gap:14px;margin-bottom:30px;padding-bottom:22px;border-bottom:1px solid var(--hair)}
+.icard-icon{width:38px;height:38px;border:1px solid var(--hair);display:grid;place-items:center;flex:0 0 auto}
+.icard-icon svg{width:18px;height:18px;stroke:var(--teal);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icard-title{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.ifield{display:flex;flex-direction:column;gap:5px;margin-bottom:22px}
+.ifield:last-child{margin-bottom:0}
+.ifield .k{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.ifield .v{font-size:16px;color:var(--white);font-weight:500}
+.ifield .v.empty{color:var(--faint);font-style:italic;font-weight:400;font-size:14px}
+
+/* ── action section ── */
+.action-card{background:var(--glass);border:1px solid var(--hair);padding:40px;margin-bottom:80px}
+.action-head{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--hair)}
+
+/* pending actions */
+.action-desc{font-size:15px;color:var(--body);line-height:1.6;margin-bottom:32px;max-width:580px}
+.action-btns{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.btn-approve{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.13em;text-transform:uppercase;font-weight:500;
+  color:#0D1B2A;background:var(--teal);border:1px solid var(--teal);padding:14px 28px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:10px;transition:all .25s}
+.btn-approve:hover{background:rgba(13,191,168,.85);box-shadow:0 0 28px rgba(13,191,168,.3)}
+.btn-approve:disabled{opacity:.5;cursor:not-allowed}
+.btn-reject{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.13em;text-transform:uppercase;
+  color:#e0655c;background:transparent;border:1px solid rgba(224,101,92,.5);padding:14px 28px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:10px;transition:all .25s}
+.btn-reject:hover{background:rgba(224,101,92,.07);border-color:rgba(224,101,92,.8)}
+.btn-reject:disabled{opacity:.5;cursor:not-allowed}
+
+/* approved state */
+.approved-block{display:flex;flex-direction:column;gap:24px}
+.approved-status{display:flex;align-items:center;gap:14px}
+.check-circle{width:44px;height:44px;border:2px solid var(--teal);display:grid;place-items:center;flex:0 0 auto}
+.check-circle svg{width:20px;height:20px;stroke:var(--teal);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.approved-text h3{font-size:20px;margin-bottom:4px}
+.approved-text p{font-size:14px;color:var(--body)}
+.approved-text p strong{color:var(--white)}
+.invite-row{display:flex;align-items:center;gap:14px;padding-top:4px;flex-wrap:wrap}
+.btn-resend{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--teal);background:transparent;border:1px solid var(--teal);padding:12px 22px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:9px;transition:all .25s;white-space:nowrap}
+.btn-resend:hover{background:rgba(13,191,168,.08)}
+.btn-resend:disabled{opacity:.5;cursor:not-allowed}
+.resend-note{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--faint);line-height:1.5}
+.feedback{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.08em;padding:10px 14px;margin-top:4px;
+  border:1px solid;display:none;width:fit-content}
+.feedback.ok{color:var(--teal);border-color:rgba(13,191,168,.4);background:rgba(13,191,168,.07)}
+.feedback.err{color:#e0655c;border-color:rgba(224,101,92,.4);background:rgba(224,101,92,.06)}
+.feedback.show{display:block}
+
+/* recovery link */
+.recovery-wrap{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.recovery-label{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.recovery-row{display:flex;align-items:center;gap:10px}
+.recovery-link{font-family:'IBM Plex Mono';font-size:12px;color:var(--teal);background:rgba(13,191,168,.06);
+  border:1px solid rgba(13,191,168,.25);padding:11px 16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-copy{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--body);border:1px solid var(--hair);background:transparent;padding:10px 14px;cursor:pointer;
+  flex:0 0 auto;transition:all .2s;white-space:nowrap}
+.btn-copy:hover,.btn-copy.copied{color:var(--teal);border-color:var(--teal)}
+
+/* rejected state */
+.rejected-block{display:flex;align-items:center;gap:14px}
+.x-circle{width:44px;height:44px;border:2px solid rgba(224,101,92,.5);display:grid;place-items:center;flex:0 0 auto}
+.x-circle svg{width:18px;height:18px;stroke:#e0655c;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.rejected-text h3{font-size:20px;margin-bottom:4px}
+.rejected-text p{font-size:14px;color:var(--body)}
+
+/* loading / error states */
+.page-loading{padding:80px 0;text-align:center;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.page-error{padding:60px 0;text-align:center;color:#e0655c;font-family:'IBM Plex Mono';font-size:13px}
+
+@media(max-width:900px){.info-grid{grid-template-columns:1fr}}
+@media(max-width:680px){
+  .wrap{padding:0 22px}
+  .phead{flex-direction:column;gap:14px}
+  .icard{padding:28px 24px}
+  .action-card{padding:28px 24px}
+  .bar-nav{display:none}
+  .who .meta{display:none}
+}
+</style>
+<link rel="stylesheet" href="../portal-theme.css" />
+<style>body{visibility:hidden}</style>
+</head>
+<body class="theme p-orders dbg-mesh" style="--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono';--teal:#0DBFA8;--gold:#C4A03A;--teal-soft:rgba(13,191,168,.14);--teal-bright:#0aa491;--navy:#F4F6F9;--dot-op:.06">
+
+<div id="bg-glow"></div>
+<div id="bg-grain"></div>
+
+<header id="bar">
+  <div class="wrap">
+    <a class="brand" href="Admin Orders.html">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nvLeafGrad" x1="20%" y1="8%" x2="92%" y2="86%"><stop offset="0%" stop-color="#0DBFA8"/><stop offset="54%" stop-color="#1C73C4"/><stop offset="100%" stop-color="#1A3A8F"/></linearGradient></defs><g fill="none" stroke="url(#nvLeafGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/><path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/><path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/><path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/></g></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+      <span class="apill">Admin</span>
+    </a>
+    <nav class="bar-nav">
+      <a href="Admin Orders.html">Commandes</a>
+      <a href="Admin Stock.html">Stock</a>
+      <a href="Admin Registrations.html" class="active">Demandes</a>
+    </nav>
+    <div class="bar-right">
+      <span class="who">
+        <span class="av">AD</span>
+        <span class="meta">
+          <span class="n">Administrateur</span>
+          <span class="r">Neoval Pharma · Siège</span>
+        </span>
+      </span>
+      <a class="logout" href="Admin Login.html">Déconnexion</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="back"><a href="Admin Registrations.html">← Retour aux demandes</a></div>
+
+  <div id="page-content">
+    <div class="page-loading">Chargement…</div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(function(){
+  var SUPABASE_URL  = 'https://nxlvdwqvkvgjvellmnic.supabase.co';
+  var SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
+  var FUNCTION_URL  = SUPABASE_URL + '/functions/v1/approve-registration';
+
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var params = new URLSearchParams(location.search);
+  var regId = params.get('id');
+  var reg = null;
+
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function fmtDate(iso){
+    if (!iso) return '—';
+    var d = new Date(iso);
+    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}) +
+      ' à ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  }
+
+  function statusTag(status){
+    var labels = { pending:'En attente', approved:'Approuvé', rejected:'Rejeté' };
+    return '<span class="stag ' + status + '">' + (labels[status]||status) + '</span>';
+  }
+
+  function renderPage(r){
+    reg = r;
+    var html =
+      '<div class="phead">' +
+        '<div class="phead-left">' +
+          '<h1>' + esc(r.pharmacy_name) + '</h1>' +
+          '<div class="sub">' +
+            '<span>' + esc(r.contact_name) + '</span>' +
+            '<span class="sep"></span>' +
+            '<span>Soumis le ' + fmtDate(r.submitted_at) + '</span>' +
+          '</div>' +
+        '</div>' +
+        statusTag(r.status) +
+      '</div>' +
+
+      '<div class="info-grid">' +
+        // ── Pharmacie card
+        '<div class="icard">' +
+          '<div class="icard-head">' +
+            '<div class="icard-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>' +
+            '<div class="icard-title">Pharmacie</div>' +
+          '</div>' +
+          '<div class="ifield"><div class="k">Nom de la pharmacie</div><div class="v">' + esc(r.pharmacy_name) + '</div></div>' +
+          '<div class="ifield"><div class="k">Adresse / Ville</div><div class="v' + (!r.address?' empty':'') + '">' + (r.address ? esc(r.address) : 'Non renseignée') + '</div></div>' +
+          '<div class="ifield"><div class="k">N° RC / ICE</div><div class="v' + (!r.ice_number?' empty':'') + '">' + (r.ice_number ? esc(r.ice_number) : 'Non renseigné') + '</div></div>' +
+        '</div>' +
+
+        // ── Contact card
+        '<div class="icard">' +
+          '<div class="icard-head">' +
+            '<div class="icard-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>' +
+            '<div class="icard-title">Contact</div>' +
+          '</div>' +
+          '<div class="ifield"><div class="k">Nom du gérant</div><div class="v">' + esc(r.contact_name) + '</div></div>' +
+          '<div class="ifield"><div class="k">Email professionnel</div><div class="v">' + esc(r.email) + '</div></div>' +
+          '<div class="ifield"><div class="k">Téléphone</div><div class="v' + (!r.phone?' empty':'') + '">' + (r.phone ? esc(r.phone) : 'Non renseigné') + '</div></div>' +
+        '</div>' +
+      '</div>' +
+
+      // ── Action card
+      '<div class="action-card" id="action-card">' +
+        '<div class="action-head">Décision</div>' +
+        renderAction(r) +
+      '</div>';
+
+    document.getElementById('page-content').innerHTML = html;
+    bindActions();
+  }
+
+  function renderAction(r){
+    if (r.status === 'pending') {
+      return '<p class="action-desc">Vérifiez les informations ci-dessus, puis approuvez pour créer le compte pharmacie et envoyer l\'email d\'activation automatiquement. Cette action est irréversible.</p>' +
+        '<div class="action-btns">' +
+          '<button class="btn-approve" id="btn-approve">Approuver <span style="font-size:14px">→</span></button>' +
+          '<button class="btn-reject" id="btn-reject">Rejeter la demande</button>' +
+        '</div>' +
+        '<div class="feedback" id="action-feedback"></div>';
+    }
+
+    if (r.status === 'approved') {
+      return '<div class="approved-block">' +
+        '<div class="approved-status">' +
+          '<div class="check-circle"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +
+          '<div class="approved-text">' +
+            '<h3>Compte activé</h3>' +
+            '<p>Email d\'invitation envoyé à <strong>' + esc(r.email) + '</strong> le ' + fmtDate(r.reviewed_at) + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="invite-row">' +
+          '<button class="btn-resend" id="btn-resend">↺ Renvoyer l\'invitation</button>' +
+          '<span class="resend-note">Utile si le pharmacien n\'a pas reçu l\'email<br/>ou si le lien d\'activation a expiré.</span>' +
+        '</div>' +
+        '<div class="feedback" id="action-feedback"></div>' +
+        '<div class="recovery-wrap" id="recovery-wrap" style="display:none">' +
+          '<div class="recovery-label">Lien de réinitialisation (compte déjà activé)</div>' +
+          '<div class="recovery-row">' +
+            '<span class="recovery-link" id="recovery-link"></span>' +
+            '<button class="btn-copy" id="btn-copy-link">Copier</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (r.status === 'rejected') {
+      return '<div class="rejected-block">' +
+        '<div class="x-circle"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>' +
+        '<div class="rejected-text">' +
+          '<h3>Demande rejetée</h3>' +
+          '<p>Le ' + fmtDate(r.reviewed_at) + '</p>' +
+        '</div>' +
+      '</div>';
+    }
+    return '';
+  }
+
+  function showFeedback(msg, isOk){
+    var el = document.getElementById('action-feedback');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'feedback show ' + (isOk ? 'ok' : 'err');
+  }
+
+  async function callFunction(action){
+    var sessionRes = await sb.auth.getSession();
+    var token = sessionRes.data && sessionRes.data.session ? sessionRes.data.session.access_token : null;
+    if (!token) throw new Error('Session expirée. Reconnectez-vous.');
+
+    var resp = await fetch(FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registration_id: regId, action: action })
+    });
+    var result = await resp.json();
+    if (!resp.ok || result.error) throw new Error(result.error || 'Erreur serveur');
+    return result;
+  }
+
+  function bindActions(){
+    var approveBtn = document.getElementById('btn-approve');
+    var rejectBtn  = document.getElementById('btn-reject');
+    var resendBtn  = document.getElementById('btn-resend');
+    var copyBtn    = document.getElementById('btn-copy-link');
+
+    if (approveBtn) {
+      approveBtn.addEventListener('click', async function(){
+        approveBtn.disabled = true; approveBtn.textContent = 'Traitement…';
+        if (rejectBtn) rejectBtn.disabled = true;
+        try {
+          await callFunction('approve');
+          reg.status = 'approved';
+          reg.reviewed_at = new Date().toISOString();
+          document.getElementById('action-card').innerHTML =
+            '<div class="action-head">Décision</div>' + renderAction(reg);
+          bindActions();
+          // Update status tag in header
+          var stag = document.querySelector('.stag');
+          if (stag) { stag.className = 'stag approved'; stag.textContent = 'Approuvé'; }
+        } catch(err) {
+          approveBtn.disabled = false; approveBtn.innerHTML = 'Approuver <span style="font-size:14px">→</span>';
+          if (rejectBtn) rejectBtn.disabled = false;
+          showFeedback(err.message, false);
+        }
+      });
+    }
+
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', async function(){
+        if (!confirm('Confirmer le rejet de cette demande ?')) return;
+        rejectBtn.disabled = true; rejectBtn.textContent = 'Traitement…';
+        if (approveBtn) approveBtn.disabled = true;
+        try {
+          await callFunction('reject');
+          reg.status = 'rejected';
+          reg.reviewed_at = new Date().toISOString();
+          document.getElementById('action-card').innerHTML =
+            '<div class="action-head">Décision</div>' + renderAction(reg);
+          var stag = document.querySelector('.stag');
+          if (stag) { stag.className = 'stag rejected'; stag.textContent = 'Rejeté'; }
+        } catch(err) {
+          rejectBtn.disabled = false; rejectBtn.textContent = 'Rejeter la demande';
+          if (approveBtn) approveBtn.disabled = false;
+          showFeedback(err.message, false);
+        }
+      });
+    }
+
+    if (resendBtn) {
+      resendBtn.addEventListener('click', async function(){
+        resendBtn.disabled = true; resendBtn.textContent = 'Envoi…';
+        try {
+          var result = await callFunction('resend_invite');
+          if (result.mode === 'recovery_link') {
+            // Already-confirmed user — show link for admin to share
+            var wrap = document.getElementById('recovery-wrap');
+            var linkEl = document.getElementById('recovery-link');
+            if (wrap && linkEl) {
+              linkEl.textContent = result.link;
+              linkEl.title = result.link;
+              wrap.style.display = 'flex';
+              wrap.style.flexDirection = 'column';
+            }
+            showFeedback('Le compte est déjà activé. Copiez le lien de réinitialisation ci-dessous.', true);
+          } else {
+            showFeedback('Invitation renvoyée à ' + reg.email, true);
+          }
+          resendBtn.disabled = false; resendBtn.innerHTML = '↺ Renvoyer l\'invitation';
+        } catch(err) {
+          resendBtn.disabled = false; resendBtn.innerHTML = '↺ Renvoyer l\'invitation';
+          showFeedback(err.message, false);
+        }
+      });
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function(){
+        var link = document.getElementById('recovery-link').textContent;
+        navigator.clipboard.writeText(link).then(function(){
+          copyBtn.textContent = 'Copié ✓'; copyBtn.classList.add('copied');
+          setTimeout(function(){ copyBtn.textContent = 'Copier'; copyBtn.classList.remove('copied'); }, 2000);
+        });
+      });
+    }
+  }
+
+  async function load(){
+    if (!regId) {
+      document.getElementById('page-content').innerHTML = '<div class="page-error">Aucun identifiant de demande fourni.</div>';
+      return;
+    }
+    var res = await sb.from('pending_registrations').select('*').eq('id', regId).single();
+    if (res.error || !res.data) {
+      document.getElementById('page-content').innerHTML = '<div class="page-error">Demande introuvable.</div>';
+      return;
+    }
+    renderPage(res.data);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', load);
+  } else {
+    load();
+  }
+})();
+</script>
+<script src="../portal-nav.js"></script>
+<script type="module">
+import { guard } from '../auth-guard.js';
+(async () => {
+  const ctx = await guard('admin', 'Admin Login.html');
+  if (!ctx) return;
+  const n = ctx.profile.name || 'Admin';
+  const av = n.split(' ').map(w => w[0]||'').join('').slice(0,2) || 'A';
+  const nameEl = document.querySelector('.who .meta .n');
+  const avEl   = document.querySelector('.who .av');
+  if (nameEl) nameEl.textContent = n;
+  if (avEl)   avEl.textContent   = av.toUpperCase();
+})();
+</script>
+</body>
+</html>
