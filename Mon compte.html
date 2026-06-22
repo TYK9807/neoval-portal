@@ -96,6 +96,13 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .field input.invalid{border-color:rgba(224,101,92,.6);background:rgba(224,101,92,.05)}
 .field .hint{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.06em;color:var(--faint);margin-top:8px}
 
+.pw-wrap{position:relative;display:flex;align-items:center}
+.pw-wrap input{padding-right:44px;width:100%}
+.eye-btn{position:absolute;right:0;top:0;bottom:0;width:42px;border:none;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--faint);transition:color .18s;padding:0}
+.eye-btn:hover{color:var(--teal)}
+.eye-btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
 .foot{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap-reverse;
   margin-top:28px;padding-top:24px;border-top:1px solid var(--hair)}
 .status{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.07em;display:inline-flex;align-items:center;gap:9px;min-height:18px;transition:color .2s}
@@ -222,19 +229,37 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     <!-- Password change -->
     <section class="acard" data-card="password">
       <h3>Mot de passe</h3>
-      <div class="csub">Sécurité de l'accès au portail</div>
+      <div class="csub" id="pw-csub">Sécurité de l'accès au portail</div>
       <div class="fgrid">
-        <div class="field full">
+        <div class="field full" id="field-pwCurrent">
           <label for="pwCurrent">Mot de passe actuel</label>
-          <input id="pwCurrent" type="password" autocomplete="current-password" placeholder="••••••••" />
+          <div class="pw-wrap">
+            <input id="pwCurrent" type="password" autocomplete="current-password" placeholder="••••••••" />
+            <button type="button" class="eye-btn" data-for="pwCurrent" aria-label="Afficher le mot de passe">
+              <svg class="eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-shut" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
         <div class="field">
           <label for="pwNew">Nouveau mot de passe</label>
-          <input id="pwNew" type="password" autocomplete="new-password" placeholder="8 caractères min." />
+          <div class="pw-wrap">
+            <input id="pwNew" type="password" autocomplete="new-password" placeholder="8 caractères min." />
+            <button type="button" class="eye-btn" data-for="pwNew" aria-label="Afficher le mot de passe">
+              <svg class="eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-shut" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
         <div class="field">
           <label for="pwConfirm">Confirmer le mot de passe</label>
-          <input id="pwConfirm" type="password" autocomplete="new-password" placeholder="••••••••" />
+          <div class="pw-wrap">
+            <input id="pwConfirm" type="password" autocomplete="new-password" placeholder="••••••••" />
+            <button type="button" class="eye-btn" data-for="pwConfirm" aria-label="Afficher le mot de passe">
+              <svg class="eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-shut" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
       </div>
       <div class="foot">
@@ -375,25 +400,50 @@ function updateHeaderSub(){
       :'Coordonnées enregistrées');
   });
 
-  /* ---- Password card — verifies current password first, then updates ---- */
+  /* ---- Password card ---- */
   var pwCard=document.querySelector('[data-card="password"]');
   var pwSave=pwCard.querySelector('.save');
   watchCard(pwCard,pwSave);
+
+  /* Eye toggles — all 3 fields */
+  [].forEach.call(document.querySelectorAll('.eye-btn'),function(btn){
+    btn.addEventListener('click',function(){
+      var inp=document.getElementById(btn.dataset.for);
+      var showing=inp.type==='text';
+      inp.type=showing?'password':'text';
+      btn.querySelector('.eye-open').style.display=showing?'':'none';
+      btn.querySelector('.eye-shut').style.display=showing?'none':'';
+      btn.setAttribute('aria-label',showing?'Afficher le mot de passe':'Masquer le mot de passe');
+    });
+  });
+
+  /* Passwordless mode: invited users have no password yet */
+  var passwordless=sessionStorage.getItem('needs_password')==='1';
+  if(passwordless){
+    document.getElementById('field-pwCurrent').style.display='none';
+    document.getElementById('pw-csub').textContent='Définissez un mot de passe pour sécuriser votre accès.';
+  }
+
   pwSave.addEventListener('click',async function(){
     clearFlags(pwCard);
-    var cur=val('pwCurrent'),nw=val('pwNew'),cf=val('pwConfirm');
-    if(!cur){flag('pwCurrent');setStatus(pwCard,'err','Saisissez votre mot de passe actuel');return;}
+    var nw=val('pwNew'),cf=val('pwConfirm');
+    if(!passwordless){
+      var cur=val('pwCurrent');
+      if(!cur){flag('pwCurrent');setStatus(pwCard,'err','Saisissez votre mot de passe actuel');return;}
+    }
     if(nw.length<8){flag('pwNew');setStatus(pwCard,'err','8 caractères minimum');return;}
-    if(nw===cur){flag('pwNew');setStatus(pwCard,'err','Le nouveau mot de passe doit être différent de l\'actuel');return;}
+    if(!passwordless&&nw===cur){flag('pwNew');setStatus(pwCard,'err','Le nouveau mot de passe doit être différent de l\'actuel');return;}
     if(nw!==cf){flag('pwConfirm');setStatus(pwCard,'err','Les mots de passe ne correspondent pas');return;}
     pwSave.disabled=true;
 
-    var {error:signInErr}=await supabase.auth.signInWithPassword({email:ctx.user.email,password:cur});
-    if(signInErr){
-      flag('pwCurrent');
-      pwSave.disabled=false;
-      setStatus(pwCard,'err','Mot de passe actuel incorrect');
-      return;
+    if(!passwordless){
+      var {error:signInErr}=await supabase.auth.signInWithPassword({email:ctx.user.email,password:cur});
+      if(signInErr){
+        flag('pwCurrent');
+        pwSave.disabled=false;
+        setStatus(pwCard,'err','Mot de passe actuel incorrect');
+        return;
+      }
     }
 
     var {error:updateErr}=await supabase.auth.updateUser({password:nw});
@@ -401,6 +451,13 @@ function updateHeaderSub(){
       pwSave.disabled=false;
       setStatus(pwCard,'err',updateErr.message||'Erreur lors de la mise à jour');
       return;
+    }
+
+    if(passwordless){
+      sessionStorage.removeItem('needs_password');
+      passwordless=false;
+      document.getElementById('field-pwCurrent').style.display='';
+      document.getElementById('pw-csub').textContent='Sécurité de l\'accès au portail';
     }
     [].forEach.call(pwCard.querySelectorAll('input'),function(i){i.value='';});
     setStatus(pwCard,'ok','Mot de passe mis à jour');

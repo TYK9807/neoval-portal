@@ -200,6 +200,25 @@ body.motion-off .cat3d-stage{animation:none!important}
   text-decoration:none;border:1px solid var(--teal);padding:11px 16px;
   transition:background .25s,color .25s}
 .cat3d-browse:hover{background:var(--teal-soft);color:var(--teal-bright)}
+
+/* ── set-password banner ── */
+#pw-banner{display:none;margin:32px 0 -10px;border:1px solid rgba(196,160,58,.45);
+  background:rgba(196,160,58,.07);padding:18px 24px;
+  align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#pw-banner.show{display:flex}
+.pw-banner-text{display:flex;align-items:center;gap:14px}
+.pw-banner-icon{width:36px;height:36px;border:1px solid rgba(196,160,58,.5);
+  display:grid;place-items:center;flex:0 0 auto}
+.pw-banner-icon svg{width:16px;height:16px;stroke:var(--gold);fill:none;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pw-banner-body .t{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.pw-banner-body .s{font-size:13.5px;color:var(--body)}
+.pw-banner-btn{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--gold);border:1px solid rgba(196,160,58,.6);
+  background:transparent;padding:11px 20px;cursor:pointer;text-decoration:none;
+  white-space:nowrap;transition:all .22s;display:inline-block}
+.pw-banner-btn:hover{background:rgba(196,160,58,.1);border-color:var(--gold)}
 </style>
 <style>body{visibility:hidden}</style>
 </head>
@@ -274,6 +293,18 @@ window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   </div>
 </header>
 <main class="wrap">
+
+  <div id="pw-banner">
+    <div class="pw-banner-text">
+      <div class="pw-banner-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="pw-banner-body">
+        <div class="t">Action requise</div>
+        <div class="s">Votre compte est actif mais vous n'avez pas encore défini de mot de passe.</div>
+      </div>
+    </div>
+    <a class="pw-banner-btn" href="Mon compte.html">Définir mon mot de passe →</a>
+  </div>
+
   <div class="head">
     <span class="kicker">Portail Pharmacie</span>
     <h1>Tableau de bord</h1>
@@ -447,6 +478,10 @@ function rowHTML(label,status){
 (async function(){
   var ctx=await guard('pharmacy','Login.html');
   if(!ctx)return;
+
+  if(sessionStorage.getItem('needs_password')==='1'){
+    document.getElementById('pw-banner').classList.add('show');
+  }
 
   var name=ctx.profile.name||ctx.user.email||'';
   document.querySelector('.who .meta .n').textContent=name;
