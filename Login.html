@@ -203,27 +203,24 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 <script type="module">
 import { supabase } from './supabase-client.js';
 
-;(async () => {
-  // ── Invite / recovery link detection ──────────────────────────────────
-  // Supabase appends #access_token=...&refresh_token=... when the user
-  // clicks an invite or password-recovery link in their email.
-  const hash = window.location.hash
-  if (hash && hash.includes('access_token')) {
-    const params = new URLSearchParams(hash.replace(/^#/, ''))
-    const access_token  = params.get('access_token')
-    const refresh_token = params.get('refresh_token')
-    if (access_token && refresh_token) {
-      const { data, error } = await supabase.auth.setSession({ access_token, refresh_token })
-      if (!error && data.session) {
-        history.replaceState(null, '', window.location.pathname)
-        if (params.get('type') === 'invite') sessionStorage.setItem('needs_password', '1')
+// URL-based sign-in: Supabase auto-processes the hash/code (detectSessionInUrl:true).
+// _authLinkType was captured before Supabase cleared the hash — only fires when
+// the user arrived via an invite or magic link, not on a normal form-based login.
+if (window._authLinkType) {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      const { data: profile } = await supabase
+        .from('users').select('role').eq('id', session.user.id).single()
+      if (profile?.role === 'pharmacy') {
+        if (window._authLinkType === 'invite') sessionStorage.setItem('needs_password', '1')
         window.location.replace('Dashboard.html')
-        return
       }
     }
-  }
+  })
+}
 
-  // ── Existing session check ─────────────────────────────────────────────
+// Already signed in (existing session)
+;(async () => {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return
   const { data: profile } = await supabase
