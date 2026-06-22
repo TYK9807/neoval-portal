@@ -277,7 +277,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
   function renderAction(r){
     if (r.status === 'pending') {
-      return '<p class="action-desc">Vérifiez les informations ci-dessus, puis approuvez pour créer le compte pharmacie et envoyer l\'email d\'activation automatiquement. Cette action est irréversible.</p>' +
+      return '<p class="action-desc">Vérifiez les informations ci-dessus, puis approuvez pour créer le compte pharmacie. Un lien d\'activation sera généré — copiez-le et partagez-le avec le pharmacien via WhatsApp ou email. Cette action est irréversible.</p>' +
         '<div class="action-btns">' +
           '<button class="btn-approve" id="btn-approve">Approuver <span style="font-size:14px">→</span></button>' +
           '<button class="btn-reject" id="btn-reject">Rejeter la demande</button>' +
@@ -290,17 +290,17 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         '<div class="approved-status">' +
           '<div class="check-circle"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +
           '<div class="approved-text">' +
-            '<h3>Compte activé</h3>' +
-            '<p>Email d\'invitation envoyé à <strong>' + esc(r.email) + '</strong> le ' + fmtDate(r.reviewed_at) + '</p>' +
+            '<h3>Compte créé</h3>' +
+            '<p>Approuvé le ' + fmtDate(r.reviewed_at) + ' — <strong>' + esc(r.email) + '</strong></p>' +
           '</div>' +
         '</div>' +
         '<div class="invite-row">' +
-          '<button class="btn-resend" id="btn-resend">↺ Renvoyer l\'invitation</button>' +
-          '<span class="resend-note">Utile si le pharmacien n\'a pas reçu l\'email<br/>ou si le lien d\'activation a expiré.</span>' +
+          '<button class="btn-resend" id="btn-resend">↺ Générer un nouveau lien d\'accès</button>' +
+          '<span class="resend-note">Génère un lien de connexion à copier et envoyer<br/>manuellement au pharmacien (valable 1h).</span>' +
         '</div>' +
         '<div class="feedback" id="action-feedback"></div>' +
         '<div class="recovery-wrap" id="recovery-wrap" style="display:none">' +
-          '<div class="recovery-label">Lien de réinitialisation (compte déjà activé)</div>' +
+          '<div class="recovery-label">Lien d\'accès — à partager avec le pharmacien</div>' +
           '<div class="recovery-row">' +
             '<span class="recovery-link" id="recovery-link"></span>' +
             '<button class="btn-copy" id="btn-copy-link">Copier</button>' +
@@ -354,13 +354,25 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         approveBtn.disabled = true; approveBtn.textContent = 'Traitement…';
         if (rejectBtn) rejectBtn.disabled = true;
         try {
-          await callFunction('approve');
+          var result = await callFunction('approve');
           reg.status = 'approved';
           reg.reviewed_at = new Date().toISOString();
           document.getElementById('action-card').innerHTML =
             '<div class="action-head">Décision</div>' + renderAction(reg);
           bindActions();
-          // Update status tag in header
+          // Show the invite link immediately
+          if (result.invite_link) {
+            var wrap = document.getElementById('recovery-wrap');
+            var linkEl = document.getElementById('recovery-link');
+            var labelEl = document.querySelector('.recovery-label');
+            if (wrap && linkEl) {
+              if (labelEl) labelEl.textContent = "Lien d'activation — à partager avec le pharmacien";
+              linkEl.textContent = result.invite_link;
+              linkEl.title = result.invite_link;
+              wrap.style.display = 'flex';
+              wrap.style.flexDirection = 'column';
+            }
+          }
           var stag = document.querySelector('.stag');
           if (stag) { stag.className = 'stag approved'; stag.textContent = 'Approuvé'; }
         } catch(err) {
@@ -394,26 +406,21 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
     if (resendBtn) {
       resendBtn.addEventListener('click', async function(){
-        resendBtn.disabled = true; resendBtn.textContent = 'Envoi…';
+        resendBtn.disabled = true; resendBtn.textContent = 'Génération…';
         try {
           var result = await callFunction('resend_invite');
-          if (result.mode === 'recovery_link') {
-            // Already-confirmed user — show link for admin to share
-            var wrap = document.getElementById('recovery-wrap');
-            var linkEl = document.getElementById('recovery-link');
-            if (wrap && linkEl) {
-              linkEl.textContent = result.link;
-              linkEl.title = result.link;
-              wrap.style.display = 'flex';
-              wrap.style.flexDirection = 'column';
-            }
-            showFeedback('Le compte est déjà activé. Copiez le lien de réinitialisation ci-dessous.', true);
-          } else {
-            showFeedback('Invitation renvoyée à ' + reg.email, true);
+          var wrap = document.getElementById('recovery-wrap');
+          var linkEl = document.getElementById('recovery-link');
+          if (wrap && linkEl && result.link) {
+            linkEl.textContent = result.link;
+            linkEl.title = result.link;
+            wrap.style.display = 'flex';
+            wrap.style.flexDirection = 'column';
           }
-          resendBtn.disabled = false; resendBtn.innerHTML = '↺ Renvoyer l\'invitation';
+          showFeedback('Lien généré — copiez-le et envoyez-le au pharmacien.', true);
+          resendBtn.disabled = false; resendBtn.innerHTML = '↺ Générer un nouveau lien d\'accès';
         } catch(err) {
-          resendBtn.disabled = false; resendBtn.innerHTML = '↺ Renvoyer l\'invitation';
+          resendBtn.disabled = false; resendBtn.innerHTML = '↺ Générer un nouveau lien d\'accès';
           showFeedback(err.message, false);
         }
       });

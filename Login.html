@@ -216,7 +216,7 @@ import { supabase } from './supabase-client.js';
       const { data, error } = await supabase.auth.setSession({ access_token, refresh_token })
       if (!error && data.session) {
         history.replaceState(null, '', window.location.pathname)
-        sessionStorage.setItem('needs_password', '1')
+        if (params.get('type') === 'invite') sessionStorage.setItem('needs_password', '1')
         window.location.replace('Dashboard.html')
         return
       }
