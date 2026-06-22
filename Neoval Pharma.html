@@ -2032,16 +2032,19 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
           <div class="kicker gold" style="margin-bottom:22px">Portail Pharmacie</div>
           <h2 style="font-size:clamp(28px,3.6vw,46px);margin-bottom:16px">Demander un accès au portail.</h2>
           <p style="color:var(--body);font-size:16px;line-height:1.65;max-width:620px;margin-bottom:36px">Réservé aux pharmacies d'officine. Accédez au catalogue grossiste, aux tarifs préférentiels et à la commande en ligne. Renseignez vos informations, nous validons votre compte sous 48h.</p>
-          <form class="form jsform" novalidate>
+          <form class="form" id="reg-form" novalidate>
             <div class="formrow">
-              <div class="field"><label>Nom de la pharmacie</label><input type="text" required placeholder="Pharmacie ..." /><span class="errmsg">Champ requis</span></div>
-              <div class="field"><label>Ville</label><input type="text" required placeholder="Ville" /><span class="errmsg">Champ requis</span></div>
+              <div class="field"><label>Nom de la pharmacie</label><input id="reg-pharmacy" type="text" required placeholder="Pharmacie ..." /><span class="errmsg">Champ requis</span></div>
+              <div class="field"><label>Nom du gérant</label><input id="reg-contact" type="text" required placeholder="Dr. Prénom Nom" /><span class="errmsg">Champ requis</span></div>
             </div>
             <div class="formrow">
-              <div class="field"><label>Email professionnel</label><input type="email" required placeholder="officine@email.ma" /><span class="errmsg">Email invalide</span></div>
-              <div class="field"><label>Téléphone</label><input type="tel" required placeholder="+212 ..." /><span class="errmsg">Champ requis</span></div>
+              <div class="field"><label>Email professionnel</label><input id="reg-email" type="email" required placeholder="officine@email.ma" /><span class="errmsg">Email invalide</span></div>
+              <div class="field"><label>Téléphone</label><input id="reg-phone" type="tel" required placeholder="+212 ..." /><span class="errmsg">Champ requis</span></div>
             </div>
-            <div class="field"><label>N° RC / ICE</label><input type="text" placeholder="Identifiant de l'officine (optionnel)" /></div>
+            <div class="formrow">
+              <div class="field"><label>Ville / Adresse</label><input id="reg-address" type="text" placeholder="Casablanca, Rabat…" /></div>
+              <div class="field"><label>N° RC / ICE</label><input id="reg-ice" type="text" placeholder="Identifiant de l'officine (optionnel)" /></div>
+            </div>
             <button type="submit" class="btn btn-primary">Demander l'accès <span class="arr">→</span></button>
           </form>
           <div class="formok"><div class="ok-k">Demande reçue</div><h3>Votre demande d'accès est enregistrée.</h3><p>Notre équipe vérifie vos informations et active votre portail sous 48h. Vous recevrez vos identifiants par email.</p></div>
@@ -2104,6 +2107,7 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 document.documentElement.classList.add('js');
 
@@ -2498,6 +2502,76 @@ document.querySelectorAll('form.jsform').forEach(function(f){
   });
   f.addEventListener('input',function(e){ var fld=e.target.closest('.field'); if(fld) fld.classList.remove('err'); });
 });
+
+/* ============ REGISTRATION FORM → SUPABASE ============ */
+(function(){
+  var regForm = document.getElementById('reg-form');
+  if (!regForm) return;
+
+  var SB_URL = 'https://nxlvdwqvkvgjvellmnic.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
+  var sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+
+  function validateRegForm() {
+    var ok = true;
+    regForm.querySelectorAll('[required]').forEach(function(inp){
+      var v = inp.value.trim();
+      var bad = !v || (inp.type === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v));
+      inp.closest('.field').classList.toggle('err', bad);
+      if (bad) ok = false;
+    });
+    return ok;
+  }
+
+  regForm.addEventListener('input', function(e){
+    var fld = e.target.closest('.field');
+    if (fld) fld.classList.remove('err');
+    var errEl = regForm.querySelector('.reg-error');
+    if (errEl) errEl.remove();
+  });
+
+  regForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (!validateRegForm()) return;
+
+    var btn = regForm.querySelector('[type=submit]');
+    btn.disabled = true;
+    btn.innerHTML = 'Envoi en cours… <span class="arr">→</span>';
+
+    var payload = {
+      pharmacy_name: document.getElementById('reg-pharmacy').value.trim(),
+      contact_name:  document.getElementById('reg-contact').value.trim(),
+      email:         document.getElementById('reg-email').value.trim(),
+      phone:         document.getElementById('reg-phone').value.trim() || null,
+      address:       document.getElementById('reg-address').value.trim() || null,
+      ice_number:    document.getElementById('reg-ice').value.trim() || null,
+    };
+
+    if (!sb) {
+      regForm.style.display = 'none';
+      var box = regForm.parentNode.querySelector('.formok');
+      if (box) box.classList.add('show');
+      return;
+    }
+
+    var result = await sb.from('pending_registrations').insert(payload);
+
+    if (result.error) {
+      btn.disabled = false;
+      btn.innerHTML = 'Demander l\'accès <span class="arr">→</span>';
+      var errEl = document.createElement('p');
+      errEl.className = 'reg-error';
+      errEl.style.cssText = 'color:#e0655c;font-family:"IBM Plex Mono",monospace;font-size:12px;margin-top:10px;letter-spacing:.05em';
+      errEl.textContent = 'Erreur lors de l\'envoi. Veuillez réessayer.';
+      regForm.appendChild(errEl);
+      return;
+    }
+
+    regForm.style.display = 'none';
+    var box = regForm.parentNode.querySelector('.formok');
+    if (box) box.classList.add('show');
+  });
+})();
 
 /* ============ PARTICLES ============ */
 (function(){
