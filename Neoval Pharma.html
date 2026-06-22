@@ -2562,7 +2562,7 @@ document.querySelectorAll('form.jsform').forEach(function(f){
       var errEl = document.createElement('p');
       errEl.className = 'reg-error';
       errEl.style.cssText = 'color:#e0655c;font-family:"IBM Plex Mono",monospace;font-size:12px;margin-top:10px;letter-spacing:.05em';
-      errEl.textContent = 'Erreur lors de l\'envoi. Veuillez réessayer.';
+      errEl.textContent = 'Erreur : ' + (result.error.message || 'Veuillez réessayer.');
       regForm.appendChild(errEl);
       return;
     }

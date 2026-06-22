@@ -20,10 +20,10 @@ create table if not exists pending_registrations (
 
 alter table pending_registrations enable row level security;
 
--- Anyone (anon) can submit a registration request
+-- Anyone (anon or logged-in user) can submit a registration request
 create policy "Anyone can submit a registration"
   on pending_registrations for insert
-  to anon
+  to anon, authenticated
   with check (true);
 
 -- Only admins can read registrations
