@@ -417,8 +417,10 @@ function updateHeaderSub(){
     });
   });
 
-  /* Passwordless mode: invited users have no password yet */
-  var passwordless=sessionStorage.getItem('needs_password')==='1';
+  /* Passwordless mode: invited users have no password yet.
+     Stored in user_metadata so it survives page refreshes and doesn't
+     depend on sessionStorage being set during the link sign-in flow. */
+  var passwordless=(ctx.user.user_metadata && ctx.user.user_metadata.needs_password===true);
   if(passwordless){
     document.getElementById('field-pwCurrent').style.display='none';
     document.getElementById('pw-csub').textContent='Définissez un mot de passe pour sécuriser votre accès.';
@@ -454,7 +456,7 @@ function updateHeaderSub(){
     }
 
     if(passwordless){
-      sessionStorage.removeItem('needs_password');
+      await supabase.auth.updateUser({data:{needs_password:false}});
       passwordless=false;
       document.getElementById('field-pwCurrent').style.display='';
       document.getElementById('pw-csub').textContent='Sécurité de l\'accès au portail';

@@ -479,7 +479,7 @@ function rowHTML(label,status){
   var ctx=await guard('pharmacy','Login.html');
   if(!ctx)return;
 
-  if(sessionStorage.getItem('needs_password')==='1'){
+  if(ctx.user.user_metadata && ctx.user.user_metadata.needs_password===true){
     document.getElementById('pw-banner').classList.add('show');
   }
 
