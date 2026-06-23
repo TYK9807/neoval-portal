@@ -119,6 +119,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .back a .arr{transition:transform .28s}
 .back a:hover .arr{transform:translateX(-4px)}
 
+.set-pw-sub{font-size:14px;color:var(--body);text-align:center;line-height:1.6;margin-bottom:28px}
+
 @media(max-width:480px){
   .card{padding:42px 28px 36px}
   .brand .name{font-size:17px}
@@ -156,6 +158,26 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         <span class="dot"></span><span class="label">Se connecter</span>
       </button>
     </form>
+
+    <div id="set-pw" style="display:none">
+      <p class="set-pw-sub">Votre compte est activé. Choisissez un mot de passe pour sécuriser votre accès.</p>
+      <div class="form">
+        <div class="field" id="sp-f-new">
+          <label for="sp-new">Nouveau mot de passe</label>
+          <input type="password" id="sp-new" autocomplete="new-password" placeholder="8 caractères minimum" />
+          <span class="errmsg">8 caractères minimum requis</span>
+        </div>
+        <div class="field" id="sp-f-confirm">
+          <label for="sp-confirm">Confirmer le mot de passe</label>
+          <input type="password" id="sp-confirm" autocomplete="new-password" placeholder="••••••••••" />
+          <span class="errmsg">Les mots de passe ne correspondent pas</span>
+        </div>
+        <button type="button" class="submit" id="sp-btn">
+          <span class="dot"></span><span class="label">Accéder au portail →</span>
+        </button>
+      </div>
+      <div class="auth-error" id="sp-err"></div>
+    </div>
 
     <div class="askaccess">
       <a href="Neoval Pharma.html#contact">Demander un accès</a>
@@ -212,10 +234,40 @@ if (window._isAuthLink) {
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
       const { data: profile } = await supabase
         .from('users').select('role').eq('id', session.user.id).single()
-      if (profile?.role === 'pharmacy') {
+      if (profile?.role !== 'pharmacy') return
+
+      if (session.user.user_metadata?.needs_password === true) {
+        // Intercept: show set-password panel before letting them into Dashboard
+        document.getElementById('loginForm').style.display = 'none'
+        document.querySelector('.askaccess').style.display = 'none'
+        document.getElementById('set-pw').style.display = 'block'
+      } else {
         window.location.replace('Dashboard.html')
       }
     }
+  })
+
+  document.getElementById('sp-btn').addEventListener('click', async () => {
+    const nw  = document.getElementById('sp-new').value
+    const cf  = document.getElementById('sp-confirm').value
+    const fNw = document.getElementById('sp-f-new')
+    const fCf = document.getElementById('sp-f-confirm')
+    const btn = document.getElementById('sp-btn')
+    const err = document.getElementById('sp-err')
+    fNw.classList.remove('err'); fCf.classList.remove('err'); err.classList.remove('show')
+    if (nw.length < 8) { fNw.classList.add('err'); return }
+    if (nw !== cf)     { fCf.classList.add('err'); return }
+    btn.disabled = true; btn.classList.add('loading')
+    btn.querySelector('.label').textContent = 'Enregistrement…'
+    const { error: pwErr } = await supabase.auth.updateUser({ password: nw })
+    if (pwErr) {
+      btn.disabled = false; btn.classList.remove('loading')
+      btn.querySelector('.label').textContent = 'Accéder au portail →'
+      err.textContent = pwErr.message || 'Erreur lors de la définition du mot de passe'
+      err.classList.add('show'); return
+    }
+    await supabase.auth.updateUser({ data: { needs_password: false } })
+    window.location.replace('Dashboard.html')
   })
 }
 
