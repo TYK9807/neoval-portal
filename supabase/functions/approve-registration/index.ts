@@ -40,38 +40,32 @@ Deno.serve(async (req) => {
       .from('pending_registrations').select('*').eq('id', registration_id).single()
     if (regError || !reg) throw new Error('Registration not found')
 
-    // ── RESEND INVITE (no status check needed beyond approved) ───────────
+    // ── RESEND INVITE ────────────────────────────────────────────────────
     if (action === 'resend_invite') {
       if (reg.status !== 'approved') throw new Error('Registration not yet approved')
 
-      // Try invite first; fall back to recovery link for already-confirmed users
-      const { error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(reg.email, {
-        redirectTo: PORTAL_URL,
-      })
-
-      if (inviteErr && inviteErr.message.toLowerCase().includes('already')) {
-        // User already confirmed — generate a recovery (password reset) link instead
-        const { data: linkData, error: linkErr } = await adminClient.auth.admin.generateLink({
-          type: 'recovery',
-          email: reg.email,
-          options: { redirectTo: PORTAL_URL },
+      // Re-stamp needs_password so the pharmacy user gets passwordless mode
+      // when they click the link — covers users created before this flag existed.
+      const { data: userData } = await adminClient
+        .from('users').select('id').eq('email', reg.email).single()
+      if (userData?.id) {
+        await adminClient.auth.admin.updateUserById(userData.id, {
+          user_metadata: { needs_password: true },
         })
-        if (linkErr) throw new Error(`Resend: ${linkErr.message}`)
-        return new Response(JSON.stringify({
-          success: true,
-          action: 'resend_invite',
-          mode: 'recovery_link',
-          link: linkData.properties.action_link,
-        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
-      if (inviteErr) throw new Error(`Resend: ${inviteErr.message}`)
-
+      // Generate a magic link — no email sent, admin copies and shares manually
+      const { data: linkData, error: linkErr } = await adminClient.auth.admin.generateLink({
+        type: 'magiclink',
+        email: reg.email,
+        options: { redirectTo: PORTAL_URL },
+      })
+      if (linkErr) throw new Error(`Resend: ${linkErr.message}`)
       return new Response(JSON.stringify({
         success: true,
         action: 'resend_invite',
-        mode: 'invite',
-        email: reg.email,
+        mode: 'magic_link',
+        link: linkData.properties.action_link,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -95,14 +89,16 @@ Deno.serve(async (req) => {
 
     // ── APPROVE ─────────────────────────────────────────────────────────
 
-    // 1. Send invite — Supabase creates the auth user and emails the activation link
-    const { data: authData, error: authError } = await adminClient.auth.admin.inviteUserByEmail(
-      reg.email,
-      { redirectTo: PORTAL_URL }
-    )
+    // 1. Generate invite link — creates auth user, returns URL to share (no email sent)
+    const { data: linkData, error: authError } = await adminClient.auth.admin.generateLink({
+      type: 'invite',
+      email: reg.email,
+      options: { redirectTo: PORTAL_URL },
+    })
     if (authError) throw new Error(`Invite: ${authError.message}`)
 
-    const newUserId = authData.user.id
+    const newUserId = linkData.user.id
+    const inviteLink = linkData.properties.action_link
 
     // 2. Create pharmacy record
     const { data: pharmacy, error: pharmError } = await adminClient
@@ -123,6 +119,11 @@ Deno.serve(async (req) => {
       phone: reg.phone,
       pharmacy_id: pharmacy.id,
     })
+
+    // 3b. Mark user as needing password setup (stored in auth.users.user_metadata)
+    await adminClient.auth.admin.updateUserById(newUserId, {
+      user_metadata: { needs_password: true },
+    })
     if (userInsertError) {
       await adminClient.auth.admin.deleteUser(newUserId)
       await adminClient.from('pharmacies').delete().eq('id', pharmacy.id)
@@ -139,6 +140,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       action: 'approved',
+      invite_link: inviteLink,
       email: reg.email,
       pharmacy_name: reg.pharmacy_name,
       contact_name: reg.contact_name,

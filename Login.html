@@ -225,60 +225,63 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 <script type="module">
 import { supabase } from './supabase-client.js';
 
-// URL-based sign-in: Supabase auto-processes hash tokens or PKCE ?code=
-// (detectSessionInUrl:true). _isAuthLink is true for any link-based arrival
-// (hash access_token OR query code), so the listener is always registered
-// when the pharmacy person clicks an invite or magic link.
-if (window._isAuthLink) {
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-      const { data: profile } = await supabase
-        .from('users').select('role').eq('id', session.user.id).single()
-      if (profile?.role !== 'pharmacy') return
-
-      if (session.user.user_metadata?.needs_password === true) {
-        // Intercept: show set-password panel before letting them into Dashboard
-        document.getElementById('loginForm').style.display = 'none'
-        document.querySelector('.askaccess').style.display = 'none'
-        document.getElementById('set-pw').style.display = 'block'
-      } else {
-        window.location.replace('Dashboard.html')
-      }
-    }
-  })
-
-  document.getElementById('sp-btn').addEventListener('click', async () => {
-    const nw  = document.getElementById('sp-new').value
-    const cf  = document.getElementById('sp-confirm').value
-    const fNw = document.getElementById('sp-f-new')
-    const fCf = document.getElementById('sp-f-confirm')
-    const btn = document.getElementById('sp-btn')
-    const err = document.getElementById('sp-err')
-    fNw.classList.remove('err'); fCf.classList.remove('err'); err.classList.remove('show')
-    if (nw.length < 8) { fNw.classList.add('err'); return }
-    if (nw !== cf)     { fCf.classList.add('err'); return }
-    btn.disabled = true; btn.classList.add('loading')
-    btn.querySelector('.label').textContent = 'Enregistrement…'
-    const { error: pwErr } = await supabase.auth.updateUser({ password: nw })
-    if (pwErr) {
-      btn.disabled = false; btn.classList.remove('loading')
-      btn.querySelector('.label').textContent = 'Accéder au portail →'
-      err.textContent = pwErr.message || 'Erreur lors de la définition du mot de passe'
-      err.classList.add('show'); return
-    }
-    await supabase.auth.updateUser({ data: { needs_password: false } })
-    window.location.replace('Dashboard.html')
-  })
-}
-
-// Already signed in (existing session)
-;(async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return
+// Single handler for all pharmacy sign-in paths. The _done flag ensures
+// whichever path resolves first (onAuthStateChange or getSession) handles
+// the redirect; the other call is a no-op.
+let _done = false
+async function handlePharmacySession(session) {
+  if (_done) return
   const { data: profile } = await supabase
     .from('users').select('role').eq('id', session.user.id).single()
-  if (profile?.role === 'pharmacy') window.location.replace('Dashboard.html')
+  if (profile?.role !== 'pharmacy') return
+  _done = true
+  if (session.user.user_metadata?.needs_password === true) {
+    document.getElementById('loginForm').style.display = 'none'
+    document.querySelector('.askaccess').style.display = 'none'
+    document.getElementById('set-pw').style.display = 'block'
+  } else {
+    window.location.replace('Dashboard.html')
+  }
+}
+
+// Covers link-based sign-in (INITIAL_SESSION when hash is processed)
+// and form-based sign-in (SIGNED_IN after signInWithPassword)
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+    await handlePharmacySession(session)
+  }
+})
+
+// Covers the case where detectSessionInUrl:true has already set the session
+// synchronously before onAuthStateChange fires
+;(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) await handlePharmacySession(session)
 })()
+
+// Set-password submit
+document.getElementById('sp-btn').addEventListener('click', async () => {
+  const nw  = document.getElementById('sp-new').value
+  const cf  = document.getElementById('sp-confirm').value
+  const fNw = document.getElementById('sp-f-new')
+  const fCf = document.getElementById('sp-f-confirm')
+  const btn = document.getElementById('sp-btn')
+  const err = document.getElementById('sp-err')
+  fNw.classList.remove('err'); fCf.classList.remove('err'); err.classList.remove('show')
+  if (nw.length < 8) { fNw.classList.add('err'); return }
+  if (nw !== cf)     { fCf.classList.add('err'); return }
+  btn.disabled = true; btn.classList.add('loading')
+  btn.querySelector('.label').textContent = 'Enregistrement…'
+  const { error: pwErr } = await supabase.auth.updateUser({ password: nw })
+  if (pwErr) {
+    btn.disabled = false; btn.classList.remove('loading')
+    btn.querySelector('.label').textContent = 'Accéder au portail →'
+    err.textContent = pwErr.message || 'Erreur lors de la définition du mot de passe'
+    err.classList.add('show'); return
+  }
+  await supabase.auth.updateUser({ data: { needs_password: false } })
+  window.location.replace('Dashboard.html')
+})
 
 const form    = document.getElementById('loginForm');
 const btn     = document.getElementById('submitBtn');
