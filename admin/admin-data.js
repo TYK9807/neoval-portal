@@ -149,7 +149,7 @@
   document.addEventListener('DOMContentLoaded', function(){
     // window._sb is set by supabase-client.js (ES module) which runs before DOMContentLoaded.
     // Fall back to the UMD global only if the module client is somehow unavailable.
-    sb = window._sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sb = window._sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: 'nv-admin' } });
     loadOrders();
   });
 })();

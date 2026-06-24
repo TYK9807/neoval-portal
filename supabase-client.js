@@ -17,6 +17,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    storageKey: window.location.pathname.includes('/admin/') ? 'nv-admin' : 'nv-pharmacy',
   }
 })
 

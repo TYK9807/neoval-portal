@@ -58,7 +58,7 @@ export async function initNotifications(userId, role) {
   _injectStyles()
   _wireEvents()
   await _load()
-  _subscribeRealtime()
+  _subscribeRealtime(userId, role)
 }
 
 function _injectStyles() {
@@ -97,9 +97,14 @@ function _outsideClick(e) {
 }
 
 async function _load() {
+  const cutoff = Date.now() - 300_000
+  for (const k of Object.keys(localStorage)) {
+    if (k.startsWith('nv:bell:') && Number(localStorage.getItem(k)) < cutoff) localStorage.removeItem(k)
+  }
   const { data } = await supabase
     .from('notifications')
     .select('*')
+    .eq('read', false)
     .order('created_at', { ascending: false })
     .limit(30)
   _items = data || []
@@ -133,8 +138,13 @@ function _render() {
 
 async function _clickItem(id, link) {
   await _markRead(id)
-  if (link) window.location.href = link
-  else {
+  if (link) {
+    const p = window.location.pathname
+    const base = p.includes('/admin/')
+      ? p.substring(0, p.indexOf('/admin/'))
+      : p.substring(0, p.lastIndexOf('/'))
+    window.location.href = encodeURI(base + link)
+  } else {
     const p = document.getElementById('notifPanel')
     if (p) p.hidden = true
   }
@@ -156,17 +166,26 @@ async function _markAll() {
   await supabase.from('notifications').update({ read: true }).in('id', ids)
 }
 
-function _subscribeRealtime() {
+function _subscribeRealtime(userId, role) {
   if (_channel) return
   _channel = supabase
     .channel('nv-notifications')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
-      _items.unshift(payload.new)
-      _render()
-      const btn = document.getElementById('notifBtn')
-      if (btn) {
-        btn.classList.add('ring')
-        btn.addEventListener('animationend', () => btn.classList.remove('ring'), { once: true })
+      const n = payload.new
+      if (n.user_id !== null && n.user_id !== userId) return
+      if (n.user_id === null && n.target_role !== role) return
+      if (!_items.some(x => x.id === n.id)) {
+        _items.unshift(n)
+        _render()
+      }
+      const bellKey = 'nv:bell:' + n.id
+      if (!localStorage.getItem(bellKey)) {
+        localStorage.setItem(bellKey, String(Date.now()))
+        const btn = document.getElementById('notifBtn')
+        if (btn) {
+          btn.classList.add('ring')
+          btn.addEventListener('animationend', () => btn.classList.remove('ring'), { once: true })
+        }
       }
     })
     .subscribe()
