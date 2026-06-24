@@ -291,7 +291,7 @@ import { initNotifications } from './notifications.js';
     const d = new Date(iso);
     return isNaN(d) ? '—' : d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
   }
-  function fmt(n) { return Math.round(n).toLocaleString('fr-FR'); }
+  function fmt(n) { return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function tagHTML(b) { return `<span class="tag ${b}">${LABELS[b]}</span>`; }
 
   let orders = [];

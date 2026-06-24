@@ -244,7 +244,7 @@ import { initNotifications } from './notifications.js';
   const STOCK_LABEL = { in: 'En stock', low: 'Stock limité', out: 'Rupture' };
   function stockState(qty) { return qty <= 0 ? 'out' : qty < 50 ? 'low' : 'in'; }
   function glyph(name) { return name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(); }
-  function fmt(n) { return Number(n).toLocaleString('fr-FR'); }
+  function fmt(n) { return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
   /* ---- render grid ---- */
   function render(cat) {

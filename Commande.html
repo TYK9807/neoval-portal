@@ -254,7 +254,7 @@ import { initNotifications } from './notifications.js';
   const TVA = 0.20;
   let products = [];
 
-  function fmt(n) { return Math.round(n).toLocaleString('fr-FR'); }
+  function fmt(n) { return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function glyph(name) { return name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(); }
 
   async function loadProducts() {
@@ -339,14 +339,51 @@ import { initNotifications } from './notifications.js';
     const sum = buildSummary(products);
     if (!sum.items.length) return;
 
-    const outOfStock = sum.items.filter(it => (it.product.stock_quantity || 0) < it.qty);
-    if (outOfStock.length) {
-      alert('Certains produits sont en rupture de stock : ' + outOfStock.map(it => it.product.name).join(', ') + '. Veuillez les retirer de votre commande.');
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Vérification du stock…';
+
+    /* re-fetch current stock at click time — avoids stale page-load data */
+    const ids = sum.items.map(it => it.product.id);
+    const { data: freshStock, error: stockErr } = await supabase
+      .from('products')
+      .select('id, name, stock_quantity')
+      .in('id', ids);
+
+    if (stockErr || !freshStock) {
+      btn.disabled = false;
+      btn.textContent = 'Valider la commande';
+      alert('Impossible de vérifier le stock. Veuillez réessayer.');
       return;
     }
 
-    const btn = document.getElementById('confirmBtn');
-    btn.disabled = true;
+    const stockMap = {};
+    freshStock.forEach(p => { stockMap[p.id] = p; });
+
+    /* update local products so the page reflects reality if we re-render */
+    products = products.map(p => {
+      const fresh = stockMap[p.id];
+      return fresh ? { ...p, stock_quantity: fresh.stock_quantity } : p;
+    });
+
+    const insufficient = sum.items.filter(it => {
+      const cur = stockMap[it.product.id];
+      return !cur || (cur.stock_quantity || 0) < it.qty;
+    });
+
+    if (insufficient.length) {
+      btn.disabled = false;
+      btn.textContent = 'Valider la commande';
+      const lines = insufficient.map(it => {
+        const cur = stockMap[it.product.id];
+        const avail = cur ? (cur.stock_quantity || 0) : 0;
+        return `• ${it.product.name} — demandé : ${it.qty}, disponible : ${avail}`;
+      }).join('\n');
+      alert('Stock insuffisant pour les produits suivants :\n\n' + lines + '\n\nVeuillez ajuster votre commande.');
+      await render();
+      return;
+    }
+
     btn.textContent = 'Envoi en cours…';
 
     /* insert order */

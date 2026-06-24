@@ -12,7 +12,7 @@
     if(s.indexOf('attente') > -1) return 'attente';
     return 'confirme';
   }
-  function fmt(n){ return Math.round(n).toLocaleString('fr-FR'); }
+  function fmt(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
   var _orders = [];
 

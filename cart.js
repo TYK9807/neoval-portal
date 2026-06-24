@@ -74,7 +74,7 @@
       var tva=subtotal*TVA_RATE;
       return {items:items, subtotal:subtotal, tva:tva, total:subtotal+tva};
     },
-    fmt:function(n){ return Math.round(n).toLocaleString('fr-FR'); },
+    fmt:function(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); },
 
     /* ---- submitted orders (persistent history) ---- */
     getOrders:function(){

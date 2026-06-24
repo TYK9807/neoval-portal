@@ -370,70 +370,124 @@ function generatePDF(doc){
   var title=isbl?'BON DE LIVRAISON':'PREUVE DE PAIEMENT';
   var dateVal=isbl?(o.confirmed_at||o.created_at):(o.delivered_at||o.created_at);
 
-  // Teal header bar
-  pdf.setFillColor(13,191,168);
-  pdf.rect(0,0,210,22,'F');
-  pdf.setFont('helvetica','bold');
-  pdf.setFontSize(13);
-  pdf.setTextColor(255,255,255);
-  pdf.text('NEOVAL PHARMA',14,10);
-  pdf.setFont('helvetica','normal');
-  pdf.setFontSize(8);
-  pdf.text('PORTAIL B2B — DOCUMENT OFFICIEL',14,17);
-  pdf.setTextColor(220,252,248);
-  pdf.text(new Date().toLocaleDateString('fr-FR'),196,10,{align:'right'});
+  // Stop adding rows at this y to leave room for total row + footer
+  var CONTENT_BOTTOM=265;
 
-  // Title
-  pdf.setTextColor(13,27,42);
-  pdf.setFont('helvetica','bold');
-  pdf.setFontSize(22);
-  pdf.text(title,14,40);
-
-  // Teal rule
-  pdf.setDrawColor(13,191,168);
-  pdf.setLineWidth(0.5);
-  pdf.line(14,44,196,44);
-
-  // Meta block
-  pdf.setFont('helvetica','normal');
-  pdf.setFontSize(10);
-  pdf.setTextColor(60,70,80);
-  pdf.text('Référence:',14,54);
-  pdf.setFont('helvetica','bold');
-  pdf.text(doc.order,50,54);
-  pdf.setFont('helvetica','normal');
-  pdf.text('Date:',14,62);
-  pdf.setFont('helvetica','bold');
-  pdf.text(fmtDate(dateVal),50,62);
-  var startY=74;
-  if(doc.pharmacyName){
+  function drawFooter(){
     pdf.setFont('helvetica','normal');
-    pdf.text('Pharmacie:',14,70);
-    pdf.setFont('helvetica','bold');
-    pdf.text(doc.pharmacyName,50,70);
-    startY=82;
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(160,160,160);
+    pdf.setDrawColor(200,200,200);
+    pdf.setLineWidth(0.2);
+    pdf.line(14,280,196,280);
+    pdf.text('Neoval Pharma — Document généré automatiquement via le portail B2B',14,286);
+    pdf.text('Ce document est valide sans signature.',196,286,{align:'right'});
   }
+
+  function drawPageHeader(isFirst){
+    // Teal header bar
+    pdf.setFillColor(13,191,168);
+    pdf.rect(0,0,210,22,'F');
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(13);
+    pdf.setTextColor(255,255,255);
+    pdf.text('NEOVAL PHARMA',14,10);
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(8);
+    pdf.text('PORTAIL B2B — DOCUMENT OFFICIEL',14,17);
+    pdf.setTextColor(220,252,248);
+    pdf.text(new Date().toLocaleDateString('fr-FR'),196,10,{align:'right'});
+
+    if(isFirst){
+      pdf.setTextColor(13,27,42);
+      pdf.setFont('helvetica','bold');
+      pdf.setFontSize(22);
+      pdf.text(title,14,40);
+
+      pdf.setDrawColor(13,191,168);
+      pdf.setLineWidth(0.5);
+      pdf.line(14,44,196,44);
+
+      pdf.setFont('helvetica','normal');
+      pdf.setFontSize(10);
+      pdf.setTextColor(60,70,80);
+      pdf.text('Référence:',14,54);
+      pdf.setFont('helvetica','bold');
+      pdf.text(doc.order,50,54);
+      pdf.setFont('helvetica','normal');
+      pdf.text('Date:',14,62);
+      pdf.setFont('helvetica','bold');
+      pdf.text(fmtDate(dateVal),50,62);
+      var sy=74;
+      if(doc.pharmacyName){
+        pdf.setFont('helvetica','normal');
+        pdf.text('Pharmacie:',14,70);
+        pdf.setFont('helvetica','bold');
+        pdf.text(doc.pharmacyName,50,70);
+        sy=82;
+      }
+      return sy;
+    } else {
+      // Compact header for continuation pages
+      pdf.setTextColor(13,27,42);
+      pdf.setFont('helvetica','bold');
+      pdf.setFontSize(12);
+      pdf.text(title+' — suite',14,36);
+      pdf.setFont('helvetica','normal');
+      pdf.setFontSize(9);
+      pdf.setTextColor(60,70,80);
+      pdf.text(doc.order,14,44);
+      if(doc.pharmacyName){
+        pdf.text('· '+doc.pharmacyName,50,44);
+      }
+      pdf.setDrawColor(13,191,168);
+      pdf.setLineWidth(0.3);
+      pdf.line(14,48,196,48);
+      return 58;
+    }
+  }
+
+  function drawTableHeader(y){
+    pdf.setFillColor(240,244,248);
+    pdf.rect(14,y-5,182,9,'F');
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(8.5);
+    pdf.setTextColor(40,50,65);
+    pdf.text('PRODUIT',17,y);
+    pdf.text('QTÉ',128,y,{align:'right'});
+    pdf.text('PRIX UNIT.',160,y,{align:'right'});
+    pdf.text('SOUS-TOTAL',195,y,{align:'right'});
+    return y+10;
+  }
+
+  // ── Page 1 ──
+  var startY=drawPageHeader(true);
+  drawFooter();
 
   if(isbl){
     var items=o.order_items||[];
     if(items.length){
-      // Table header
-      pdf.setFillColor(240,244,248);
-      pdf.rect(14,startY-5,182,9,'F');
-      pdf.setFont('helvetica','bold');
-      pdf.setFontSize(8.5);
-      pdf.setTextColor(40,50,65);
-      pdf.text('PRODUIT',17,startY);
-      pdf.text('QTÉ',128,startY,{align:'right'});
-      pdf.text('PRIX UNIT.',160,startY,{align:'right'});
-      pdf.text('SOUS-TOTAL',195,startY,{align:'right'});
-      var y=startY+10;
+      var y=drawTableHeader(startY);
       pdf.setFont('helvetica','normal');
       pdf.setFontSize(9.5);
-      items.forEach(function(item,i){
+      var rowIndex=0;
+
+      items.forEach(function(item){
         var pname=(item.products&&item.products.name)?item.products.name:'Produit';
         var sub=(item.quantity||0)*(item.unit_price||0);
-        if(i%2===1){pdf.setFillColor(250,251,252);pdf.rect(14,y-5,182,8,'F');}
+
+        // Need 9mm for this row + 13mm for total row — break before overflow
+        if(y+9+13>CONTENT_BOTTOM){
+          pdf.addPage();
+          startY=drawPageHeader(false);
+          drawFooter();
+          y=drawTableHeader(startY);
+          pdf.setFont('helvetica','normal');
+          pdf.setFontSize(9.5);
+          rowIndex=0;
+        }
+
+        if(rowIndex%2===1){pdf.setFillColor(250,251,252);pdf.rect(14,y-5,182,8,'F');}
         pdf.setTextColor(13,27,42);
         pdf.text(pname.slice(0,55),17,y);
         pdf.setTextColor(60,70,80);
@@ -444,8 +498,10 @@ function generatePDF(doc){
         pdf.setDrawColor(220,225,230);
         pdf.setLineWidth(0.2);
         pdf.line(14,y-4,196,y-4);
+        rowIndex++;
       });
-      // Total row
+
+      // Total row — always fits because the break check reserved 13mm above
       y+=4;
       pdf.setFillColor(13,27,42);
       pdf.rect(130,y-5,66,9,'F');
@@ -475,16 +531,6 @@ function generatePDF(doc){
     pdf.setTextColor(13,191,168);
     pdf.text(fmtMoney(o.total),24,y2+16);
   }
-
-  // Footer
-  pdf.setFont('helvetica','normal');
-  pdf.setFontSize(7.5);
-  pdf.setTextColor(160,160,160);
-  pdf.setDrawColor(200,200,200);
-  pdf.setLineWidth(0.2);
-  pdf.line(14,280,196,280);
-  pdf.text('Neoval Pharma — Document généré automatiquement via le portail B2B',14,286);
-  pdf.text('Ce document est valide sans signature.',196,286,{align:'right'});
 
   return pdf.output('blob');
 }
