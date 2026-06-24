@@ -304,7 +304,7 @@ var docs=[],current='tous',currentOrder='all';
 function rowHTML(d){
   return '<div class="drow" data-type="'+d.type+'" data-order="'+d.order+'">'+
     '<div class="dname"><span class="ficon"><span class="ext">PDF</span></span><span class="nm">'+d.name+'.pdf</span></div>'+
-    '<div class="ocmd"><a href="Commande détail.html?id='+encodeURIComponent(d.uuid)+'">'+d.order+'</a></div>'+
+    '<div class="ocmd"><a href="Commande detail.html?id='+encodeURIComponent(d.uuid)+'">'+d.order+'</a></div>'+
     '<span class="tag '+d.type.toLowerCase()+'">'+d.type+'</span>'+
     '<div class="ddate">'+fmtDate(d.date)+'</div>'+
     '<button class="dl" data-uuid="'+d.uuid+'" data-type="'+d.type+'" data-name="'+d.name+'">'+DL_SVG+'Télécharger</button>'+

@@ -391,7 +391,7 @@ import { initNotifications } from './notifications.js';
     const row = e.target.closest('.orow'); if (!row) return;
     document.querySelectorAll('.orow.sel').forEach(r => r.classList.remove('sel'));
     row.classList.add('sel');
-    location.href = 'Commande détail.html?id=' + encodeURIComponent(row.dataset.uuid);
+    location.href = 'Commande detail.html?id=' + encodeURIComponent(row.dataset.uuid);
   });
 
   await load();

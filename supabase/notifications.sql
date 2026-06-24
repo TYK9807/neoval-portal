@@ -62,7 +62,7 @@ begin
     'new_order',
     'Nouvelle commande',
     'Une nouvelle commande a été soumise.',
-    '/admin/Admin Order détail.html?id=' || NEW.id::text
+    '/admin/Admin Order detail.html?id=' || NEW.id::text
   );
   return NEW;
 end;
@@ -104,7 +104,7 @@ begin
     'order_status',
     v_title,
     v_body,
-    '/Commande détail.html?id=' || NEW.id::text
+    '/Commande detail.html?id=' || NEW.id::text
   );
   return NEW;
 end;
@@ -129,7 +129,7 @@ begin
     'new_registration',
     'Nouvelle demande d''inscription',
     NEW.pharmacy_name || ' — ' || NEW.contact_name,
-    '/admin/Admin Registration détail.html?id=' || NEW.id::text
+    '/admin/Admin Registration detail.html?id=' || NEW.id::text
   );
   return NEW;
 end;
