@@ -500,35 +500,17 @@ document.querySelector('#detail').addEventListener('click',async function(e){
   btn.disabled=true;
 
   if(act==='confirm'){
-    var {data:stockItems,error:stockErr}=await supabase
-      .from('order_items')
-      .select('quantity,products(id,name,stock_quantity)')
-      .eq('order_id',currentUUID);
-    if(stockErr||!stockItems){
-      showToast('Erreur','Impossible de vérifier le stock. Réessayez.',false);
-      btn.classList.remove('busy');btn.disabled=false;return;
-    }
-    var insufficient=stockItems.filter(function(it){
-      return !it.products||(it.products.stock_quantity||0)<it.quantity;
+    var {data:result,error:rpcErr}=await supabase.rpc('confirm_order',{
+      p_order_id: currentUUID,
+      p_admin_id: ctx.user.id
     });
-    if(insufficient.length){
-      showToast('Stock insuffisant',insufficient.map(function(it){return it.products?it.products.name:'—';}).join(', ')+' · stock insuffisant',false);
+    if(rpcErr){
+      showToast('Erreur','Impossible de confirmer la commande. Réessayez.',false);
       btn.classList.remove('busy');btn.disabled=false;return;
     }
-    var rConfirm=await supabase.from('orders').update({
-      status:       'Confirmé',
-      confirmed_by: ctx.user.id,
-      confirmed_at: new Date().toISOString()
-    }).eq('id',currentUUID);
-    if(rConfirm.error){
-      showToast('Erreur','Impossible de confirmer la commande. Réessayez.',false);
-      btn.classList.remove('busy'); btn.disabled=false; return;
-    }
-    for(var i=0;i<stockItems.length;i++){
-      var si=stockItems[i];
-      await supabase.from('products')
-        .update({stock_quantity:si.products.stock_quantity-si.quantity})
-        .eq('id',si.products.id);
+    if(!result.ok){
+      showToast('Stock insuffisant',(result.insufficient||[]).join(', ')+' · stock insuffisant',false);
+      btn.classList.remove('busy');btn.disabled=false;return;
     }
     showToast('Commande confirmée','Stock mis à jour · pharmacie notifiée');
     await loadAndRender();
