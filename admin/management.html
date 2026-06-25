@@ -404,9 +404,9 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   async function loadStats() {
     try {
       var [pharmRes, ordersRes, revenueRes, topRes] = await Promise.all([
-        sb.from('pharmacies').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+        sb.from('pharmacies').select('id', { count: 'exact', head: true }),
         sb.from('orders').select('id', { count: 'exact', head: true }),
-        sb.from('orders').select('total_amount').neq('status', 'En attente'),
+        sb.from('orders').select('total').neq('status', 'En attente'),
         sb.from('order_items').select('product_id, quantity, products(name)').order('quantity', { ascending: false })
       ]);
 
@@ -417,7 +417,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         document.getElementById('statOrders').textContent = ordersRes.count ?? '—';
       }
       if (!revenueRes.error && revenueRes.data) {
-        var total = revenueRes.data.reduce(function(s, r){ return s + (r.total_amount || 0); }, 0);
+        var total = revenueRes.data.reduce(function(s, r){ return s + (r.total || 0); }, 0);
         document.getElementById('statRevenue').textContent = fmt(total);
         document.getElementById('statRevSub').textContent = 'commandes confirmées';
       }
@@ -562,21 +562,20 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   // ——— PHARMACIES ———
   async function loadPharmacies() {
     var { data, error } = await sb.from('pharmacies')
-      .select('id, name, city, address, status')
-      .eq('status', 'approved')
+      .select('id, name, address')
       .order('name');
     if (error || !data) {
       document.getElementById('pharmList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
       return;
     }
     if (!data.length) {
-      document.getElementById('pharmList').innerHTML = '<div class="state-row">Aucune pharmacie approuvée.</div>';
+      document.getElementById('pharmList').innerHTML = '<div class="state-row">Aucune pharmacie enregistrée.</div>';
       return;
     }
 
     var pharmIds = data.map(function(p){ return p.id; });
     var { data: orders } = await sb.from('orders')
-      .select('id, pharmacy_id, status, created_at, total_amount')
+      .select('id, pharmacy_id, status, created_at, total')
       .in('pharmacy_id', pharmIds)
       .order('created_at', { ascending: false });
 
@@ -591,7 +590,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
     data.forEach(function(p, i) {
       var pOrders = orderMap[p.id] || [];
-      var totalSpend = pOrders.reduce(function(s, o){ return s + (o.total_amount || 0); }, 0);
+      var totalSpend = pOrders.reduce(function(s, o){ return s + (o.total || 0); }, 0);
       var rowId = 'pharm-row-' + i;
       var detId = 'pharm-det-' + i;
 
@@ -599,11 +598,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
       rowEl.className = 'tbl-row';
       rowEl.id = rowId;
       rowEl.innerHTML =
-        '<div class="pharm-name-cell"><div class="pn">' + esc(p.name) + '</div>' +
-        '<div class="pc">' + esc(p.city || '') + '</div></div>' +
+        '<div class="pharm-name-cell"><div class="pn">' + esc(p.name) + '</div></div>' +
         '<div class="tr-pcount pharm-count">' + pOrders.length + ' commande' + (pOrders.length !== 1 ? 's' : '') + '</div>' +
         '<div class="tr-ptotal pharm-total">' + fmt(totalSpend) + '<small>MAD</small></div>' +
-        '<div class="th-pstatus"><span class="tag ' + (p.status === 'approved' ? 'confirme' : 'attente') + '">' + (p.status === 'approved' ? 'Approuvée' : p.status) + '</span></div>' +
+        '<div class="th-pstatus"><span class="tag confirme">Approuvée</span></div>' +
         '<div><button class="expand-btn" aria-expanded="false" aria-controls="' + detId + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
         '</button></div>';
@@ -620,7 +618,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
             '<div class="on">CMD-' + String(o.id).padStart(6,'0') + '</div>' +
             '<div class="od">' + fmtDate(o.created_at) + '</div>' +
             '<span class="tag ' + statusKey + '">' + esc(o.status) + '</span>' +
-            '<div class="ot">' + fmt(o.total_amount || 0) + '<small>MAD</small></div>' +
+            '<div class="ot">' + fmt(o.total || 0) + '<small>MAD</small></div>' +
           '</div>';
         }).join('');
         if (pOrders.length > 10) {
@@ -632,7 +630,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
       detEl.innerHTML =
         '<div class="pharm-inner">' +
-          (p.address ? '<div class="pharm-addr">' + esc(p.address) + (p.city ? ', ' + esc(p.city) : '') + '</div>' : '') +
+          (p.address ? '<div class="pharm-addr">' + esc(p.address) + '</div>' : '') +
           '<div class="pharm-orders-head">Commandes récentes</div>' +
           ordersHtml +
         '</div>';
