@@ -2554,6 +2554,18 @@ document.querySelectorAll('form.jsform').forEach(function(f){
       return;
     }
 
+    var { data: taken } = await sb.rpc('email_already_registered', { p_email: payload.email });
+    if (taken) {
+      btn.disabled = false;
+      btn.innerHTML = 'Demander l\'accès <span class="arr">→</span>';
+      var errEl = document.createElement('p');
+      errEl.className = 'reg-error';
+      errEl.style.cssText = 'color:#e0655c;font-family:"IBM Plex Mono",monospace;font-size:12px;margin-top:10px;letter-spacing:.05em';
+      errEl.textContent = 'Un compte existe déjà avec cette adresse e-mail. Contactez Neoval Pharma si vous avez besoin d\'aide.';
+      regForm.appendChild(errEl);
+      return;
+    }
+
     var result = await sb.from('pending_registrations').insert(payload);
 
     if (result.error) {
