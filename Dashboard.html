@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -483,7 +483,7 @@ function syncCart(){
 window.addEventListener('cart:change',syncCart);
 syncCart();
 
-var PENDING={'En préparation':1,'En attente':1,'confirme':1};
+var PENDING={'En attente':1};
 function rowHTML(label,status){
   var pending=(PENDING[status]||status.toLowerCase().indexOf('attente')>-1)?' pending':'';
   return '<div class="row"><span class="rn">'+label+'</span><span class="rt'+pending+'">'+status+'</span></div>';

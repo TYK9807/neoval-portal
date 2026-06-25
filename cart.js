@@ -4,7 +4,6 @@
    ============================================================ */
 (function(){
   var STORAGE_KEY='neoval_cart_v1';
-  var ORDERS_KEY='neoval_orders_v1';
 
   // Canonical product catalogue (shared by Catalogue + Commande pages)
   var PRODUCTS=[
@@ -76,32 +75,6 @@
     },
     fmt:function(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); },
 
-    /* ---- submitted orders (persistent history) ---- */
-    getOrders:function(){
-      try{ return JSON.parse(localStorage.getItem(ORDERS_KEY))||[]; }
-      catch(e){ return []; }
-    },
-    /** snapshot the current cart as a confirmed order, prepend to history, return it */
-    saveOrder:function(){
-      var s=this.summary(); if(!s.items.length) return null;
-      var id='CMD-'+Math.floor(100000+Math.random()*900000);
-      var order={
-        id:id,
-        date:new Date().toISOString(),
-        status:'En préparation',
-        units:s.items.reduce(function(a,it){return a+it.units;},0),
-        lineCount:s.items.length,
-        subtotal:s.subtotal, tva:s.tva, total:s.total,
-        items:s.items.map(function(it){
-          return {ref:it.product.ref, name:it.product.name, glyph:it.product.glyph,
-                  cartons:it.cartons, units:it.units, lineTotal:it.lineTotal};
-        })
-      };
-      var all=this.getOrders(); all.unshift(order);
-      localStorage.setItem(ORDERS_KEY, JSON.stringify(all));
-      try{ window.dispatchEvent(new CustomEvent('orders:change',{detail:order})); }catch(e){}
-      return order;
-    }
   };
 
   window.NeovalCart=Cart;

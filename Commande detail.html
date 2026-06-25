@@ -331,12 +331,6 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   </div>
 </main>
 
-<div id="toast">
-  <div class="tic">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>
-  </div>
-  <div class="tt"><b id="toastName">—</b><span id="toastSub">Téléchargement simulé</span></div>
-</div>
 
 <script src="cart.js"></script>
 <script src="portal-nav.js"></script>
@@ -398,20 +392,11 @@ function renderDocs(shortId,b){
   }).join('');
 }
 
-var toast=document.getElementById('toast'),toastTimer;
 document.getElementById('docList').addEventListener('click',function(e){
   var btn=e.target.closest('.dl');if(!btn)return;
   var name=btn.getAttribute('data-name');
-  btn.classList.add('busy');var orig=btn.innerHTML;
-  btn.innerHTML=DL_SVG+'…';
-  setTimeout(function(){
-    btn.classList.remove('busy');btn.innerHTML=orig;
-    document.getElementById('toastName').textContent=name+'.pdf';
-    document.getElementById('toastSub').textContent='Téléchargement simulé · automatisation à venir';
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){toast.classList.remove('show');},3200);
-  },600);
+  var shortId=name.split('-').slice(1).join('-');
+  window.location.href='Mes documents.html?order='+encodeURIComponent('CMD-'+shortId);
 });
 
 (async function(){

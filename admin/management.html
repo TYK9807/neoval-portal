@@ -615,7 +615,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
         ordersHtml = pOrders.slice(0, 10).map(function(o) {
           var statusKey = STATUS_LABELS[o.status] || 'attente';
           return '<div class="pharm-order-row">' +
-            '<div class="on">CMD-' + String(o.id).padStart(6,'0') + '</div>' +
+            '<div class="on">CMD-' + String(o.id).slice(0,8).toUpperCase() + '</div>' +
             '<div class="od">' + fmtDate(o.created_at) + '</div>' +
             '<span class="tag ' + statusKey + '">' + esc(o.status) + '</span>' +
             '<div class="ot">' + fmt(o.total || 0) + '<small>MAD</small></div>' +
