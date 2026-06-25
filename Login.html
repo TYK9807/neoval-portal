@@ -127,6 +127,45 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 }
 </style>
 <link rel="stylesheet" href="portal-theme.css" />
+<style>
+/* ─── DARK MODE OVERRIDE — pharmacy login only ─── */
+body.p-login.theme{
+  --navy:#080F1E !important;
+  --white:#F4F6F9 !important;
+  --body:rgba(244,246,249,.72) !important;
+  --faint:rgba(244,246,249,.42) !important;
+  --hair:rgba(244,246,249,.14) !important;
+}
+body.p-login.theme #bg-glow{
+  background:
+    radial-gradient(60% 50% at 50% 42%,rgba(13,191,168,.13) 0%,transparent 62%),
+    radial-gradient(48% 40% at 78% 88%,rgba(196,160,58,.08) 0%,transparent 60%),
+    linear-gradient(160deg,#060D18 0%,#0A1520 100%) !important;
+}
+body.p-login.theme::after{
+  background-image:
+    linear-gradient(rgba(244,246,249,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(244,246,249,.03) 1px,transparent 1px) !important;
+  opacity:.5 !important;
+}
+body.p-login.theme .auth .card{
+  background:rgba(13,22,36,.88) !important;
+  border:1px solid rgba(13,191,168,.22) !important;
+  border-top:3px solid var(--gold) !important;
+  box-shadow:
+    0 1px 0 rgba(13,191,168,.12) inset,
+    0 40px 120px -40px rgba(0,0,0,.75) !important;
+}
+body.p-login.theme .auth .card .secure{color:var(--faint) !important;opacity:1 !important}
+body.p-login.theme .auth .card .askaccess a{
+  color:var(--gold) !important;
+  border-bottom-color:rgba(196,160,58,.28) !important;
+}
+body.p-login.theme .auth .card .askaccess a:hover{
+  color:var(--teal) !important;
+  border-bottom-color:var(--teal) !important;
+}
+</style>
 <style>body{visibility:hidden}</style>
 </head>
 <body class="theme p-login dbg-mesh" style="--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono';--teal:#0DBFA8;--gold:#C4A03A;--teal-soft:rgba(13,191,168,.14);--teal-bright:#0aa491;--navy:#F4F6F9;--dot-op:.06">
