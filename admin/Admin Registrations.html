@@ -194,6 +194,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
       <a href="Admin Orders.html">Commandes</a>
       <a href="Admin Stock.html">Stock</a>
       <a href="Admin Registrations.html" class="active">Demandes</a>
+      <a href="management.html">Gestion</a>
     </nav>
     <div class="bar-right">
       <div class="notif-wrap">
@@ -209,14 +210,21 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
           <div class="notif-list" id="notifList"></div>
         </div>
       </div>
-      <span class="who">
-        <span class="av">AD</span>
-        <span class="meta">
-          <span class="n">Administrateur</span>
-          <span class="r">Neoval Pharma · Siège</span>
-        </span>
-      </span>
-      <a class="logout" href="Admin Login.html">Déconnexion</a>
+      <div class="who-wrap">
+        <button class="who" id="whoBtn" aria-haspopup="true" aria-expanded="false">
+          <span class="av">AD</span>
+          <span class="meta">
+            <span class="n">Administrateur</span>
+            <span class="r">Neoval Pharma · Siège</span>
+          </span>
+          <svg class="who-caret" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="who-menu" id="whoMenu" hidden>
+          <a class="who-item" href="#" id="whoProfile">Mon profil</a>
+          <a class="who-item" href="management.html">Gestion de l'équipe</a>
+          <button class="who-item who-logout" id="whoLogout">Déconnexion</button>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -336,7 +344,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
     }
 
     list.innerHTML = visible.map(function(r){
-      var href = 'Admin Registration d%C3%A9tail.html?id=' + encodeURIComponent(r.id);
+      var href = 'Admin Registration detail.html?id=' + encodeURIComponent(r.id);
       return '<a class="rrow ' + r.status + '" href="' + href + '">' +
         '<span class="rpharm"><div class="pn">' + esc(r.pharmacy_name) + '</div>' +
           (r.address ? '<div class="pc">' + esc(r.address) + '</div>' : '') +
@@ -455,6 +463,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 })();
 </script>
 <script src="../portal-nav.js"></script>
+<script src="admin-nav.js"></script>
 <script type="module">
 import { guard } from '../auth-guard.js';
 import { initNotifications } from '../notifications.js';

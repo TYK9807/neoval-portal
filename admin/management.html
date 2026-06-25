@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — Gestion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#F4F6F9;--navy-2:#FFFFFF;--teal:#0DBFA8;--gold:#C4A03A;--white:#0D1B2A;
+  --body:rgba(13,27,42,.74);--faint:rgba(13,27,42,.52);--hair:rgba(13,27,42,.10);
+  --glass:#FFFFFF;--maxw:1240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+
+#bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(55% 45% at 18% 0%,rgba(13,191,168,.09) 0%,transparent 60%),
+             radial-gradient(50% 45% at 92% 100%,rgba(196,160,58,.06) 0%,transparent 60%)}
+#bg-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%;position:relative;z-index:5}
+
+/* ===== admin topbar ===== */
+#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:26px;height:26px;position:relative;flex:0 0 auto}
+.brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:var(--white)}
+.brand .apill{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);border:1px solid rgba(196,160,58,.45);background:rgba(196,160,58,.08);padding:4px 8px;margin-left:4px}
+.bar-nav{display:flex;align-items:center;gap:28px}
+.bar-nav a{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);text-decoration:none;transition:color .25s}
+.bar-nav a:hover,.bar-nav a.active{color:var(--teal)}
+.bar-right{display:flex;align-items:center;gap:18px}
+
+/* head */
+.head{padding:54px 0 26px}
+.kicker{display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:20px}
+.kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.7}
+.head h1{font-size:clamp(34px,5vw,52px)}
+.head p{color:var(--body);font-size:16px;margin-top:14px;max-width:620px}
+
+/* stats */
+.stats{display:flex;gap:0;border:1px solid var(--hair);background:var(--glass);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);margin:8px 0 56px}
+.stat{flex:1;padding:24px 28px;border-right:1px solid var(--hair)}
+.stat:last-child{border-right:0}
+.stat .num{font-family:'Syne';font-weight:800;font-size:30px;color:var(--white);line-height:1}
+.stat .num.teal{color:var(--teal)} .stat .num.gold{color:var(--gold)}
+.stat .lbl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:10px}
+.stat .sub{font-size:12px;color:var(--faint);margin-top:5px}
+
+/* section headings */
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+.sec-head h2{font-size:22px}
+.sec-kicker{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+
+/* buttons */
+.btn-primary{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:#fff;background:var(--teal);border:0;padding:12px 22px;cursor:pointer;
+  transition:background .2s,opacity .2s;white-space:nowrap}
+.btn-primary:hover{background:#0aa491}
+.btn-primary:disabled{opacity:.45;cursor:default}
+.btn-ghost{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--body);background:transparent;border:1px solid var(--hair);padding:10px 18px;cursor:pointer;
+  transition:all .2s;white-space:nowrap}
+.btn-ghost:hover{color:var(--white);border-color:rgba(13,27,42,.35)}
+.btn-danger{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:#e05858;background:transparent;border:1px solid rgba(224,88,88,.35);padding:8px 14px;cursor:pointer;
+  transition:all .2s;white-space:nowrap}
+.btn-danger:hover{background:rgba(224,88,88,.08)}
+
+/* table panel */
+.panel{background:var(--glass);border:1px solid var(--hair);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);margin-bottom:56px}
+.panel-hd{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:20px 24px;border-bottom:1px solid var(--hair)}
+.panel-hd h3{font-size:17px}
+
+/* team table */
+.tbl-head,.tbl-row{display:grid;gap:16px;align-items:center;padding:0 24px}
+.team-tbl .tbl-head,.team-tbl .tbl-row{grid-template-columns:1fr 160px 160px 110px 100px}
+.tbl-head{padding-top:16px;padding-bottom:12px;font-family:'IBM Plex Mono';font-size:10px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--hair)}
+.tbl-row{padding-top:18px;padding-bottom:18px;border-bottom:1px solid var(--hair)}
+.tbl-row:last-child{border-bottom:0}
+.user-cell{display:flex;align-items:center;gap:12px;min-width:0}
+.user-av{width:32px;height:32px;flex:0 0 auto;background:rgba(13,191,168,.1);border:1px solid rgba(13,191,168,.3);
+  display:grid;place-items:center;font-family:'Syne';font-size:12px;font-weight:700;color:var(--teal)}
+.user-name{font-size:14px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--faint);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-select{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--navy);border:1px solid var(--hair);color:var(--white);padding:7px 10px;cursor:pointer;
+  appearance:none;-webkit-appearance:none;width:100%}
+.role-select:focus{outline:1px solid var(--teal)}
+.active-toggle{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono';font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;user-select:none}
+.toggle-pill{position:relative;width:36px;height:20px;flex:0 0 auto}
+.toggle-pill input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--hair);border:1px solid rgba(13,27,42,.15);
+  transition:background .22s}
+.toggle-pill input:checked + .toggle-track{background:var(--teal)}
+.toggle-thumb{position:absolute;width:14px;height:14px;background:#fff;top:2px;left:2px;transition:left .22s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-pill input:checked ~ .toggle-thumb{left:18px}
+.tbl-row-act{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.save-row{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal);background:transparent;border:1px solid var(--teal);padding:7px 12px;cursor:pointer;
+  transition:all .2s;white-space:nowrap;display:none}
+.save-row.visible{display:inline-block}
+.save-row:hover{background:rgba(13,191,168,.1)}
+
+/* create member form */
+.create-form{padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.frow{display:flex;flex-direction:column;gap:6px}
+.frow.full{grid-column:1 / -1}
+.flabel{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.finput,.fselect{background:var(--navy);border:1px solid var(--hair);color:var(--white);
+  font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;width:100%;transition:border-color .2s}
+.finput::placeholder{color:var(--faint)}
+.finput:focus,.fselect:focus{outline:0;border-color:var(--teal)}
+.fselect{appearance:none;-webkit-appearance:none;cursor:pointer;font-family:'IBM Plex Mono';font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase}
+.form-foot{grid-column:1 / -1;display:flex;align-items:center;justify-content:flex-end;gap:14px;
+  padding-top:8px;border-top:1px solid var(--hair);margin-top:4px}
+.form-msg{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--faint)}
+.form-msg.err{color:#e05858}
+.form-msg.ok{color:var(--teal)}
+
+/* credentials modal */
+.cred-modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
+  background:rgba(6,13,24,.65);backdrop-filter:blur(6px)}
+.cred-modal.open{display:flex}
+.cred-panel{background:var(--glass);border:1px solid var(--hair);padding:40px;max-width:460px;width:calc(100% - 40px)}
+.cred-panel h3{font-size:20px;margin-bottom:8px}
+.cred-panel .cred-sub{color:var(--body);font-size:14px;margin-bottom:28px}
+.cred-row{display:flex;flex-direction:column;gap:5px;margin-bottom:18px}
+.cred-lbl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.cred-val{font-family:'IBM Plex Mono';font-size:14px;color:var(--white);background:var(--navy);
+  border:1px solid var(--hair);padding:10px 14px;letter-spacing:.04em;word-break:break-all}
+.cred-warn{font-size:12px;color:var(--gold);margin-top:20px;margin-bottom:24px;line-height:1.5}
+.cred-close{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:#fff;background:var(--teal);border:0;padding:12px 28px;cursor:pointer;width:100%}
+
+/* pharmacies table */
+.pharm-tbl .tbl-head,.pharm-tbl .tbl-row{grid-template-columns:1fr 120px 120px 140px 40px}
+.pharm-tbl .tbl-row{cursor:pointer;transition:background .18s}
+.pharm-tbl .tbl-row:hover{background:rgba(13,191,168,.04)}
+.expand-btn{background:none;border:none;color:var(--faint);cursor:pointer;padding:4px;
+  transition:transform .22s,color .2s;display:flex;align-items:center}
+.expand-btn svg{width:14px;height:14px}
+.tbl-row.expanded .expand-btn{transform:rotate(180deg);color:var(--teal)}
+.pharm-detail{display:none;border-bottom:1px solid var(--hair)}
+.pharm-detail.open{display:block}
+.pharm-inner{padding:0 24px 20px 24px}
+.pharm-addr{font-size:13px;color:var(--body);margin-bottom:16px;padding-top:12px}
+.pharm-orders-head{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:10px}
+.pharm-order-row{display:grid;grid-template-columns:140px 1fr 120px 130px;gap:12px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--hair);font-size:13px}
+.pharm-order-row:last-child{border-bottom:0}
+.pharm-order-row .on{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.04em;color:var(--white)}
+.pharm-order-row .od{font-family:'IBM Plex Mono';font-size:11px;color:var(--faint)}
+.pharm-order-row .ot{font-family:'Syne';font-weight:700;font-size:15px;color:var(--white);text-align:right}
+.pharm-order-row .ot small{font-family:'IBM Plex Mono';font-size:9px;font-weight:400;color:var(--faint);margin-left:3px}
+.pharm-no-orders{font-size:13px;color:var(--faint);padding:12px 0}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono';
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border:1px solid var(--hair);white-space:nowrap}
+.tag::before{content:"";width:5px;height:5px;flex:0 0 auto}
+.tag.attente{color:var(--gold);border-color:rgba(196,160,58,.4);background:rgba(196,160,58,.08)}
+.tag.attente::before{background:var(--gold)}
+.tag.confirme{color:var(--teal);border-color:rgba(13,191,168,.4);background:rgba(13,191,168,.08)}
+.tag.confirme::before{background:var(--teal)}
+.tag.livre{color:var(--body);border-color:var(--hair);background:rgba(245,247,250,.04)}
+.tag.livre::before{background:var(--faint)}
+
+.pharm-count{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.04em;color:var(--body)}
+.pharm-total{font-family:'Syne';font-weight:700;font-size:16px;color:var(--white);text-align:right}
+.pharm-total small{font-family:'IBM Plex Mono';font-size:9px;font-weight:400;color:var(--faint);margin-left:3px}
+.pharm-name-cell .pn{font-size:14px;color:var(--white)}
+.pharm-name-cell .pc{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+
+/* loading / empty states */
+.state-row{padding:36px 24px;text-align:center;font-family:'IBM Plex Mono';font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--hair)}
+.state-row:last-child{border-bottom:0}
+
+@media(max-width:720px){
+  .bar-nav{display:none}
+  .wrap{padding:0 22px}
+  .stats{flex-wrap:wrap}.stat{flex:1 1 40%;border-right:0;border-bottom:1px solid var(--hair)}
+  .team-tbl .tbl-head,.team-tbl .tbl-row{grid-template-columns:1fr auto}
+  .th-role,.th-phone,.th-act,.tr-role,.tr-phone,.tr-act{display:none}
+  .create-form{grid-template-columns:1fr}
+  .pharm-tbl .tbl-head,.pharm-tbl .tbl-row{grid-template-columns:1fr auto 36px}
+  .th-pcount,.th-ptotal,.tr-pcount,.tr-ptotal{display:none}
+  .pharm-order-row{grid-template-columns:1fr 100px}
+}
+</style>
+<link rel="stylesheet" href="../portal-theme.css" />
+<style>body{visibility:hidden}</style>
+</head>
+<body class="theme p-management dbg-mesh" style="--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono';--teal:#0DBFA8;--gold:#C4A03A;--teal-soft:rgba(13,191,168,.14);--teal-bright:#0aa491;--navy:#F4F6F9;--dot-op:.06">
+
+<div id="bg-glow"></div>
+<div id="bg-grain"></div>
+
+<header id="bar">
+  <div class="wrap">
+    <a class="brand" href="Admin Orders.html" style="text-decoration:none">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nvLeafGrad" x1="20%" y1="8%" x2="92%" y2="86%"><stop offset="0%" stop-color="#0DBFA8"/><stop offset="54%" stop-color="#1C73C4"/><stop offset="100%" stop-color="#1A3A8F"/></linearGradient></defs><g fill="none" stroke="url(#nvLeafGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/><path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/><path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/><path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/></g></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+      <span class="apill">Admin</span>
+    </a>
+    <nav class="bar-nav">
+      <a href="Admin Orders.html">Commandes</a>
+      <a href="Admin Stock.html">Stock</a>
+      <a href="Admin Registrations.html">Demandes</a>
+      <a href="management.html" class="active">Gestion</a>
+    </nav>
+    <div class="bar-right">
+      <div class="notif-wrap">
+        <button class="notif-btn" id="notifBtn" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notifBadge" hidden>0</span>
+        </button>
+        <div class="notif-panel" id="notifPanel" hidden>
+          <div class="notif-ph">
+            <span class="notif-ph-lbl">Notifications</span>
+            <button class="notif-markall" id="notifMarkAll">Tout lire</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <div class="who-wrap">
+        <button class="who" id="whoBtn" aria-haspopup="true" aria-expanded="false">
+          <span class="av">AD</span>
+          <span class="meta">
+            <span class="n">Administrateur</span>
+            <span class="r">Neoval Pharma · Siège</span>
+          </span>
+          <svg class="who-caret" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="who-menu" id="whoMenu" hidden>
+          <a class="who-item" href="#" id="whoProfile">Mon profil</a>
+          <a class="who-item" href="management.html">Gestion de l'équipe</a>
+          <button class="who-item who-logout" id="whoLogout">Déconnexion</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Administration</div>
+      <h1>Gestion de la plateforme</h1>
+      <p>Statistiques, équipe interne et vue d'ensemble des pharmacies partenaires.</p>
+    </div>
+
+    <!-- Platform Stats -->
+    <div class="stats" id="statsStrip">
+      <div class="stat"><div class="num teal" id="statPharma">—</div><div class="lbl">Pharmacies actives</div></div>
+      <div class="stat"><div class="num" id="statOrders">—</div><div class="lbl">Commandes totales</div></div>
+      <div class="stat"><div class="num gold" id="statRevenue">—</div><div class="lbl">Chiffre d'affaires (MAD)</div><div class="sub" id="statRevSub"></div></div>
+      <div class="stat"><div class="num" id="statTopProd" style="font-size:18px;line-height:1.2">—</div><div class="lbl">Produit le plus commandé</div></div>
+    </div>
+
+    <!-- Team Members -->
+    <section>
+      <div class="sec-head">
+        <div>
+          <div class="sec-kicker">Équipe interne</div>
+          <h2>Membres de l'équipe</h2>
+        </div>
+      </div>
+      <div class="panel team-tbl" id="teamPanel">
+        <div class="tbl-head">
+          <span>Membre</span>
+          <span class="th-role">Rôle</span>
+          <span class="th-phone">Téléphone</span>
+          <span class="th-act">Actif</span>
+          <span class="th-actions"></span>
+        </div>
+        <div id="teamList"><div class="state-row">Chargement…</div></div>
+      </div>
+
+      <!-- Create New Team Member -->
+      <div class="panel" style="margin-top:0;border-top:0">
+        <div class="panel-hd">
+          <h3>Ajouter un membre</h3>
+        </div>
+        <form class="create-form" id="createForm" autocomplete="off">
+          <div class="frow">
+            <label class="flabel" for="cfName">Nom complet</label>
+            <input class="finput" id="cfName" type="text" placeholder="Nom Prénom" required />
+          </div>
+          <div class="frow">
+            <label class="flabel" for="cfEmail">Adresse e-mail</label>
+            <input class="finput" id="cfEmail" type="email" placeholder="prenom@neovalpharma.ma" required />
+          </div>
+          <div class="frow">
+            <label class="flabel" for="cfPhone">Téléphone</label>
+            <input class="finput" id="cfPhone" type="tel" placeholder="+212 6 00 00 00 00" />
+          </div>
+          <div class="frow">
+            <label class="flabel" for="cfRole">Rôle</label>
+            <select class="fselect" id="cfRole" required>
+              <option value="">— Sélectionner —</option>
+              <option value="admin">Admin</option>
+              <option value="sales_rep">Commercial</option>
+              <option value="delivery">Livreur</option>
+            </select>
+          </div>
+          <div class="form-foot">
+            <span class="form-msg" id="createMsg"></span>
+            <button class="btn-primary" type="submit" id="createBtn">Créer le compte</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Pharmacies Overview -->
+    <section style="margin-top:56px">
+      <div class="sec-head">
+        <div>
+          <div class="sec-kicker">Partenaires</div>
+          <h2>Pharmacies</h2>
+        </div>
+      </div>
+      <div class="panel pharm-tbl" id="pharmPanel">
+        <div class="tbl-head">
+          <span>Pharmacie</span>
+          <span class="th-pcount">Commandes</span>
+          <span class="th-ptotal" style="text-align:right">Total dépensé</span>
+          <span class="th-pstatus">Statut</span>
+          <span></span>
+        </div>
+        <div id="pharmList"><div class="state-row">Chargement…</div></div>
+      </div>
+    </section>
+
+    <div style="height:80px"></div>
+  </div>
+</main>
+
+<!-- Credentials modal -->
+<div class="cred-modal" id="credModal">
+  <div class="cred-panel">
+    <h3>Compte créé avec succès</h3>
+    <p class="cred-sub">Transmettez ces identifiants au nouveau membre. Le mot de passe temporaire devra être changé lors de la première connexion.</p>
+    <div class="cred-row">
+      <div class="cred-lbl">Adresse e-mail</div>
+      <div class="cred-val" id="credEmail"></div>
+    </div>
+    <div class="cred-row">
+      <div class="cred-lbl">Mot de passe temporaire</div>
+      <div class="cred-val" id="credPass"></div>
+    </div>
+    <p class="cred-warn">⚠ Ces informations ne seront plus affichées une fois cette fenêtre fermée. Notez-les maintenant.</p>
+    <button class="cred-close" id="credClose">J'ai noté les identifiants</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="admin-data.js"></script>
+<script>
+(function(){
+  var SUPABASE_URL = 'https://nxlvdwqvkvgjvellmnic.supabase.co';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
+  var FUNCTION_URL = SUPABASE_URL + '/functions/v1/create-team-member';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: 'nv-admin' } });
+  window._sb = sb;
+
+  var ROLE_LABELS = { admin: 'Admin', sales_rep: 'Commercial', delivery: 'Livreur' };
+  var STATUS_LABELS = { Confirmé: 'confirme', 'En attente': 'attente', Livré: 'livre' };
+
+  function fmt(n) {
+    return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function initials(name) {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(function(w){ return w[0] || ''; }).join('').slice(0,2).toUpperCase();
+  }
+
+  // ——— PLATFORM STATS ———
+  async function loadStats() {
+    try {
+      var [pharmRes, ordersRes, revenueRes, topRes] = await Promise.all([
+        sb.from('pharmacies').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+        sb.from('orders').select('id', { count: 'exact', head: true }),
+        sb.from('orders').select('total_amount').neq('status', 'En attente'),
+        sb.from('order_items').select('product_id, quantity, products(name)').order('quantity', { ascending: false })
+      ]);
+
+      if (!pharmRes.error) {
+        document.getElementById('statPharma').textContent = pharmRes.count ?? '—';
+      }
+      if (!ordersRes.error) {
+        document.getElementById('statOrders').textContent = ordersRes.count ?? '—';
+      }
+      if (!revenueRes.error && revenueRes.data) {
+        var total = revenueRes.data.reduce(function(s, r){ return s + (r.total_amount || 0); }, 0);
+        document.getElementById('statRevenue').textContent = fmt(total);
+        document.getElementById('statRevSub').textContent = 'commandes confirmées';
+      }
+      if (!topRes.error && topRes.data && topRes.data.length) {
+        var agg = {};
+        topRes.data.forEach(function(r){
+          var pid = r.product_id;
+          agg[pid] = (agg[pid] || 0) + (r.quantity || 0);
+        });
+        var topId = Object.keys(agg).reduce(function(a,b){ return agg[a] > agg[b] ? a : b; });
+        var topItem = topRes.data.find(function(r){ return r.product_id == topId; });
+        var topName = topItem && topItem.products ? topItem.products.name : '—';
+        document.getElementById('statTopProd').textContent = topName;
+      }
+    } catch(e) { console.error('Stats error', e); }
+  }
+
+  // ——— TEAM MEMBERS ———
+  var teamMembers = [];
+
+  async function loadTeam() {
+    var { data, error } = await sb.from('users')
+      .select('id, name, email, phone, role, active')
+      .in('role', ['admin', 'sales_rep', 'delivery'])
+      .order('name');
+    if (error) {
+      document.getElementById('teamList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
+      return;
+    }
+    teamMembers = data || [];
+    renderTeam();
+  }
+
+  function renderTeam() {
+    var list = document.getElementById('teamList');
+    if (!teamMembers.length) {
+      list.innerHTML = '<div class="state-row">Aucun membre trouvé.</div>';
+      return;
+    }
+    list.innerHTML = teamMembers.map(function(m, i) {
+      return '<div class="tbl-row" data-idx="' + i + '">' +
+        '<div class="user-cell"><div class="user-av">' + initials(m.name) + '</div>' +
+        '<div><div class="user-name">' + esc(m.name) + '</div><div class="user-email">' + esc(m.email) + '</div></div></div>' +
+        '<div class="tr-role"><select class="role-select" data-mid="' + m.id + '" data-field="role">' +
+          Object.keys(ROLE_LABELS).map(function(r){ return '<option value="' + r + '"' + (m.role===r?' selected':'') + '>' + ROLE_LABELS[r] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="tr-phone" style="font-family:\'IBM Plex Mono\';font-size:12px;color:var(--body)">' + esc(m.phone || '—') + '</div>' +
+        '<div class="tr-act"><label class="active-toggle">' +
+          '<span class="toggle-pill">' +
+            '<input type="checkbox" ' + (m.active ? 'checked' : '') + ' data-mid="' + m.id + '" data-field="active" />' +
+            '<span class="toggle-track"></span>' +
+            '<span class="toggle-thumb"></span>' +
+          '</span>' +
+          '<span>' + (m.active ? 'Actif' : 'Inactif') + '</span>' +
+        '</label></div>' +
+        '<div class="tbl-row-act"><button class="save-row" data-mid="' + m.id + '" data-idx="' + i + '">Enregistrer</button></div>' +
+      '</div>';
+    }).join('');
+
+    list.querySelectorAll('select[data-field="role"]').forEach(function(sel) {
+      sel.addEventListener('change', function(){ markDirty(sel.closest('.tbl-row')); });
+    });
+    list.querySelectorAll('input[data-field="active"]').forEach(function(cb) {
+      cb.addEventListener('change', function(){
+        var lbl = cb.closest('.active-toggle').querySelector('span:last-child');
+        if (lbl) lbl.textContent = cb.checked ? 'Actif' : 'Inactif';
+        markDirty(cb.closest('.tbl-row'));
+      });
+    });
+    list.querySelectorAll('.save-row').forEach(function(btn) {
+      btn.addEventListener('click', function(){ saveTeamRow(btn); });
+    });
+  }
+
+  function markDirty(row) {
+    var btn = row.querySelector('.save-row');
+    if (btn) btn.classList.add('visible');
+  }
+
+  async function saveTeamRow(btn) {
+    var mid = btn.dataset.mid;
+    var row = btn.closest('.tbl-row');
+    var role = row.querySelector('select[data-field="role"]').value;
+    var active = row.querySelector('input[data-field="active"]').checked;
+    btn.textContent = '…';
+    var { error } = await sb.from('users').update({ role: role, active: active }).eq('id', mid);
+    if (error) {
+      btn.textContent = 'Erreur';
+      setTimeout(function(){ btn.textContent = 'Enregistrer'; }, 2000);
+    } else {
+      btn.textContent = 'Sauvegardé';
+      btn.classList.remove('visible');
+      setTimeout(function(){ btn.textContent = 'Enregistrer'; }, 1800);
+      var idx = parseInt(row.dataset.idx);
+      if (teamMembers[idx]) { teamMembers[idx].role = role; teamMembers[idx].active = active; }
+    }
+  }
+
+  // ——— CREATE TEAM MEMBER ———
+  document.getElementById('createForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var name  = document.getElementById('cfName').value.trim();
+    var email = document.getElementById('cfEmail').value.trim();
+    var phone = document.getElementById('cfPhone').value.trim();
+    var role  = document.getElementById('cfRole').value;
+    var msg   = document.getElementById('createMsg');
+    var btn   = document.getElementById('createBtn');
+    msg.textContent = '';
+    msg.className = 'form-msg';
+    btn.disabled = true;
+    btn.textContent = 'Création en cours…';
+    try {
+      var { data: { session } } = await sb.auth.getSession();
+      if (!session) throw new Error('Non authentifié');
+      var resp = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+        body: JSON.stringify({ name: name, email: email, phone: phone || null, role: role })
+      });
+      var result = await resp.json();
+      if (!resp.ok) throw new Error(result.error || 'Erreur serveur');
+      document.getElementById('credEmail').textContent = result.email;
+      document.getElementById('credPass').textContent  = result.temp_password;
+      document.getElementById('credModal').classList.add('open');
+      document.getElementById('createForm').reset();
+      await loadTeam();
+    } catch(err) {
+      msg.textContent = err.message;
+      msg.className = 'form-msg err';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Créer le compte';
+    }
+  });
+
+  document.getElementById('credClose').addEventListener('click', function() {
+    document.getElementById('credModal').classList.remove('open');
+    document.getElementById('credEmail').textContent = '';
+    document.getElementById('credPass').textContent = '';
+  });
+
+  // ——— PHARMACIES ———
+  async function loadPharmacies() {
+    var { data, error } = await sb.from('pharmacies')
+      .select('id, name, city, address, status')
+      .eq('status', 'approved')
+      .order('name');
+    if (error || !data) {
+      document.getElementById('pharmList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
+      return;
+    }
+    if (!data.length) {
+      document.getElementById('pharmList').innerHTML = '<div class="state-row">Aucune pharmacie approuvée.</div>';
+      return;
+    }
+
+    var pharmIds = data.map(function(p){ return p.id; });
+    var { data: orders } = await sb.from('orders')
+      .select('id, pharmacy_id, status, created_at, total_amount')
+      .in('pharmacy_id', pharmIds)
+      .order('created_at', { ascending: false });
+
+    var orderMap = {};
+    (orders || []).forEach(function(o) {
+      if (!orderMap[o.pharmacy_id]) orderMap[o.pharmacy_id] = [];
+      orderMap[o.pharmacy_id].push(o);
+    });
+
+    var list = document.getElementById('pharmList');
+    list.innerHTML = '';
+
+    data.forEach(function(p, i) {
+      var pOrders = orderMap[p.id] || [];
+      var totalSpend = pOrders.reduce(function(s, o){ return s + (o.total_amount || 0); }, 0);
+      var rowId = 'pharm-row-' + i;
+      var detId = 'pharm-det-' + i;
+
+      var rowEl = document.createElement('div');
+      rowEl.className = 'tbl-row';
+      rowEl.id = rowId;
+      rowEl.innerHTML =
+        '<div class="pharm-name-cell"><div class="pn">' + esc(p.name) + '</div>' +
+        '<div class="pc">' + esc(p.city || '') + '</div></div>' +
+        '<div class="tr-pcount pharm-count">' + pOrders.length + ' commande' + (pOrders.length !== 1 ? 's' : '') + '</div>' +
+        '<div class="tr-ptotal pharm-total">' + fmt(totalSpend) + '<small>MAD</small></div>' +
+        '<div class="th-pstatus"><span class="tag ' + (p.status === 'approved' ? 'confirme' : 'attente') + '">' + (p.status === 'approved' ? 'Approuvée' : p.status) + '</span></div>' +
+        '<div><button class="expand-btn" aria-expanded="false" aria-controls="' + detId + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
+        '</button></div>';
+
+      var detEl = document.createElement('div');
+      detEl.className = 'pharm-detail';
+      detEl.id = detId;
+
+      var ordersHtml = '';
+      if (pOrders.length) {
+        ordersHtml = pOrders.slice(0, 10).map(function(o) {
+          var statusKey = STATUS_LABELS[o.status] || 'attente';
+          return '<div class="pharm-order-row">' +
+            '<div class="on">CMD-' + String(o.id).padStart(6,'0') + '</div>' +
+            '<div class="od">' + fmtDate(o.created_at) + '</div>' +
+            '<span class="tag ' + statusKey + '">' + esc(o.status) + '</span>' +
+            '<div class="ot">' + fmt(o.total_amount || 0) + '<small>MAD</small></div>' +
+          '</div>';
+        }).join('');
+        if (pOrders.length > 10) {
+          ordersHtml += '<div class="pharm-no-orders">+ ' + (pOrders.length - 10) + ' autres commandes</div>';
+        }
+      } else {
+        ordersHtml = '<div class="pharm-no-orders">Aucune commande pour l\'instant.</div>';
+      }
+
+      detEl.innerHTML =
+        '<div class="pharm-inner">' +
+          (p.address ? '<div class="pharm-addr">' + esc(p.address) + (p.city ? ', ' + esc(p.city) : '') + '</div>' : '') +
+          '<div class="pharm-orders-head">Commandes récentes</div>' +
+          ordersHtml +
+        '</div>';
+
+      rowEl.querySelector('.expand-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        var open = detEl.classList.toggle('open');
+        rowEl.classList.toggle('expanded', open);
+        this.setAttribute('aria-expanded', open);
+      });
+      rowEl.addEventListener('click', function() {
+        rowEl.querySelector('.expand-btn').click();
+      });
+
+      list.appendChild(rowEl);
+      list.appendChild(detEl);
+    });
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // init
+  loadStats();
+  loadTeam();
+  loadPharmacies();
+})();
+</script>
+<script src="../portal-nav.js"></script>
+<script src="admin-nav.js"></script>
+<script type="module">
+import { guard } from '../auth-guard.js';
+import { initNotifications } from '../notifications.js';
+(async () => {
+  const ctx = await guard('admin', 'Admin Login.html');
+  if (!ctx) return;
+  initNotifications(ctx.user.id, ctx.profile.role);
+  const n = ctx.profile.name || 'Admin';
+  const av = n.split(' ').map(w => w[0]||'').join('').slice(0,2) || 'A';
+  const nameEl = document.querySelector('.who .meta .n');
+  const avEl   = document.querySelector('.who .av');
+  if (nameEl) nameEl.textContent = n;
+  if (avEl)   avEl.textContent   = av.toUpperCase();
+  document.body.style.visibility = 'visible';
+})();
+</script>
+</body>
+</html>
