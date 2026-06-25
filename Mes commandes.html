@@ -239,17 +239,6 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   </div>
 </main>
 
-<script>
-/* diagnostic fallback — remove after debugging */
-setTimeout(function(){
-  if(document.body.style.visibility!=='visible'){
-    document.body.style.visibility='visible';
-    document.getElementById('empty').style.display='block';
-    document.getElementById('emptyTitle').textContent='Erreur: script non chargé';
-    document.getElementById('emptyText').textContent='Le module JS ne s\'est pas chargé. Ouvrez F12 → Console pour voir l\'erreur.';
-  }
-},2000);
-</script>
 <script src="cart.js"></script>
 <script src="portal-nav.js"></script>
 <script type="module">

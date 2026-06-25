@@ -325,7 +325,7 @@ window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   </div>
 
   <section class="stats">
-    <div class="stat"><div class="num">128</div><div class="lbl">Références actives</div></div>
+    <div class="stat"><div class="num" id="statProducts">—</div><div class="lbl">Références actives</div></div>
     <div class="stat"><div class="num" id="statOrders">0</div><div class="lbl">Commandes en cours</div></div>
     <div class="stat"><div class="num" id="statUnits">0</div><div class="lbl">Unités commandées</div></div>
     <div class="stat"><div class="num">100%</div><div class="lbl">Conformité lots</div></div>
@@ -506,6 +506,12 @@ function rowHTML(label,status){
 
 
 
+
+  var {count:prodCount}=await supabase
+    .from('products')
+    .select('id',{count:'exact',head:true});
+  var statProducts=document.getElementById('statProducts');
+  if(statProducts)statProducts.textContent=prodCount!=null?prodCount:'—';
 
   var {data:orders}=await supabase
     .from('orders')
