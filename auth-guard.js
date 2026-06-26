@@ -18,7 +18,7 @@ export async function guard(requiredRole, loginUrl) {
 
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .select('id, role, name, email, phone, pharmacy_id, active')
+      .select('id, role, name, email, phone, pharmacy_id')
       .eq('id', session.user.id)
       .single()
 

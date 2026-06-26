@@ -11,6 +11,7 @@ create table if not exists users (
   role text check (role in ('pharmacy', 'admin', 'sales_rep', 'delivery')),
   phone text,
   pharmacy_id uuid,
+  active boolean default true,
   created_at timestamptz default now()
 );
 
