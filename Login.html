@@ -397,8 +397,10 @@ setTimeout(reveal, 2000)
 
 async function handlePharmacySession(session) {
   if (_done) return
-  const { data: profile } = await supabase
+  console.log('[AUTH] handlePharmacySession called, querying users table...')
+  const { data: profile, error: profileErr } = await supabase
     .from('users').select('role').eq('id', session.user.id).single()
+  console.log('[AUTH] handlePharmacySession result:', { profile, profileErr })
   if (profile?.role !== 'pharmacy') { reveal(); return }
   _done = true
   if (session.user.user_metadata?.needs_password === true) {
@@ -482,6 +484,7 @@ form.addEventListener('submit', async (e) => {
     password: passEl.value
   });
 
+  console.log('[FORM] signInWithPassword returned:', { user: authData?.user?.id, authError })
   if (authError || !authData.user) {
     btn.classList.remove('loading');
     btn.disabled = false;
@@ -490,12 +493,14 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  const { data: profile } = await supabase
+  console.log('[FORM] Auth OK, querying users table...')
+  const { data: profile, error: profileErr } = await supabase
     .from('users')
     .select('role')
     .eq('id', authData.user.id)
     .single();
 
+  console.log('[FORM] users table result:', { profile, profileErr })
   if (!profile || profile.role !== 'pharmacy') {
     await supabase.auth.signOut();
     btn.classList.remove('loading');
