@@ -128,42 +128,160 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 </style>
 <link rel="stylesheet" href="portal-theme.css" />
 <style>
-/* ─── DARK MODE OVERRIDE — pharmacy login only ─── */
+/* ═══════════════════════════════════════════════════
+   DARK MODE + ENHANCEMENTS — pharmacy login only
+   Scoped to body.p-login.theme
+   No functional IDs / classes are renamed or removed
+═══════════════════════════════════════════════════ */
+
+/* ── colour tokens ── */
 body.p-login.theme{
   --navy:#080F1E !important;
   --white:#F4F6F9 !important;
-  --body:rgba(244,246,249,.72) !important;
-  --faint:rgba(244,246,249,.42) !important;
-  --hair:rgba(244,246,249,.14) !important;
+  --body:rgba(244,246,249,.70) !important;
+  --faint:rgba(244,246,249,.40) !important;
+  --hair:rgba(244,246,249,.12) !important;
 }
+
+/* ── page canvas ── */
+body.p-login.theme{background:#080F1E !important}
+
+/* ── rich layered background with slow breathe ── */
 body.p-login.theme #bg-glow{
   background:
-    radial-gradient(60% 50% at 50% 42%,rgba(13,191,168,.13) 0%,transparent 62%),
-    radial-gradient(48% 40% at 78% 88%,rgba(196,160,58,.08) 0%,transparent 60%),
-    linear-gradient(160deg,#060D18 0%,#0A1520 100%) !important;
+    radial-gradient(72% 62% at 50% 44%,rgba(13,191,168,.22) 0%,transparent 56%),
+    radial-gradient(46% 42% at 10% 16%,rgba(13,191,168,.14) 0%,transparent 52%),
+    radial-gradient(42% 38% at 90% 84%,rgba(196,160,58,.12) 0%,transparent 52%),
+    linear-gradient(158deg,#03070E 0%,#06101C 55%,#040B14 100%) !important;
+  animation:glowBreath 14s ease-in-out infinite !important;
 }
+@keyframes glowBreath{0%,100%{opacity:1}50%{opacity:.70}}
+
+/* ── teal-tinted blueprint grid ── */
 body.p-login.theme::after{
   background-image:
-    linear-gradient(rgba(244,246,249,.03) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(244,246,249,.03) 1px,transparent 1px) !important;
-  opacity:.5 !important;
+    linear-gradient(rgba(13,191,168,.042) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(13,191,168,.042) 1px,transparent 1px) !important;
+  background-size:52px 52px !important;
+  opacity:.55 !important;
 }
+
+/* ── card rises then gently floats ── */
+body.p-login.theme .auth{
+  animation:rise .65s cubic-bezier(.16,1,.3,1) both,
+            cardFloat 7s ease-in-out 1.1s infinite !important;
+}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* ── glassmorphism card with teal glow ── */
 body.p-login.theme .auth .card{
-  background:rgba(13,22,36,.88) !important;
-  border:1px solid rgba(13,191,168,.22) !important;
+  background:rgba(7,13,26,.86) !important;
+  border:1px solid rgba(13,191,168,.30) !important;
   border-top:3px solid var(--gold) !important;
+  -webkit-backdrop-filter:blur(34px) saturate(1.5) !important;
+  backdrop-filter:blur(34px) saturate(1.5) !important;
   box-shadow:
-    0 1px 0 rgba(13,191,168,.12) inset,
-    0 40px 120px -40px rgba(0,0,0,.75) !important;
+    0 0 0 1px rgba(13,191,168,.10),
+    0 0 60px -8px rgba(13,191,168,.20),
+    0 2px 0 rgba(255,255,255,.05) inset,
+    0 56px 120px -36px rgba(0,0,0,.88) !important;
 }
-body.p-login.theme .auth .card .secure{color:var(--faint) !important;opacity:1 !important}
+
+/* ── staggered content reveal ── */
+body.p-login.theme .auth .card .brand{animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .20s both !important}
+body.p-login.theme .auth .card .portal{animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .30s both !important;color:var(--teal) !important}
+body.p-login.theme .auth .card .form{animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .40s both !important}
+body.p-login.theme .auth .card .askaccess{animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .50s both !important}
+body.p-login.theme .auth .card .secure{
+  animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .55s both !important;
+  color:var(--faint) !important;
+  border-top-color:rgba(244,246,249,.08) !important;
+  opacity:1 !important;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ── labels — teal tint, lift on focus ── */
+body.p-login.theme .field label{
+  color:rgba(13,191,168,.68) !important;
+  font-size:10px !important;letter-spacing:.18em !important;
+  transition:color .22s,transform .22s !important;
+}
+body.p-login.theme .field:focus-within label{
+  color:var(--teal) !important;
+  transform:translateY(-2px) !important;
+}
+
+/* ── inputs — deep dark with strong teal focus glow ── */
+body.p-login.theme .field input{
+  background:rgba(3,9,18,.68) !important;
+  border-color:rgba(244,246,249,.14) !important;
+  color:#F4F6F9 !important;
+  transition:border-color .25s,box-shadow .25s !important;
+}
+body.p-login.theme .field input::placeholder{color:rgba(244,246,249,.20) !important}
+body.p-login.theme .field input:focus{
+  border-color:var(--teal) !important;
+  box-shadow:0 0 0 3px rgba(13,191,168,.18),0 0 26px rgba(13,191,168,.10) !important;
+}
+body.p-login.theme .field.err input{border-color:#e0655c !important}
+
+/* ── submit — solid teal, shimmer sweep, hover lifts ── */
+body.p-login.theme .submit{
+  color:#04090E !important;
+  position:relative !important;
+  overflow:hidden !important;
+  transition:background .28s,box-shadow .28s,color .28s,transform .22s !important;
+}
+body.p-login.theme .submit::before{
+  content:"" !important;position:absolute !important;inset:0 !important;
+  background:linear-gradient(108deg,transparent 28%,rgba(255,255,255,.22) 50%,transparent 72%) !important;
+  transform:translateX(-110%) !important;pointer-events:none !important;
+  animation:shimmer 3.5s ease-in-out 2.2s infinite !important;
+}
+@keyframes shimmer{
+  0%,55%,100%{transform:translateX(-110%);opacity:0}
+  22%{opacity:1}40%{transform:translateX(110%);opacity:0}
+}
+body.p-login.theme .submit:not(:disabled):hover{
+  background:var(--teal) !important;
+  color:#04090E !important;
+  box-shadow:0 6px 30px rgba(13,191,168,.46),0 0 0 1px rgba(13,191,168,.28) !important;
+  transform:translateY(-2px) !important;
+}
+body.p-login.theme .submit:active{transform:translateY(0) !important}
+
+/* ── "Demander un accès" — gold default, teal hover ── */
 body.p-login.theme .auth .card .askaccess a{
   color:var(--gold) !important;
   border-bottom-color:rgba(196,160,58,.28) !important;
 }
 body.p-login.theme .auth .card .askaccess a:hover{
   color:var(--teal) !important;
-  border-bottom-color:var(--teal) !important;
+  border-bottom-color:rgba(13,191,168,.50) !important;
+  text-decoration:none !important;
+}
+
+/* ── back link ── */
+body.p-login.theme .back a{color:rgba(244,246,249,.30) !important}
+body.p-login.theme .back a:hover{color:var(--teal) !important}
+
+/* ── error banner ── */
+body.p-login.theme .auth-error{
+  color:#ff7272 !important;
+  border-color:rgba(255,114,114,.35) !important;
+  background:rgba(255,80,80,.07) !important;
+}
+
+/* ── prefers-reduced-motion ── */
+@media(prefers-reduced-motion:reduce){
+  body.p-login.theme .auth{animation:rise .5s cubic-bezier(.16,1,.3,1) both !important}
+  body.p-login.theme .auth .card .brand,
+  body.p-login.theme .auth .card .portal,
+  body.p-login.theme .auth .card .form,
+  body.p-login.theme .auth .card .askaccess,
+  body.p-login.theme .auth .card .secure,
+  body.p-login.theme .submit::before,
+  body.p-login.theme #bg-glow{animation:none !important}
 }
 </style>
 <style>body{visibility:hidden}</style>
