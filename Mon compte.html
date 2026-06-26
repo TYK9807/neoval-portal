@@ -130,6 +130,33 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   .fgrid{grid-template-columns:1fr}
 }
 </style>
+<style>
+/* ── DARK MODE — Mon compte · body.p-account.theme ── */
+body.p-account.theme{--navy:#080F1E !important;--white:#F4F6F9 !important;--body:rgba(244,246,249,.68) !important;--faint:rgba(244,246,249,.38) !important;--hair:rgba(244,246,249,.10) !important}
+body.p-account.theme #bg-glow{background:radial-gradient(64% 56% at -4% -4%,rgba(13,191,168,.28) 0%,transparent 55%),radial-gradient(52% 50% at 106% 106%,rgba(196,160,58,.20) 0%,transparent 52%),linear-gradient(148deg,#030710 0%,#060D18 55%,#040910 100%) !important}
+body.p-account.theme::after{background-image:linear-gradient(rgba(13,191,168,.032) 1px,transparent 1px),linear-gradient(90deg,rgba(13,191,168,.032) 1px,transparent 1px) !important;opacity:.50 !important}
+body.p-account.theme .head h1{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
+body.p-account.theme .head p{color:rgba(244,246,249,.62) !important}
+body.p-account.theme .acard{background:rgba(7,13,26,.80) !important;border-color:rgba(244,246,249,.08) !important;border-top-color:var(--teal) !important;box-shadow:0 4px 24px rgba(0,0,0,.48) !important}
+body.p-account.theme .acard:nth-child(2){border-top-color:var(--gold) !important}
+body.p-account.theme .acard h3{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
+body.p-account.theme .field input{background:rgba(6,13,24,.60) !important;border-color:rgba(244,246,249,.10) !important;color:#EFF4F8 !important}
+body.p-account.theme .field input:focus{background:rgba(13,191,168,.06) !important;border-color:var(--teal) !important}
+body.p-account.theme .foot{border-top-color:rgba(244,246,249,.08) !important}
+/* Admin Stock also uses p-account */
+body.p-account.theme .stats{border-color:rgba(244,246,249,.08) !important}
+body.p-account.theme .stat{background:rgba(7,13,26,.80) !important;border-right-color:rgba(244,246,249,.08) !important}
+body.p-account.theme .stat .num{color:#EFF4F8 !important}
+body.p-account.theme .stat .num.teal{color:var(--teal) !important}
+body.p-account.theme .stat .num.gold{color:var(--gold) !important}
+body.p-account.theme .list{background:rgba(7,13,26,.74) !important;border-color:rgba(244,246,249,.08) !important}
+body.p-account.theme .srow{border-bottom-color:rgba(244,246,249,.08) !important}
+body.p-account.theme .qedit{background:rgba(6,13,24,.55) !important;border-color:rgba(244,246,249,.10) !important}
+body.p-account.theme .qedit button{border-right-color:rgba(244,246,249,.10) !important;border-left-color:rgba(244,246,249,.10) !important;color:rgba(244,246,249,.58) !important}
+body.p-account.theme .qedit input{color:#EFF4F8 !important}
+body.p-account.theme #toast{background:rgba(5,10,20,.94) !important;border-color:rgba(13,191,168,.40) !important;border-left-color:var(--teal) !important}
+@media(prefers-reduced-motion:reduce){body.p-account.theme #bg-glow{animation:none !important}}
+</style>
 <link rel="stylesheet" href="portal-theme.css" />
 <style>body{visibility:hidden}</style>
 </head>

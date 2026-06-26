@@ -178,6 +178,24 @@ select.ord option{background:var(--navy-2);color:var(--white)}
   .dl{justify-self:end}
 }
 </style>
+<style>
+/* ── DARK MODE — Documents · body.p-docs.theme ── */
+body.p-docs.theme{--navy:#080F1E !important;--white:#F4F6F9 !important;--body:rgba(244,246,249,.68) !important;--faint:rgba(244,246,249,.38) !important;--hair:rgba(244,246,249,.10) !important}
+body.p-docs.theme #bg-glow{background:radial-gradient(64% 56% at -4% -4%,rgba(13,191,168,.28) 0%,transparent 55%),radial-gradient(52% 50% at 106% 106%,rgba(196,160,58,.20) 0%,transparent 52%),linear-gradient(148deg,#030710 0%,#060D18 55%,#040910 100%) !important}
+body.p-docs.theme::after{background-image:linear-gradient(rgba(13,191,168,.032) 1px,transparent 1px),linear-gradient(90deg,rgba(13,191,168,.032) 1px,transparent 1px) !important;opacity:.50 !important}
+body.p-docs.theme .head h1{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
+body.p-docs.theme .head p{color:rgba(244,246,249,.62) !important}
+body.p-docs.theme .filters{background:rgba(7,13,26,.74) !important;border-color:rgba(244,246,249,.10) !important}
+body.p-docs.theme .filters button{border-right-color:rgba(244,246,249,.10) !important;color:rgba(244,246,249,.54) !important}
+body.p-docs.theme .filters button:hover{color:#F4F6F9 !important}
+body.p-docs.theme .filters button.active{color:#080F1E !important;background:var(--teal) !important}
+body.p-docs.theme .list{background:rgba(7,13,26,.74) !important;border-color:rgba(244,246,249,.08) !important}
+body.p-docs.theme .drow{border-bottom-color:rgba(244,246,249,.08) !important}
+body.p-docs.theme .drow .dname .ficon{border-color:rgba(244,246,249,.10) !important;background:rgba(244,246,249,.02) !important}
+body.p-docs.theme .drow .dname .ficon::before{border-color:#080F1E transparent !important}
+body.p-docs.theme .drow .dname .nm{color:#EFF4F8 !important}
+@media(prefers-reduced-motion:reduce){body.p-docs.theme #bg-glow{animation:none !important}}
+</style>
 <link rel="stylesheet" href="portal-theme.css" />
 <style>body{visibility:hidden}</style>
 </head>

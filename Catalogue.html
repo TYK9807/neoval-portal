@@ -137,6 +137,24 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   .who .meta{display:none}
 }
 </style>
+<style>
+/* ── DARK MODE — Catalogue · body.p-cat.theme ── */
+body.p-cat.theme{--navy:#080F1E !important;--white:#F4F6F9 !important;--body:rgba(244,246,249,.68) !important;--faint:rgba(244,246,249,.38) !important;--hair:rgba(244,246,249,.10) !important}
+body.p-cat.theme #bg-glow{background:radial-gradient(64% 56% at -4% -4%,rgba(13,191,168,.28) 0%,transparent 55%),radial-gradient(52% 50% at 106% 106%,rgba(196,160,58,.20) 0%,transparent 52%),linear-gradient(148deg,#030710 0%,#060D18 55%,#040910 100%) !important}
+body.p-cat.theme::after{background-image:linear-gradient(rgba(13,191,168,.032) 1px,transparent 1px),linear-gradient(90deg,rgba(13,191,168,.032) 1px,transparent 1px) !important;opacity:.50 !important}
+body.p-cat.theme .head h1{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
+body.p-cat.theme .head p{color:rgba(244,246,249,.62) !important}
+body.p-cat.theme .filterbar{border-bottom-color:rgba(244,246,249,.08) !important}
+body.p-cat.theme .chip{color:rgba(244,246,249,.54) !important;border-color:rgba(244,246,249,.10) !important}
+body.p-cat.theme .chip:hover{color:#F4F6F9 !important;border-color:rgba(244,246,249,.28) !important}
+body.p-cat.theme .chip.active{color:#080F1E !important}
+body.p-cat.theme .pcard{background:rgba(7,13,26,.80) !important;border-color:rgba(244,246,249,.08) !important;box-shadow:0 4px 24px rgba(0,0,0,.50) !important}
+body.p-cat.theme .pcard:hover{border-color:rgba(13,191,168,.42) !important}
+body.p-cat.theme .pcard .vis{border-bottom-color:rgba(244,246,249,.08) !important}
+body.p-cat.theme .pcard h3{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
+body.p-cat.theme #toast{background:rgba(5,10,20,.94) !important;border-color:rgba(13,191,168,.40) !important;border-left-color:var(--teal) !important}
+@media(prefers-reduced-motion:reduce){body.p-cat.theme #bg-glow{animation:none !important}}
+</style>
 <link rel="stylesheet" href="portal-theme.css" />
 <style>body{visibility:hidden}</style>
 </head>
