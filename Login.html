@@ -397,13 +397,10 @@ setTimeout(reveal, 2000)
 
 async function handlePharmacySession(session) {
   if (_done) return
-  console.log('[handlePharmacySession] uid:', session.user.id, 'email:', session.user.email)
-  const { data: profile, error: pErr } = await supabase
+  const { data: profile } = await supabase
     .from('users').select('role').eq('id', session.user.id).single()
-  console.log('[handlePharmacySession] profile:', profile, 'error:', pErr)
   if (profile?.role !== 'pharmacy') { reveal(); return }
   _done = true
-  console.log('[handlePharmacySession] redirecting to Dashboard…')
   if (session.user.user_metadata?.needs_password === true) {
     document.getElementById('loginForm').style.display = 'none'
     document.querySelector('.askaccess').style.display = 'none'
@@ -415,7 +412,6 @@ async function handlePharmacySession(session) {
 }
 
 supabase.auth.onAuthStateChange(async (event, session) => {
-  console.log('[onAuthStateChange]', event, session?.user?.email ?? 'no session')
   if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
     await handlePharmacySession(session)
   } else if (event === 'INITIAL_SESSION' && !session) {
@@ -468,12 +464,6 @@ form.after(errBanner);
 emailEl.addEventListener('input', () => { emailF.classList.remove('err'); errBanner.classList.remove('show'); });
 passEl.addEventListener('input',  () => { passF.classList.remove('err');  errBanner.classList.remove('show'); });
 
-// Temporary debug box — remove after diagnosis
-const _dbg = document.createElement('div');
-_dbg.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0D1B2A;color:#0DBFA8;font-family:monospace;font-size:12px;padding:10px 16px;border:1px solid #0DBFA8;z-index:9999;max-width:90vw;white-space:pre-wrap';
-document.body.appendChild(_dbg);
-function dbg(msg) { _dbg.textContent = msg; console.log('[login]', msg); }
-
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -487,61 +477,36 @@ form.addEventListener('submit', async (e) => {
   btn.disabled = true;
   btn.querySelector('.label').textContent = 'Connexion…';
 
-  try {
-    dbg('1. signInWithPassword…');
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: emailVal,
-      password: passEl.value
-    });
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email: emailVal,
+    password: passEl.value
+  });
 
-    if (authError || !authData?.user) {
-      dbg('AUTH ERROR: ' + (authError?.message || 'no user'));
-      btn.classList.remove('loading');
-      btn.disabled = false;
-      btn.querySelector('.label').textContent = 'Se connecter';
-      errBanner.classList.add('show');
-      return;
-    }
-
-    dbg('2. Auth OK. Querying users table…');
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', authData.user.id)
-      .single();
-
-    if (profileError) {
-      dbg('PROFILE ERROR: ' + profileError.message + ' (code ' + profileError.code + ')');
-      btn.classList.remove('loading');
-      btn.disabled = false;
-      btn.querySelector('.label').textContent = 'Se connecter';
-      errBanner.textContent = 'Erreur profil: ' + profileError.message;
-      errBanner.classList.add('show');
-      return;
-    }
-
-    if (!profile || profile.role !== 'pharmacy') {
-      dbg('ROLE WRONG: ' + JSON.stringify(profile));
-      await supabase.auth.signOut();
-      btn.classList.remove('loading');
-      btn.disabled = false;
-      btn.querySelector('.label').textContent = 'Se connecter';
-      errBanner.textContent = 'Accès réservé aux comptes pharmacie';
-      errBanner.classList.add('show');
-      return;
-    }
-
-    dbg('3. Role OK. Redirecting…');
-    window.location.href = 'Dashboard.html';
-
-  } catch (err) {
-    dbg('EXCEPTION: ' + err.message);
+  if (authError || !authData.user) {
     btn.classList.remove('loading');
     btn.disabled = false;
     btn.querySelector('.label').textContent = 'Se connecter';
-    errBanner.textContent = 'Erreur inattendue: ' + err.message;
     errBanner.classList.add('show');
+    return;
   }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', authData.user.id)
+    .single();
+
+  if (!profile || profile.role !== 'pharmacy') {
+    await supabase.auth.signOut();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.querySelector('.label').textContent = 'Se connecter';
+    errBanner.textContent = 'Accès réservé aux comptes pharmacie';
+    errBanner.classList.add('show');
+    return;
+  }
+
+  window.location.href = 'Dashboard.html';
 });
 </script>
 </body>
