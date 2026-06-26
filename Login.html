@@ -397,10 +397,13 @@ setTimeout(reveal, 2000)
 
 async function handlePharmacySession(session) {
   if (_done) return
-  const { data: profile } = await supabase
+  console.log('[handlePharmacySession] uid:', session.user.id, 'email:', session.user.email)
+  const { data: profile, error: pErr } = await supabase
     .from('users').select('role').eq('id', session.user.id).single()
+  console.log('[handlePharmacySession] profile:', profile, 'error:', pErr)
   if (profile?.role !== 'pharmacy') { reveal(); return }
   _done = true
+  console.log('[handlePharmacySession] redirecting to Dashboard…')
   if (session.user.user_metadata?.needs_password === true) {
     document.getElementById('loginForm').style.display = 'none'
     document.querySelector('.askaccess').style.display = 'none'
@@ -412,6 +415,7 @@ async function handlePharmacySession(session) {
 }
 
 supabase.auth.onAuthStateChange(async (event, session) => {
+  console.log('[onAuthStateChange]', event, session?.user?.email ?? 'no session')
   if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
     await handlePharmacySession(session)
   } else if (event === 'INITIAL_SESSION' && !session) {
