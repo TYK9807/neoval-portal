@@ -1,4 +1,4 @@
-(function(){
+﻿(function(){
   var SUPABASE_URL = 'https://nxlvdwqvkvgjvellmnic.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
   var sb = null; // initialised in DOMContentLoaded after ES modules have run
@@ -13,7 +13,7 @@
     if(s.indexOf('attente') > -1) return 'attente';
     return 'confirme';
   }
-  function fmt(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmt(n){ var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1]; }
 
   var _orders = [];
 

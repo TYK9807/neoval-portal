@@ -177,8 +177,8 @@ body.motion-off .cat3d-stage{animation:none!important}
 .cat3d-card .c-glyph{font-size:48px;font-weight:500;line-height:1;color:var(--teal);opacity:.85;margin:12px 0 auto}
 .cat3d-card .c-name{font-size:12.5px;color:#F5F7FA;line-height:1.25;margin-bottom:4px}
 .cat3d-card .c-ref{font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,247,250,.42)}
-.cat3d-card .c-price{font-size:15px;font-weight:500;color:#F5F7FA;margin-top:9px}
-.cat3d-card .c-price small{font-size:8.5px;color:rgba(245,247,250,.5);margin-left:2px}
+.cat3d-card .c-price{font-size:15px;font-weight:500;color:#F5F7FA;margin-top:9px;display:flex;align-items:baseline;gap:3px}
+.cat3d-card .c-price small{font-size:8.5px;color:rgba(245,247,250,.5)}
 
 .cat3d.stack .cat3d-card{
   transform:translateX(calc(var(--i) * 30px - 18px)) translateY(calc(var(--i) * -15px + 10px))
@@ -563,7 +563,7 @@ window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
     c.className='cat3d-card';
     c.style.setProperty('--i',i);
     c.style.setProperty('--n',n);
-    var price=(typeof p.price==='number'?p.price.toLocaleString('fr-FR'):p.price);
+    function fmtP(n){var q=Number(n).toFixed(2).split('.');q[0]=q[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return q[0]+','+q[1];} var price=(typeof p.price==='number'?fmtP(p.price):p.price);
     c.innerHTML='<span class="c-cat">'+p.cat+'</span>'+
       '<span class="c-glyph">'+p.glyph+'</span>'+
       '<span class="c-name">'+p.name+'</span>'+
