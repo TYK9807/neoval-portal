@@ -66,7 +66,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .scard.gold{border-top-color:var(--gold)}
 .scard .sk{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--teal);margin-bottom:12px}
-.scard .sv{font-family:'Syne';font-weight:800;font-size:34px;color:var(--white);line-height:1.1;display:flex;align-items:baseline;gap:5px;flex-wrap:nowrap;white-space:nowrap}
+.scard .sv{font-family:'Syne';font-weight:800;font-size:34px;color:var(--white);line-height:1.1;display:flex;align-items:baseline;gap:5px;flex-wrap:nowrap}
 .scard .sv small{font-size:18px;color:var(--body);font-weight:600;text-transform:uppercase}
 .scard .ss{font-size:12px;color:var(--faint);margin-top:10px}
 
@@ -307,8 +307,8 @@ import { initNotifications } from '../notifications.js';
   });
   const topPharmacyEntries = Object.entries(pharmacyCount).sort((a, b) => b[1] - a[1]);
 
-  document.getElementById('statRevenue').innerHTML = fmt(totalRevenue) + '<small>MAD</small>';
-  document.getElementById('statAvg').innerHTML = fmtDec(avgOrderValue) + '<small>MAD</small>';
+  document.getElementById('statRevenue').innerHTML = '<span style="white-space:nowrap">' + fmt(totalRevenue) + '<small>MAD</small></span>';
+  document.getElementById('statAvg').innerHTML = '<span style="white-space:nowrap">' + fmtDec(avgOrderValue) + '<small>MAD</small></span>';
   document.getElementById('statTopProd').textContent = topProductEntries[0]?.[0] || '—';
   document.getElementById('statTopPharma').textContent = topPharmacyEntries[0]?.[0] || '—';
 
