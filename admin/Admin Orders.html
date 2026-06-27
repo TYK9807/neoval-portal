@@ -115,6 +115,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .tag.confirme::before{background:var(--teal)}
 .tag.livre{color:var(--body);border-color:var(--hair);background:rgba(245,247,250,.04)}
 .tag.livre::before{background:var(--faint)}
+.tag.annule{color:#e0655c;border-color:rgba(224,101,92,.4);background:rgba(224,101,92,.08)}
+.tag.annule::before{background:#e0655c}
 
 /* row action button — teal outline, matches button system */
 .actcell{display:flex;justify-content:flex-start}
@@ -189,6 +191,7 @@ body.p-orders.theme .cred-panel{background:rgba(5,11,22,.96) !important;border-c
 body.p-orders.theme .cval{background:rgba(6,13,24,.70) !important;border-color:rgba(244,246,249,.10) !important;color:#EFF4F8 !important}
 body.p-orders.theme #done{background:rgba(3,7,16,.88) !important}
 body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-color:rgba(13,191,168,.3) !important}
+body.p-orders.theme .tag.annule{color:#e07b74 !important;border-color:rgba(224,101,92,.35) !important;background:rgba(224,101,92,.10) !important}
 @media(prefers-reduced-motion:reduce){body.p-orders.theme #bg-glow{animation:none !important}}
 </style>
 <link rel="stylesheet" href="../portal-theme.css" />
@@ -265,6 +268,7 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
       <button data-f="attente">En attente <span class="ct" data-ct="attente">0</span></button>
       <button data-f="confirme">Confirmé <span class="ct" data-ct="confirme">0</span></button>
       <button data-f="livre">Livré <span class="ct" data-ct="livre">0</span></button>
+      <button data-f="annule">Annulé <span class="ct" data-ct="annule">0</span></button>
     </div>
     <span class="tbcount" id="tbcount">0 commandes</span>
   </div>
@@ -300,11 +304,12 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
   function actionHTML(b){
     if(b==='attente') return '<button class="rowact" data-act="confirm"><span class="ic"></span>Confirmer</button>';
     if(b==='confirme') return '<button class="rowact" data-act="deliver"><span class="ic"></span>Marquer livré</button>';
+    if(b==='annule') return '<span class="rowact done"><span class="ic"></span>Annulée</span>';
     return '<span class="rowact done"><span class="ic"></span>Livrée</span>';
   }
 
   function counts(orders){
-    var c={tous:orders.length,attente:0,confirme:0,livre:0};
+    var c={tous:orders.length,attente:0,confirme:0,livre:0,annule:0};
     orders.forEach(function(o){ c[bucket(o.status)]++; });
     return c;
   }

@@ -3,11 +3,12 @@
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
   var sb = null; // initialised in DOMContentLoaded after ES modules have run
 
-  var LABELS = { attente:'En attente', confirme:'Confirmé', livre:'Livré' };
+  var LABELS = { attente:'En attente', confirme:'Confirmé', livre:'Livré', annule:'Annulé' };
   var ORDER  = ['attente','confirme','livre'];
 
   function bucket(s){
     s = (s||'').toLowerCase();
+    if(s.indexOf('annul')   > -1) return 'annule';
     if(s.indexOf('livr')    > -1) return 'livre';
     if(s.indexOf('attente') > -1) return 'attente';
     return 'confirme';
@@ -41,7 +42,7 @@
       items:     items,
       lineCount: items.length,
       units:     items.reduce(function(s, it){ return s + it.qty; }, 0),
-      blGenerated: bucket(row.status) !== 'attente'
+      blGenerated: (function(){ var b=bucket(row.status); return b!=='attente'&&b!=='annule'; })()
     };
   }
 

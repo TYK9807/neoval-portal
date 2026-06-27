@@ -93,6 +93,31 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .tag.confirme::before{background:var(--teal)}
 .tag.livre{color:var(--body);border-color:var(--hair);background:rgba(245,247,250,.04)}
 .tag.livre::before{background:var(--faint)}
+.tag.annule{color:#e0655c;border-color:rgba(224,101,92,.4);background:rgba(224,101,92,.08)}
+.tag.annule::before{background:#e0655c}
+.cancel-inline{display:inline-flex;align-items:center;gap:9px;font-family:'IBM Plex Mono';font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;color:#e0655c;background:transparent;
+  border:1px solid rgba(224,101,92,.5);padding:11px 18px;cursor:pointer;transition:background .2s,color .2s}
+.cancel-inline:hover{background:rgba(224,101,92,.10)}
+#cancel-modal{position:fixed;inset:0;z-index:200;display:none;place-items:center;padding:24px;
+  background:rgba(6,13,24,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#cancel-modal.show{display:grid}
+.cancel-panel{background:var(--navy-2);border:1px solid rgba(224,101,92,.3);border-top:3px solid #e0655c;
+  padding:44px 40px;max-width:420px;width:100%;text-align:center}
+#cancel-modal.show .cancel-panel{animation:rise .4s cubic-bezier(.16,1,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.cancel-icon{width:54px;height:54px;border:2px solid #e0655c;display:grid;place-items:center;
+  margin:0 auto 22px;color:#e0655c;font-size:26px}
+.cancel-panel h2{font-size:22px;margin-bottom:14px}
+.cancel-panel p{color:var(--body);font-size:15px;line-height:1.6;margin-bottom:28px}
+.cancel-acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.cancel-confirm{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:#fff;background:#e0655c;border:1px solid #e0655c;padding:14px 22px;cursor:pointer;transition:opacity .2s}
+.cancel-confirm:hover{opacity:.85}
+.cancel-confirm:disabled{opacity:.55;cursor:not-allowed}
+.cancel-back{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);background:transparent;border:1px solid var(--hair);padding:14px 22px;cursor:pointer;transition:all .25s}
+.cancel-back:hover{color:var(--white);border-color:var(--white)}
 
 /* timeline */
 .flow{display:flex;align-items:flex-start;background:var(--glass);backdrop-filter:blur(14px);
@@ -257,6 +282,9 @@ body.p-orders.theme .cred-panel{background:rgba(5,11,22,.96) !important;border-c
 body.p-orders.theme .cval{background:rgba(6,13,24,.70) !important;border-color:rgba(244,246,249,.10) !important;color:#EFF4F8 !important}
 body.p-orders.theme #done{background:rgba(3,7,16,.88) !important}
 body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-color:rgba(13,191,168,.3) !important}
+body.p-orders.theme .tag.annule{color:#e07b74 !important;border-color:rgba(224,101,92,.35) !important;background:rgba(224,101,92,.10) !important}
+body.p-orders.theme #cancel-modal{background:rgba(3,7,16,.88) !important}
+body.p-orders.theme .cancel-panel{background:rgba(5,11,22,.96) !important;border-color:rgba(224,101,92,.3) !important}
 @media(prefers-reduced-motion:reduce){body.p-orders.theme #bg-glow{animation:none !important}}
 </style>
 <link rel="stylesheet" href="portal-theme.css" />
@@ -322,6 +350,7 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
       </div>
       <div class="right">
         <div id="oTag"></div>
+        <button class="cancel-inline" id="cancelOrderBtn" style="display:none">✕ Annuler la commande</button>
         <div class="tl">Total TTC</div>
         <div class="tv" id="oTotalBig">0<small>MAD</small></div>
       </div>
@@ -363,6 +392,7 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
         <div class="sr"><span class="k">Sous-total HT</span><span class="v" id="sSub">0 MAD</span></div>
         <div class="sr"><span class="k">TVA (20%)</span><span class="v" id="sTva">0 MAD</span></div>
         <div class="sr"><span class="k">Livraison</span><span class="v free">Incluse</span></div>
+        <div class="sr" id="sPayRow" style="display:none"><span class="k">Mode de paiement</span><span class="v" id="sPayment">—</span></div>
         <div class="sr tot"><span class="k">Total TTC</span><span class="v" id="sTot">0<small>MAD</small></span></div>
         <a class="reorder" id="reorder" href="Catalogue.html">Commander à nouveau</a>
         <div class="sumnote">Devis confirmé par un conseiller Neoval Pharma. Délais de livraison communiqués sous 24 h ouvrées.</div>
@@ -378,6 +408,18 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
   </div>
 </main>
 
+
+<div id="cancel-modal">
+  <div class="cancel-panel">
+    <div class="cancel-icon">✕</div>
+    <h2>Annuler la commande</h2>
+    <p>Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.</p>
+    <div class="cancel-acts">
+      <button class="cancel-confirm" id="cancelConfirmBtn">Confirmer l'annulation</button>
+      <button class="cancel-back" id="cancelBackBtn">Retour</button>
+    </div>
+  </div>
+</div>
 
 <script src="cart.js"></script>
 <script src="portal-nav.js"></script>
@@ -398,10 +440,11 @@ function syncCart(){
 window.addEventListener('cart:change',syncCart);
 syncCart();
 
-var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
+var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré',annule:'Annulé'};
 var ORDER=['attente','confirme','livre'];
 function bucket(s){
   s=(s||'').toLowerCase();
+  if(s.indexOf('annul')>-1)return 'annule';
   if(s.indexOf('livr')>-1)return 'livre';
   if(s.indexOf('attente')>-1)return 'attente';
   return 'confirme';
@@ -418,13 +461,13 @@ function renderDocs(shortId,b){
   var note=document.getElementById('docsNote');
   var all=document.getElementById('docsAll');
   var defs=[{t:'BL',label:'Bon de livraison'},{t:'POP',label:'Preuve de paiement'}];
-  if(b==='attente'){
-    note.textContent='Émis après confirmation de la commande';
+  if(b==='attente'||b==='annule'){
+    note.textContent=b==='annule'?'Commande annulée — aucun document émis':'Émis après confirmation de la commande';
     all.style.display='none';
     listEl.innerHTML=defs.map(function(d){
       return '<div class="doc"><div class="di">'+d.t+'</div>'+
-        '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">En attente de confirmation</div></div>'+
-        '<span class="badge">Bientôt</span></div>';
+        '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">'+(b==='annule'?'Non émis':'En attente de confirmation')+'</div></div>'+
+        '<span class="badge">'+(b==='annule'?'Annulée':'Bientôt')+'</span></div>';
     }).join('');
     return;
   }
@@ -466,7 +509,7 @@ document.getElementById('docList').addEventListener('click',function(e){
 
   var {data:o,error}=await supabase
     .from('orders')
-    .select('id,status,total,created_at,order_items(quantity,unit_price,products(name,category))')
+    .select('id,status,total,created_at,payment_method,order_items(quantity,unit_price,products(name,category))')
     .eq('id',uuid)
     .eq('placed_by',ctx.user.id)
     .single();
@@ -486,17 +529,29 @@ document.getElementById('docList').addEventListener('click',function(e){
   document.getElementById('oTag').innerHTML='<span class="tag '+b+'">'+LABELS[b]+'</span>';
   document.getElementById('oTotalBig').innerHTML=fmt(o.total)+'<small>MAD</small>';
 
-  var cur=ORDER.indexOf(b);
+  if(b==='attente'){
+    document.getElementById('cancelOrderBtn').style.display='';
+  }
+
+  var cur=b==='annule'?-2:ORDER.indexOf(b);
   var steps=document.querySelectorAll('#flow .fstep');
   var activeWord={attente:'En cours',confirme:'En préparation',livre:'Livrée'};
-  [].forEach.call(steps,function(st,i){
-    st.classList.remove('done','active','fill');
-    if(i<cur){st.classList.add('done');}
-    else if(i===cur){st.classList.add('active');}
-    if(i<=cur&&i>0){st.classList.add('fill');}
-    var word=i<cur?'Terminé':(i===cur?activeWord[st.getAttribute('data-step')]:'À venir');
-    st.querySelector('.ss').textContent=word;
-  });
+  if(b==='annule'){
+    [].forEach.call(steps,function(st){
+      st.classList.remove('done','active','fill');
+      st.querySelector('.ss').textContent='Annulée';
+    });
+    steps[0].querySelector('.ss').textContent='Reçue';
+  } else {
+    [].forEach.call(steps,function(st,i){
+      st.classList.remove('done','active','fill');
+      if(i<cur){st.classList.add('done');}
+      else if(i===cur){st.classList.add('active');}
+      if(i<=cur&&i>0){st.classList.add('fill');}
+      var word=i<cur?'Terminé':(i===cur?activeWord[st.getAttribute('data-step')]:'À venir');
+      st.querySelector('.ss').textContent=word;
+    });
+  }
 
   var items=o.order_items||[];
   var subtotal=0,units=0;
@@ -520,7 +575,39 @@ document.getElementById('docList').addEventListener('click',function(e){
   document.getElementById('sTva').textContent=fmt(tva)+' MAD';
   document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';
 
+  var PAYMENT_LABELS={virement:'Virement bancaire',cheque:'Chèque',especes:'Espèces à la livraison',online:'Paiement en ligne'};
+  if(o.payment_method){
+    document.getElementById('sPayment').textContent=PAYMENT_LABELS[o.payment_method]||o.payment_method;
+    document.getElementById('sPayRow').style.display='';
+  }
+
   renderDocs(shortId,b);
+
+  var cancelModal=document.getElementById('cancel-modal');
+  var cancelConfirmBtn=document.getElementById('cancelConfirmBtn');
+
+  document.getElementById('cancelOrderBtn').addEventListener('click',function(){
+    cancelModal.classList.add('show');
+  });
+  document.getElementById('cancelBackBtn').addEventListener('click',function(){
+    cancelModal.classList.remove('show');
+  });
+  cancelConfirmBtn.addEventListener('click',async function(){
+    cancelConfirmBtn.disabled=true;
+    cancelConfirmBtn.textContent='Annulation…';
+    var {data:result,error:rpcErr}=await supabase.rpc('cancel_order',{
+      p_order_id:uuid,
+      p_user_id:ctx.user.id
+    });
+    if(rpcErr||!result||!result.ok){
+      cancelConfirmBtn.disabled=false;
+      cancelConfirmBtn.textContent="Confirmer l'annulation";
+      alert('Erreur lors de l\'annulation. Veuillez réessayer.');
+      return;
+    }
+    cancelModal.classList.remove('show');
+    window.location.href='Mes commandes.html';
+  });
 })();
 </script>
 </body>

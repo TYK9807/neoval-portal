@@ -124,6 +124,37 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .tag.confirme::before{background:var(--teal)}
 .tag.livre{color:var(--body);border-color:var(--hair);background:rgba(245,247,250,.04)}
 .tag.livre::before{background:var(--faint)}
+.tag.annule{color:#e0655c;border-color:rgba(224,101,92,.4);background:rgba(224,101,92,.08)}
+.tag.annule::before{background:#e0655c}
+.tag-cell{justify-self:start;display:inline-flex;align-items:center;gap:10px}
+.cancel-btn{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:#e0655c;background:transparent;border:1px solid rgba(224,101,92,.5);padding:6px 10px;
+  cursor:pointer;transition:background .2s,color .2s;white-space:nowrap}
+.cancel-btn:hover{background:rgba(224,101,92,.10)}
+#cancel-modal{position:fixed;inset:0;z-index:200;display:none;place-items:center;padding:24px;
+  background:rgba(6,13,24,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#cancel-modal.show{display:grid}
+.cancel-panel{background:var(--navy-2);border:1px solid rgba(224,101,92,.3);border-top:3px solid #e0655c;
+  padding:44px 40px;max-width:420px;width:100%;text-align:center}
+#cancel-modal.show .cancel-panel{animation:rise .4s cubic-bezier(.16,1,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.cancel-icon{width:54px;height:54px;border:2px solid #e0655c;display:grid;place-items:center;
+  margin:0 auto 22px;color:#e0655c;font-size:26px}
+.cancel-panel h2{font-size:22px;margin-bottom:14px}
+.cancel-panel p{color:var(--body);font-size:15px;line-height:1.6;margin-bottom:28px}
+.cancel-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.cancel-confirm{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:#fff;background:#e0655c;border:1px solid #e0655c;padding:14px 22px;cursor:pointer;transition:opacity .2s}
+.cancel-confirm:hover{opacity:.85}
+.cancel-confirm:disabled{opacity:.55;cursor:not-allowed}
+.cancel-back{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);background:transparent;border:1px solid var(--hair);padding:14px 22px;cursor:pointer;transition:all .25s}
+.cancel-back:hover{color:var(--white);border-color:var(--white)}
+#ctoas{position:fixed;left:50%;bottom:34px;z-index:210;transform:translate(-50%,24px);opacity:0;
+  pointer-events:none;transition:opacity .3s,transform .3s;background:var(--navy-2);
+  border:1px solid rgba(224,101,92,.3);border-left:3px solid #e0655c;padding:14px 20px;
+  font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--white);max-width:90vw}
+#ctoas.show{opacity:1;transform:translate(-50%,0)}
 
 /* empty */
 .empty{display:none;text-align:center;padding:70px 26px 96px;background:var(--glass);
@@ -201,6 +232,9 @@ body.p-orders.theme .cred-panel{background:rgba(5,11,22,.96) !important;border-c
 body.p-orders.theme .cval{background:rgba(6,13,24,.70) !important;border-color:rgba(244,246,249,.10) !important;color:#EFF4F8 !important}
 body.p-orders.theme #done{background:rgba(3,7,16,.88) !important}
 body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-color:rgba(13,191,168,.3) !important}
+body.p-orders.theme .tag.annule{color:#e07b74 !important;border-color:rgba(224,101,92,.35) !important;background:rgba(224,101,92,.10) !important}
+body.p-orders.theme #cancel-modal{background:rgba(3,7,16,.88) !important}
+body.p-orders.theme .cancel-panel{background:rgba(5,11,22,.96) !important;border-color:rgba(224,101,92,.3) !important}
 @media(prefers-reduced-motion:reduce){body.p-orders.theme #bg-glow{animation:none !important}}
 </style>
 <link rel="stylesheet" href="portal-theme.css" />
@@ -263,6 +297,7 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
       <button data-f="attente">En attente <span class="ct" data-ct="attente">0</span></button>
       <button data-f="confirme">Confirmé <span class="ct" data-ct="confirme">0</span></button>
       <button data-f="livre">Livré <span class="ct" data-ct="livre">0</span></button>
+      <button data-f="annule">Annulé <span class="ct" data-ct="annule">0</span></button>
     </div>
     <span class="tbcount" id="tbcount">0 commandes</span>
   </div>
@@ -285,6 +320,19 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
     <a href="Catalogue.html">Parcourir le catalogue →</a>
   </div>
 </main>
+
+<div id="cancel-modal">
+  <div class="cancel-panel">
+    <div class="cancel-icon">✕</div>
+    <h2>Annuler la commande</h2>
+    <p>Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.</p>
+    <div class="cancel-actions">
+      <button class="cancel-confirm" id="cancelConfirmBtn">Confirmer l'annulation</button>
+      <button class="cancel-back" id="cancelBackBtn">Retour</button>
+    </div>
+  </div>
+</div>
+<div id="ctoas">Commande annulée avec succès.</div>
 
 <script src="cart.js"></script>
 <script src="portal-nav.js"></script>
@@ -316,9 +364,10 @@ import { initNotifications } from './notifications.js';
   window.addEventListener('cart:change', syncBadge);
   syncBadge();
 
-  const LABELS = { attente:'En attente', confirme:'Confirmé', livre:'Livré' };
+  const LABELS = { attente:'En attente', confirme:'Confirmé', livre:'Livré', annule:'Annulé' };
   function bucket(s) {
     s = (s||'').toLowerCase();
+    if (s.indexOf('annul')   > -1) return 'annule';
     if (s.indexOf('livr')    > -1) return 'livre';
     if (s.indexOf('attente') > -1) return 'attente';
     return 'confirme';
@@ -365,7 +414,7 @@ import { initNotifications } from './notifications.js';
   }
 
   function counts() {
-    const c = { tous: orders.length, attente: 0, confirme: 0, livre: 0 };
+    const c = { tous: orders.length, attente: 0, confirme: 0, livre: 0, annule: 0 };
     orders.forEach(o => c[bucket(o.status)]++);
     return c;
   }
@@ -405,14 +454,17 @@ import { initNotifications } from './notifications.js';
     list.innerHTML = visible.map(o => {
       const b = bucket(o.status);
       const lines = o.lineCount + ' référence' + (o.lineCount > 1 ? 's' : '');
-      return `<button class="orow" data-uuid="${o._uuid}">
+      const tagCell = b === 'attente'
+        ? `<span class="tag-cell"><span class="tag attente">${LABELS.attente}</span><button class="cancel-btn" data-uuid="${o._uuid}">Annuler</button></span>`
+        : tagHTML(b);
+      return `<div class="orow" data-uuid="${o._uuid}" role="button" tabindex="0">
         <span class="onum">${o.id}</span>
         <span class="odate">${fmtDate(o.date)}</span>
         <span class="oitems"><b>${lines}</b> · ${o.units} unités</span>
         <span class="ototal">${fmt(o.total)}<small>MAD</small></span>
-        ${tagHTML(b)}
-        <span class="ochev">→</span>
-      </button>`;
+        ${tagCell}
+        <span class="ochev">${b === 'annule' ? '' : '→'}</span>
+      </div>`;
     }).join('');
   }
 
@@ -424,10 +476,61 @@ import { initNotifications } from './notifications.js';
   });
 
   document.getElementById('list').addEventListener('click', e => {
+    if (e.target.closest('.cancel-btn')) return;
     const row = e.target.closest('.orow'); if (!row) return;
     document.querySelectorAll('.orow.sel').forEach(r => r.classList.remove('sel'));
     row.classList.add('sel');
     location.href = 'Commande detail.html?id=' + encodeURIComponent(row.dataset.uuid);
+  });
+
+  // cancel modal logic
+  let _cancelUuid = null;
+  const cancelModal = document.getElementById('cancel-modal');
+  const cancelConfirmBtn = document.getElementById('cancelConfirmBtn');
+  let _toasTimer;
+  function showCancelToast() {
+    const el = document.getElementById('ctoas');
+    el.classList.add('show');
+    clearTimeout(_toasTimer);
+    _toasTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  document.getElementById('list').addEventListener('click', e => {
+    const btn = e.target.closest('.cancel-btn'); if (!btn) return;
+    _cancelUuid = btn.dataset.uuid;
+    cancelModal.classList.add('show');
+  });
+
+  document.getElementById('cancelBackBtn').addEventListener('click', () => {
+    cancelModal.classList.remove('show');
+    _cancelUuid = null;
+  });
+
+  cancelConfirmBtn.addEventListener('click', async () => {
+    if (!_cancelUuid) return;
+    cancelConfirmBtn.disabled = true;
+    cancelConfirmBtn.textContent = 'Annulation…';
+
+    const { data: result, error: rpcErr } = await supabase.rpc('cancel_order', {
+      p_order_id: _cancelUuid,
+      p_user_id:  ctx.user.id
+    });
+
+    if (rpcErr || !result || !result.ok) {
+      cancelConfirmBtn.disabled = false;
+      cancelConfirmBtn.textContent = "Confirmer l'annulation";
+      alert('Erreur lors de l\'annulation. Veuillez réessayer.');
+      return;
+    }
+
+    const order = orders.find(o => o._uuid === _cancelUuid);
+    if (order) order.status = 'Annulé';
+    _cancelUuid = null;
+    cancelModal.classList.remove('show');
+    cancelConfirmBtn.disabled = false;
+    cancelConfirmBtn.textContent = "Confirmer l'annulation";
+    showCancelToast();
+    render();
   });
 
   await load();

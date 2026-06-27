@@ -79,6 +79,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .tag.confirme::before{background:var(--teal)}
 .tag.livre{color:var(--body);border-color:var(--hair);background:rgba(245,247,250,.04)}
 .tag.livre::before{background:var(--faint)}
+.tag.annule{color:#e0655c;border-color:rgba(224,101,92,.4);background:rgba(224,101,92,.08)}
+.tag.annule::before{background:#e0655c}
 
 /* timeline */
 .flow{display:flex;align-items:flex-start;background:var(--glass);backdrop-filter:blur(14px);
@@ -261,6 +263,7 @@ body.p-orders.theme .cred-panel{background:rgba(5,11,22,.96) !important;border-c
 body.p-orders.theme .cval{background:rgba(6,13,24,.70) !important;border-color:rgba(244,246,249,.10) !important;color:#EFF4F8 !important}
 body.p-orders.theme #done{background:rgba(3,7,16,.88) !important}
 body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-color:rgba(13,191,168,.3) !important}
+body.p-orders.theme .tag.annule{color:#e07b74 !important;border-color:rgba(224,101,92,.35) !important;background:rgba(224,101,92,.10) !important}
 @media(prefers-reduced-motion:reduce){body.p-orders.theme #bg-glow{animation:none !important}}
 </style>
 <link rel="stylesheet" href="../portal-theme.css" />
@@ -381,6 +384,7 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
           <div class="sr"><span class="k">TVA (20%)</span><span class="v" id="sTva">0 MAD</span></div>
           <div class="sr"><span class="k">Livraison</span><span class="v free">Incluse</span></div>
           <div class="sr tot"><span class="k">Total TTC</span><span class="v" id="sTot">0<small>MAD</small></span></div>
+          <div class="sr" id="sPayRow" style="display:none"><span class="k">Mode de paiement</span><span class="v" id="sPayment">—</span></div>
           <div class="sumnote">Commande émise via le portail pharmacie. Actions synchronisées avec l’automatisation Neoval.</div>
         </div>
       </aside>
@@ -409,10 +413,12 @@ import { supabase } from '../supabase-client.js';
 import { guard } from '../auth-guard.js';
 import { initNotifications } from '../notifications.js';
 
-var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré'};
+var LABELS={attente:'En attente',confirme:'Confirmé',livre:'Livré',annule:'Annulé'};
+var PAYMENT_LABELS={virement:'Virement bancaire',cheque:'Chèque',especes:'Espèces à la livraison',online:'Paiement en ligne'};
 var ORDER=['attente','confirme','livre'];
 function bucket(s){
   s=(s||'').toLowerCase();
+  if(s.indexOf('annul')>-1)return 'annule';
   if(s.indexOf('livr')>-1)return 'livre';
   if(s.indexOf('attente')>-1)return 'attente';
   return 'confirme';
@@ -464,6 +470,12 @@ function renderActions(b,blGenerated){
   var hint=document.getElementById('actHint');
   var stack=document.getElementById('btnstack');
   var rows='';
+  if(b==='annule'){
+    hint.textContent='Cette commande a été annulée par la pharmacie. Le stock a été restitué automatiquement.';
+    rows+='<div class="adone" style="border-color:rgba(224,101,92,.4);color:#e0655c">Commande annulée · stock restitué</div>';
+    stack.innerHTML=rows;
+    return;
+  }
   if(b==='attente'){
     hint.textContent='Commande en attente de validation. Confirmez pour générer le bon de livraison et notifier la pharmacie.';
     rows+='<button class="abtn" data-act="confirm"><span class="ic"></span>Confirmer la commande</button>';
@@ -491,7 +503,7 @@ async function loadAndRender(){
 
   var {data:o,error}=await supabase
     .from('orders')
-    .select('id,status,total,created_at,users!placed_by(name,email),order_items(quantity,unit_price,products(name,category))')
+    .select('id,status,total,created_at,payment_method,users!placed_by(name,email),order_items(quantity,unit_price,products(name,category))')
     .eq('id',uuid)
     .single();
 
@@ -515,14 +527,22 @@ async function loadAndRender(){
   var cur=ORDER.indexOf(b);
   var steps=document.querySelectorAll('#flow .fstep');
   var activeWord={attente:'En cours',confirme:'En préparation',livre:'Livrée'};
-  [].forEach.call(steps,function(st,i){
-    st.classList.remove('done','active','fill');
-    if(i<cur){st.classList.add('done');}
-    else if(i===cur){st.classList.add('active');}
-    if(i<=cur&&i>0){st.classList.add('fill');}
-    var word=i<cur?'Terminé':(i===cur?activeWord[st.getAttribute('data-step')]:'À venir');
-    st.querySelector('.ss').textContent=word;
-  });
+  if(b==='annule'){
+    [].forEach.call(steps,function(st){
+      st.classList.remove('done','active','fill');
+      st.querySelector('.ss').textContent='Annulée';
+    });
+    steps[0].querySelector('.ss').textContent='Reçue';
+  } else {
+    [].forEach.call(steps,function(st,i){
+      st.classList.remove('done','active','fill');
+      if(i<cur){st.classList.add('done');}
+      else if(i===cur){st.classList.add('active');}
+      if(i<=cur&&i>0){st.classList.add('fill');}
+      var word=i<cur?'Terminé':(i===cur?activeWord[st.getAttribute('data-step')]:'À venir');
+      st.querySelector('.ss').textContent=word;
+    });
+  }
 
   var items=o.order_items||[];
   var subtotal=0,units=0;
@@ -545,6 +565,12 @@ async function loadAndRender(){
   document.getElementById('sSub').textContent=fmt(subtotal)+' MAD';
   document.getElementById('sTva').textContent=fmt(tva)+' MAD';
   document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';
+
+  if(o.payment_method){
+    var payLabel=PAYMENT_LABELS[o.payment_method]||o.payment_method;
+    document.getElementById('sPayment').textContent=payLabel;
+    document.getElementById('sPayRow').style.display='';
+  }
 
   renderActions(b,blGenerated);
   renderDocs(shortId,blGenerated);
