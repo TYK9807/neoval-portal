@@ -129,6 +129,34 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:90vw}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* favourites star */
+.fav-btn{position:absolute;top:10px;right:10px;background:rgba(6,13,24,.55);border:1px solid rgba(244,246,249,.15);
+  width:30px;height:30px;display:grid;place-items:center;cursor:pointer;color:rgba(244,246,249,.45);
+  font-size:17px;line-height:1;transition:color .2s,background .2s,border-color .2s;z-index:2;padding:0}
+.fav-btn:hover{background:rgba(6,13,24,.82);color:var(--gold)}
+.fav-btn.fav{color:var(--gold);background:rgba(196,160,58,.12);border-color:rgba(196,160,58,.35)}
+.fav-btn.pop{animation:fav-pop .25s cubic-bezier(.16,1,.3,1)}
+@keyframes fav-pop{0%{transform:scale(1)}50%{transform:scale(1.45)}100%{transform:scale(1)}}
+
+/* Mes favoris shelf */
+.fav-shelf{overflow:hidden;max-height:0;opacity:0;transition:max-height .4s cubic-bezier(.16,1,.3,1),opacity .35s}
+.fav-shelf.visible{max-height:260px;opacity:1}
+.fav-shelf-inner{padding-bottom:24px;border-bottom:1px solid var(--hair);margin-bottom:24px}
+.kicker-sm{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:14px}
+.kicker-sm::before{content:"";width:20px;height:1px;background:currentColor;opacity:.7}
+.fav-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.fav-scroll::-webkit-scrollbar{display:none}
+.fav-mini{flex:0 0 148px;background:var(--glass);border:1px solid var(--hair);padding:14px;cursor:pointer;
+  transition:border-color .25s,transform .25s}
+.fav-mini:hover{border-color:rgba(13,191,168,.4);transform:translateY(-2px)}
+.fm-glyph{font-family:'Syne';font-weight:800;font-size:24px;color:rgba(13,191,168,.35);
+  letter-spacing:-.03em;margin-bottom:8px}
+.fm-name{font-size:12.5px;font-weight:600;color:var(--white);line-height:1.3;margin-bottom:6px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fm-price{font-family:'Syne';font-weight:800;font-size:15px;color:var(--teal);line-height:1}
+.fm-price small{font-size:9.5px;color:var(--body);font-weight:600;margin-left:2px}
+
 @media(max-width:1040px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)} .bar-nav{display:none}}
 @media(max-width:560px){
@@ -153,6 +181,13 @@ body.p-cat.theme .pcard:hover{border-color:rgba(13,191,168,.42) !important}
 body.p-cat.theme .pcard .vis{border-bottom-color:rgba(244,246,249,.08) !important}
 body.p-cat.theme .pcard h3{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
 body.p-cat.theme #toast{background:rgba(5,10,20,.94) !important;border-color:rgba(13,191,168,.40) !important;border-left-color:var(--teal) !important}
+body.p-cat.theme .fav-shelf-inner{border-bottom-color:rgba(244,246,249,.08) !important}
+body.p-cat.theme .fav-mini{background:rgba(7,13,26,.80) !important;border-color:rgba(244,246,249,.08) !important}
+body.p-cat.theme .fav-mini:hover{border-color:rgba(13,191,168,.42) !important}
+body.p-cat.theme .fm-name{color:#EFF4F8 !important}
+body.p-cat.theme .fav-btn{background:rgba(6,13,24,.72) !important;border-color:rgba(244,246,249,.14) !important;color:rgba(244,246,249,.38) !important}
+body.p-cat.theme .fav-btn:hover{color:var(--gold) !important;background:rgba(6,13,24,.92) !important}
+body.p-cat.theme .fav-btn.fav{color:var(--gold) !important;background:rgba(196,160,58,.12) !important;border-color:rgba(196,160,58,.32) !important}
 @media(prefers-reduced-motion:reduce){body.p-cat.theme #bg-glow{animation:none !important}}
 </style>
 <link rel="stylesheet" href="portal-theme.css" />
@@ -209,6 +244,13 @@ body.p-cat.theme #toast{background:rgba(5,10,20,.94) !important;border-color:rgb
     <p>Tarifs grossiste réservés aux pharmacies partenaires. Prix hors taxe, par unité, conditionnement par carton indiqué.</p>
   </div>
 
+  <div class="fav-shelf" id="favShelf">
+    <div class="fav-shelf-inner">
+      <div class="kicker-sm">Mes favoris</div>
+      <div class="fav-scroll" id="favScroll"></div>
+    </div>
+  </div>
+
   <div class="filterbar">
     <div class="filters" id="filters">
       <button class="chip active" data-cat="all">Toutes</button>
@@ -252,6 +294,13 @@ import { initNotifications } from './notifications.js';
   window.NeovalProducts = list;
   window.NeovalProductById = id => list.find(p => p.id === id);
 
+  /* ---- favourites state ---- */
+  let favSet = new Set();
+  async function loadFavourites() {
+    const { data } = await supabase.from('favourites').select('product_id');
+    favSet = new Set((data || []).map(f => f.product_id));
+  }
+
   /* ---- build dynamic category filters ---- */
   const cats = [...new Set(list.map(p => p.category).filter(Boolean))].sort();
   const filtersEl = document.getElementById('filters');
@@ -294,6 +343,14 @@ import { initNotifications } from './notifications.js';
             ${out ? 'Indisponible' : 'Ajouter à la commande'}
           </button>
         </div>`;
+      // add favourites star
+      const starBtn = document.createElement('button');
+      starBtn.className = 'fav-btn' + (favSet.has(p.id) ? ' fav' : '');
+      starBtn.dataset.id = p.id;
+      starBtn.setAttribute('aria-label', 'Ajouter aux favoris');
+      starBtn.textContent = favSet.has(p.id) ? '★' : '☆';
+      el.querySelector('.vis').appendChild(starBtn);
+
       grid.appendChild(el);
     });
     document.getElementById('ct').textContent = filtered.length;
@@ -330,7 +387,58 @@ import { initNotifications } from './notifications.js';
   });
   window.addEventListener('cart:change', syncBadge);
 
+  /* ---- star click handler ---- */
+  document.getElementById('grid').addEventListener('click', async e => {
+    const btn = e.target.closest('.fav-btn'); if (!btn) return;
+    const pid = btn.dataset.id;
+    const wasFav = favSet.has(pid);
+
+    if (wasFav) { favSet.delete(pid); } else { favSet.add(pid); }
+
+    document.querySelectorAll(`.fav-btn[data-id="${pid}"]`).forEach(b => {
+      b.textContent = favSet.has(pid) ? '★' : '☆';
+      b.classList.toggle('fav', favSet.has(pid));
+      b.classList.add('pop');
+      setTimeout(() => b.classList.remove('pop'), 300);
+    });
+    updateShelf();
+
+    if (wasFav) {
+      await supabase.from('favourites').delete().eq('user_id', ctx.user.id).eq('product_id', pid);
+    } else {
+      await supabase.from('favourites').insert({ user_id: ctx.user.id, product_id: pid });
+    }
+  });
+
+  /* ---- shelf update ---- */
+  function updateShelf() {
+    const shelf = document.getElementById('favShelf');
+    const scroll = document.getElementById('favScroll');
+    const favs = list.filter(p => favSet.has(p.id));
+    if (favs.length === 0) { shelf.classList.remove('visible'); return; }
+    scroll.innerHTML = favs.map(p =>
+      `<div class="fav-mini" data-id="${p.id}">
+        <div class="fm-glyph">${glyph(p.name)}</div>
+        <div class="fm-name">${p.name}</div>
+        <div class="fm-price">${fmt(p.price)}<small>MAD</small></div>
+      </div>`
+    ).join('');
+    shelf.classList.add('visible');
+  }
+
+  /* fav-mini click — quick add to cart */
+  document.getElementById('favScroll').addEventListener('click', e => {
+    const mini = e.target.closest('.fav-mini'); if (!mini) return;
+    const prod = list.find(p => p.id === mini.dataset.id);
+    if (!prod || (prod.stock_quantity || 0) <= 0) return;
+    window.NeovalCart.add(prod.id, 1);
+    toast('1 unité ajoutée · ' + prod.name);
+    syncBadge();
+  });
+
+  await loadFavourites();
   render('all');
+  updateShelf();
   syncBadge();
 })();
 </script>

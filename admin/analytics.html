@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neoval Pharma — Analytiques (Admin)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#F4F6F9;--navy-2:#FFFFFF;--teal:#0DBFA8;--gold:#C4A03A;--white:#0D1B2A;
+  --body:rgba(13,27,42,.74);--faint:rgba(13,27,42,.52);--hair:rgba(13,27,42,.10);
+  --glass:#FFFFFF;--maxw:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:'DM Sans',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+
+#bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(55% 45% at 18% 0%,rgba(13,191,168,.09) 0%,transparent 60%),
+             radial-gradient(50% 45% at 92% 100%,rgba(196,160,58,.06) 0%,transparent 60%)}
+#bg-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%;position:relative;z-index:5}
+
+/* topbar */
+#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+  background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:26px;height:26px;position:relative;flex:0 0 auto}
+.brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:var(--white)}
+.brand .apill{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);border:1px solid rgba(196,160,58,.45);background:rgba(196,160,58,.08);padding:4px 8px;margin-left:4px}
+.bar-nav{display:flex;align-items:center;gap:28px}
+.bar-nav a{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--body);text-decoration:none;transition:color .25s}
+.bar-nav a:hover,.bar-nav a.active{color:var(--teal)}
+.bar-right{display:flex;align-items:center;gap:18px}
+.who{display:flex;align-items:center;gap:11px}
+.who .av{width:34px;height:34px;border:1px solid var(--teal);display:grid;place-items:center;
+  font-family:'Syne';font-weight:800;font-size:13px;color:var(--teal)}
+.who .meta{display:flex;flex-direction:column;line-height:1.2}
+.who .meta .n{font-size:13.5px;color:var(--white)}
+.who .meta .r{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.logout{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);
+  text-decoration:none;border:1px solid var(--hair);padding:10px 16px;transition:all .25s;white-space:nowrap}
+.logout:hover{color:var(--teal);border-color:var(--teal)}
+
+/* page head */
+.head{padding:52px 0 28px}
+.kicker{display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono';font-size:12px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+.kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.7}
+.head h1{font-size:clamp(32px,4.6vw,48px)}
+.head p{color:var(--body);font-size:16px;margin-top:12px;max-width:560px}
+
+/* stat cards */
+.scards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:38px}
+.scard{background:var(--glass);border:1px solid var(--hair);border-top:3px solid var(--teal);padding:26px 22px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.scard.gold{border-top-color:var(--gold)}
+.scard .sk{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:14px}
+.scard .sv{font-family:'Syne';font-weight:800;font-size:26px;color:var(--white);line-height:1.1;word-break:break-word}
+.scard .sv small{font-size:13px;color:var(--body);font-weight:600;margin-left:3px}
+.scard .ss{font-size:12.5px;color:var(--faint);margin-top:8px}
+
+/* charts grid */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:80px}
+.cbox{background:var(--glass);border:1px solid var(--hair);padding:28px 24px 22px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.cbox .ch{font-family:'Syne';font-weight:700;font-size:15px;margin-bottom:4px;color:var(--white)}
+.cbox .cs{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:22px}
+.cbox .ccanvas{position:relative;height:240px}
+
+/* loading shimmer */
+.loading{text-align:center;padding:80px 0;font-family:'IBM Plex Mono';font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+
+@media(max-width:980px){
+  .scards{grid-template-columns:repeat(2,1fr)}
+  .charts{grid-template-columns:1fr}
+}
+@media(max-width:760px){.bar-nav{display:none}}
+@media(max-width:560px){
+  .wrap{padding:0 22px}
+  .scards{grid-template-columns:1fr 1fr}
+  .scard .sv{font-size:20px}
+}
+</style>
+<style>
+/* ── DARK MODE — Orders group · body.p-orders.theme ── */
+body.p-orders.theme{--navy:#080F1E !important;--white:#F4F6F9 !important;--body:rgba(244,246,249,.68) !important;--faint:rgba(244,246,249,.38) !important;--hair:rgba(244,246,249,.10) !important}
+body.p-orders.theme #bg-glow{background:radial-gradient(64% 56% at -4% -4%,rgba(13,191,168,.28) 0%,transparent 55%),radial-gradient(52% 50% at 106% 106%,rgba(196,160,58,.20) 0%,transparent 52%),linear-gradient(148deg,#030710 0%,#060D18 55%,#040910 100%) !important}
+body.p-orders.theme::after{background-image:linear-gradient(rgba(13,191,168,.032) 1px,transparent 1px),linear-gradient(90deg,rgba(13,191,168,.032) 1px,transparent 1px) !important;opacity:.50 !important}
+body.p-orders.theme .head h1{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
+body.p-orders.theme .head p{color:rgba(244,246,249,.62) !important}
+body.p-orders.theme .scard{background:rgba(7,13,26,.80) !important;border-color:rgba(244,246,249,.08) !important}
+body.p-orders.theme .scard .sv{color:#EFF4F8 !important}
+body.p-orders.theme .cbox{background:rgba(7,13,26,.74) !important;border-color:rgba(244,246,249,.08) !important}
+body.p-orders.theme .cbox .ch{color:#EFF4F8 !important}
+@media(prefers-reduced-motion:reduce){body.p-orders.theme #bg-glow{animation:none !important}}
+</style>
+<link rel="stylesheet" href="../portal-theme.css" />
+<style>body{visibility:hidden}</style>
+</head>
+<body class="theme p-orders dbg-mesh" style="--f-head:'Syne';--f-body:'DM Sans';--f-mono:'IBM Plex Mono';--teal:#0DBFA8;--gold:#C4A03A;--teal-soft:rgba(13,191,168,.14);--teal-bright:#0aa491;--navy:#F4F6F9;--dot-op:.06">
+
+<div id="bg-glow"></div>
+<div id="bg-grain"></div>
+
+<header id="bar">
+  <div class="wrap">
+    <a class="brand" href="Admin Orders.html" style="text-decoration:none">
+      <span class="mark nv-leafmark"><svg class="nv-leaf" viewBox="0 0 120 132" role="img" aria-label="Neoval" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nvLeafGrad" x1="20%" y1="8%" x2="92%" y2="86%"><stop offset="0%" stop-color="#0DBFA8"/><stop offset="54%" stop-color="#1C73C4"/><stop offset="100%" stop-color="#1A3A8F"/></linearGradient></defs><g fill="none" stroke="url(#nvLeafGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M57,97 C54,62 70,32 97,17 C99,48 88,80 57,97 Z"/><path d="M62,90 C72,63 82,43 92,29" stroke-width="3.2"/><path d="M56,93 C42,75 31,58 34,36 C53,44 63,68 56,93 Z"/><path d="M52,87 C47,69 43,54 39,43" stroke-width="3"/><path d="M57,72 C55,92 53,108 62,124" stroke-width="5"/></g></svg></span>
+      <span class="name">NEOVAL&nbsp;PHARMA</span>
+      <span class="apill">Admin</span>
+    </a>
+    <nav class="bar-nav">
+      <a href="Admin Orders.html">Commandes</a>
+      <a href="Admin Stock.html">Stock</a>
+      <a href="Admin Registrations.html">Demandes</a>
+      <a href="management.html">Gestion</a>
+      <a href="analytics.html" class="active">Analytiques</a>
+    </nav>
+    <div class="bar-right">
+      <div class="notif-wrap">
+        <button class="notif-btn" id="notifBtn" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notifBadge" hidden>0</span>
+        </button>
+        <div class="notif-panel" id="notifPanel" hidden>
+          <div class="notif-ph">
+            <span class="notif-ph-lbl">Notifications</span>
+            <button class="notif-markall" id="notifMarkAll">Tout lire</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <div class="who-wrap">
+        <button class="who" id="whoBtn" aria-haspopup="true" aria-expanded="false">
+          <span class="av">AD</span>
+          <span class="meta">
+            <span class="n">Administrateur</span>
+            <span class="r">Neoval Pharma · Siège</span>
+          </span>
+          <svg class="who-caret" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="who-menu" id="whoMenu" hidden>
+          <a class="who-item" href="#" id="whoProfile">Mon profil</a>
+          <a class="who-item" href="management.html">Gestion de l'équipe</a>
+          <button class="who-item who-logout" id="whoLogout">Déconnexion</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="head">
+    <span class="kicker">Administration</span>
+    <h1>Analytiques</h1>
+    <p>Revenus, tendances commandes, produits et pharmacies les plus actifs.</p>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="scards">
+    <div class="scard">
+      <div class="sk">Revenus totaux</div>
+      <div class="sv" id="statRevenue">—<small>MAD</small></div>
+      <div class="ss">Commandes livrées, tous statuts</div>
+    </div>
+    <div class="scard gold">
+      <div class="sk">Valeur moy. commande</div>
+      <div class="sv" id="statAvg">—<small>MAD</small></div>
+      <div class="ss">Sur les commandes livrées</div>
+    </div>
+    <div class="scard">
+      <div class="sk">Produit star</div>
+      <div class="sv" id="statTopProd" style="font-size:18px;line-height:1.3">—</div>
+      <div class="ss">Produit le plus commandé</div>
+    </div>
+    <div class="scard">
+      <div class="sk">Pharmacie la plus active</div>
+      <div class="sv" id="statTopPharma" style="font-size:18px;line-height:1.3">—</div>
+      <div class="ss">Par nombre de commandes</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts">
+    <div class="cbox">
+      <div class="ch">Revenus par mois</div>
+      <div class="cs">6 derniers mois · commandes livrées</div>
+      <div class="ccanvas"><canvas id="chartRevenue"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ch">Top 5 produits</div>
+      <div class="cs">Quantités vendues · commandes livrées</div>
+      <div class="ccanvas"><canvas id="chartProducts"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ch">Pharmacies les plus actives</div>
+      <div class="cs">Top 5 · toutes commandes</div>
+      <div class="ccanvas"><canvas id="chartPharma"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ch">Volume de commandes</div>
+      <div class="cs">6 derniers mois · par statut</div>
+      <div class="ccanvas"><canvas id="chartVolume"></canvas></div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../portal-nav.js"></script>
+<script src="admin-nav.js"></script>
+<script type="module">
+import { supabase } from '../supabase-client.js';
+import { guard } from '../auth-guard.js';
+import { initNotifications } from '../notifications.js';
+
+(async () => {
+  const ctx = await guard('admin', 'Admin Login.html');
+  if (!ctx) return;
+  initNotifications(ctx.user.id, ctx.profile.role);
+
+  const n = ctx.profile.name || 'Admin';
+  const av = n.split(' ').map(w => w[0]||'').join('').slice(0,2) || 'A';
+  const nameEl = document.querySelector('.who .meta .n');
+  const avEl   = document.querySelector('.who .av');
+  if (nameEl) nameEl.textContent = n;
+  if (avEl)   avEl.textContent   = av.toUpperCase();
+
+  function bucket(s) {
+    s = (s||'').toLowerCase();
+    if (s.indexOf('annul')   > -1) return 'annule';
+    if (s.indexOf('livr')    > -1) return 'livre';
+    if (s.indexOf('attente') > -1) return 'attente';
+    return 'confirme';
+  }
+
+  function fmt(n) {
+    return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  function fmtDec(n) {
+    return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Last 6 months
+  const now = new Date();
+  const months6 = [];
+  for (let i = 5; i >= 0; i--) {
+    months6.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+  }
+
+  function monthKey(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+  function monthLabel(d) {
+    return d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+  }
+
+  // ── Fetch all orders ──────────────────────────────────────────
+  const { data: allOrders } = await supabase
+    .from('orders')
+    .select('id, status, total, created_at, placed_by, users!placed_by(name)')
+    .order('created_at');
+
+  const orders = allOrders || [];
+  const deliveredOrders = orders.filter(o => bucket(o.status) === 'livre');
+  const deliveredIds    = deliveredOrders.map(o => o.id);
+
+  // ── Fetch order items for delivered orders ────────────────────
+  let allItems = [];
+  if (deliveredIds.length > 0) {
+    const { data: items } = await supabase
+      .from('order_items')
+      .select('quantity, order_id, products(name)')
+      .in('order_id', deliveredIds);
+    allItems = items || [];
+  }
+
+  // ── Stat card values ──────────────────────────────────────────
+  const totalRevenue = deliveredOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const avgOrderValue = deliveredOrders.length > 0 ? totalRevenue / deliveredOrders.length : 0;
+
+  const productQty = {};
+  allItems.forEach(it => {
+    const name = (it.products && it.products.name) || 'Inconnu';
+    productQty[name] = (productQty[name] || 0) + (it.quantity || 0);
+  });
+  const topProductEntries = Object.entries(productQty).sort((a, b) => b[1] - a[1]);
+
+  const pharmacyCount = {};
+  orders.forEach(o => {
+    const name = (o.users && o.users.name) || 'Inconnu';
+    pharmacyCount[name] = (pharmacyCount[name] || 0) + 1;
+  });
+  const topPharmacyEntries = Object.entries(pharmacyCount).sort((a, b) => b[1] - a[1]);
+
+  document.getElementById('statRevenue').innerHTML = fmt(totalRevenue) + '<small>MAD</small>';
+  document.getElementById('statAvg').innerHTML = fmtDec(avgOrderValue) + '<small>MAD</small>';
+  document.getElementById('statTopProd').textContent = topProductEntries[0]?.[0] || '—';
+  document.getElementById('statTopPharma').textContent = topPharmacyEntries[0]?.[0] || '—';
+
+  // ── Chart.js global defaults ──────────────────────────────────
+  const isDark = document.body.classList.contains('theme');
+  const textColor = isDark ? 'rgba(244,246,249,.58)' : 'rgba(13,27,42,.52)';
+  const gridColor = isDark ? 'rgba(244,246,249,.08)' : 'rgba(13,27,42,.08)';
+
+  Chart.defaults.color = textColor;
+  Chart.defaults.borderColor = gridColor;
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+  Chart.defaults.font.size = 10;
+
+  // ── Chart 1: Revenue per month ────────────────────────────────
+  const revenueByMonth = {};
+  months6.forEach(m => { revenueByMonth[monthKey(m)] = 0; });
+  deliveredOrders.forEach(o => {
+    const key = monthKey(new Date(o.created_at));
+    if (key in revenueByMonth) revenueByMonth[key] += Number(o.total) || 0;
+  });
+
+  new Chart(document.getElementById('chartRevenue'), {
+    type: 'line',
+    data: {
+      labels: months6.map(monthLabel),
+      datasets: [{
+        label: 'Revenus (MAD)',
+        data: months6.map(m => Math.round(revenueByMonth[monthKey(m)])),
+        borderColor: '#0DBFA8',
+        backgroundColor: 'rgba(13,191,168,.10)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#0DBFA8',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor } },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: textColor, callback: v => fmt(v) + ' MAD' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // ── Chart 2: Top 5 products ───────────────────────────────────
+  const top5Prod = topProductEntries.slice(0, 5);
+
+  new Chart(document.getElementById('chartProducts'), {
+    type: 'bar',
+    data: {
+      labels: top5Prod.map(([name]) => name.length > 22 ? name.slice(0, 22) + '…' : name),
+      datasets: [{
+        label: 'Unités vendues',
+        data: top5Prod.map(([, qty]) => qty),
+        backgroundColor: 'rgba(13,191,168,.55)',
+        borderColor: '#0DBFA8',
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true },
+        y: { grid: { display: false }, ticks: { color: textColor } }
+      }
+    }
+  });
+
+  // ── Chart 3: Most active pharmacies ──────────────────────────
+  const top5Pharma = topPharmacyEntries.slice(0, 5);
+
+  new Chart(document.getElementById('chartPharma'), {
+    type: 'bar',
+    data: {
+      labels: top5Pharma.map(([name]) => name.length > 22 ? name.slice(0, 22) + '…' : name),
+      datasets: [{
+        label: 'Commandes',
+        data: top5Pharma.map(([, cnt]) => cnt),
+        backgroundColor: 'rgba(196,160,58,.60)',
+        borderColor: '#C4A03A',
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true },
+        y: { grid: { display: false }, ticks: { color: textColor } }
+      }
+    }
+  });
+
+  // ── Chart 4: Order volume trend (stacked by status) ───────────
+  const volByMonthStatus = {};
+  months6.forEach(m => {
+    volByMonthStatus[monthKey(m)] = { attente: 0, confirme: 0, livre: 0, annule: 0 };
+  });
+  orders.forEach(o => {
+    const key = monthKey(new Date(o.created_at));
+    const b   = bucket(o.status);
+    if (key in volByMonthStatus && b in volByMonthStatus[key]) {
+      volByMonthStatus[key][b]++;
+    }
+  });
+
+  new Chart(document.getElementById('chartVolume'), {
+    type: 'bar',
+    data: {
+      labels: months6.map(monthLabel),
+      datasets: [
+        { label: 'En attente',
+          data: months6.map(m => volByMonthStatus[monthKey(m)].attente),
+          backgroundColor: 'rgba(196,160,58,.70)', stack: 'v' },
+        { label: 'Confirmé',
+          data: months6.map(m => volByMonthStatus[monthKey(m)].confirme),
+          backgroundColor: 'rgba(13,191,168,.70)', stack: 'v' },
+        { label: 'Livré',
+          data: months6.map(m => volByMonthStatus[monthKey(m)].livre),
+          backgroundColor: isDark ? 'rgba(244,246,249,.55)' : 'rgba(13,27,42,.30)', stack: 'v' },
+        { label: 'Annulé',
+          data: months6.map(m => volByMonthStatus[monthKey(m)].annule),
+          backgroundColor: 'rgba(224,101,92,.70)', stack: 'v' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true, position: 'bottom',
+          labels: { color: textColor, boxWidth: 12, padding: 14 }
+        }
+      },
+      scales: {
+        x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor } },
+        y: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

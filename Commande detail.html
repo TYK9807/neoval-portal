@@ -200,6 +200,11 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .doc .dl.busy{opacity:.7;pointer-events:none}
 
 /* toast */
+#rtoas{position:fixed;left:50%;bottom:34px;z-index:210;transform:translate(-50%,24px);opacity:0;
+  pointer-events:none;transition:opacity .3s,transform .3s;background:var(--navy-2);
+  border:1px solid rgba(13,191,168,.3);border-left:3px solid var(--teal);padding:14px 20px;
+  font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--white);max-width:90vw}
+#rtoas.show{opacity:1;transform:translate(-50%,0)}
 #toast{position:fixed;left:50%;bottom:34px;z-index:120;transform:translate(-50%,24px);opacity:0;
   pointer-events:none;transition:opacity .3s,transform .3s;background:var(--navy-2);
   border:1px solid rgba(13,191,168,.3);border-left:3px solid var(--teal);padding:15px 22px;
@@ -409,6 +414,7 @@ body.p-orders.theme .cancel-panel{background:rgba(5,11,22,.96) !important;border
 </main>
 
 
+<div id="rtoas"></div>
 <div id="cancel-modal">
   <div class="cancel-panel">
     <div class="cancel-icon">✕</div>
@@ -582,6 +588,43 @@ document.getElementById('docList').addEventListener('click',function(e){
   }
 
   renderDocs(shortId,b);
+
+  if(b==='livre'){
+    var reorderEl=document.getElementById('reorder');
+    reorderEl.textContent='Recommander';
+    var _rTimer;
+    reorderEl.addEventListener('click',async function(e){
+      e.preventDefault();
+      reorderEl.textContent='…';
+      reorderEl.style.pointerEvents='none';
+      var {data:rItems,error:rErr}=await supabase
+        .from('order_items')
+        .select('quantity, products(id, stock_quantity)')
+        .eq('order_id',uuid);
+      if(rErr||!rItems){
+        reorderEl.textContent='Recommander';
+        reorderEl.style.pointerEvents='';
+        return;
+      }
+      C.clear();
+      var rSkipped=0;
+      rItems.forEach(function(item){
+        var p=item.products;
+        if(!p||(p.stock_quantity||0)<=0){rSkipped++;return;}
+        C.set(p.id,Math.min(item.quantity,p.stock_quantity));
+      });
+      if(rSkipped>0){
+        var rWord=rSkipped>1?' produits indisponibles ont été retirés':' produit indisponible a été retiré';
+        var rToast=document.getElementById('rtoas');
+        rToast.textContent=rSkipped+rWord+' de votre panier';
+        rToast.classList.add('show');
+        clearTimeout(_rTimer);
+        _rTimer=setTimeout(function(){window.location.href='Commande.html';},2200);
+      } else {
+        window.location.href='Commande.html';
+      }
+    });
+  }
 
   var cancelModal=document.getElementById('cancel-modal');
   var cancelConfirmBtn=document.getElementById('cancelConfirmBtn');

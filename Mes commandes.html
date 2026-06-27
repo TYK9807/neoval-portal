@@ -131,6 +131,15 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   color:#e0655c;background:transparent;border:1px solid rgba(224,101,92,.5);padding:6px 10px;
   cursor:pointer;transition:background .2s,color .2s;white-space:nowrap}
 .cancel-btn:hover{background:rgba(224,101,92,.10)}
+.reorder-btn{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal);background:transparent;border:1px solid rgba(13,191,168,.5);padding:6px 10px;
+  cursor:pointer;transition:background .2s,color .2s;white-space:nowrap}
+.reorder-btn:hover{background:rgba(13,191,168,.10)}
+#rtoas{position:fixed;left:50%;bottom:34px;z-index:210;transform:translate(-50%,24px);opacity:0;
+  pointer-events:none;transition:opacity .3s,transform .3s;background:var(--navy-2);
+  border:1px solid rgba(13,191,168,.3);border-left:3px solid var(--teal);padding:14px 20px;
+  font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--white);max-width:90vw}
+#rtoas.show{opacity:1;transform:translate(-50%,0)}
 #cancel-modal{position:fixed;inset:0;z-index:200;display:none;place-items:center;padding:24px;
   background:rgba(6,13,24,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #cancel-modal.show{display:grid}
@@ -333,6 +342,7 @@ body.p-orders.theme .cancel-panel{background:rgba(5,11,22,.96) !important;border
   </div>
 </div>
 <div id="ctoas">Commande annulée avec succès.</div>
+<div id="rtoas"></div>
 
 <script src="cart.js"></script>
 <script src="portal-nav.js"></script>
@@ -456,6 +466,8 @@ import { initNotifications } from './notifications.js';
       const lines = o.lineCount + ' référence' + (o.lineCount > 1 ? 's' : '');
       const tagCell = b === 'attente'
         ? `<span class="tag-cell"><span class="tag attente">${LABELS.attente}</span><button class="cancel-btn" data-uuid="${o._uuid}">Annuler</button></span>`
+        : b === 'livre'
+        ? `<span class="tag-cell"><span class="tag livre">${LABELS.livre}</span><button class="reorder-btn" data-uuid="${o._uuid}">Recommander</button></span>`
         : tagHTML(b);
       return `<div class="orow" data-uuid="${o._uuid}" role="button" tabindex="0">
         <span class="onum">${o.id}</span>
@@ -476,7 +488,7 @@ import { initNotifications } from './notifications.js';
   });
 
   document.getElementById('list').addEventListener('click', e => {
-    if (e.target.closest('.cancel-btn')) return;
+    if (e.target.closest('.cancel-btn') || e.target.closest('.reorder-btn')) return;
     const row = e.target.closest('.orow'); if (!row) return;
     document.querySelectorAll('.orow.sel').forEach(r => r.classList.remove('sel'));
     row.classList.add('sel');
@@ -499,6 +511,50 @@ import { initNotifications } from './notifications.js';
     const btn = e.target.closest('.cancel-btn'); if (!btn) return;
     _cancelUuid = btn.dataset.uuid;
     cancelModal.classList.add('show');
+  });
+
+  let _reorderTimer;
+  function showReorderToast(msg) {
+    const el = document.getElementById('rtoas');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(_reorderTimer);
+    _reorderTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  }
+
+  document.getElementById('list').addEventListener('click', async e => {
+    const btn = e.target.closest('.reorder-btn'); if (!btn) return;
+    const uuid = btn.dataset.uuid;
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    const { data: items, error } = await supabase
+      .from('order_items')
+      .select('quantity, products(id, stock_quantity)')
+      .eq('order_id', uuid);
+
+    if (error || !items) {
+      btn.disabled = false;
+      btn.textContent = 'Recommander';
+      return;
+    }
+
+    const C = window.NeovalCart;
+    C.clear();
+    let skipped = 0;
+    items.forEach(item => {
+      const p = item.products;
+      if (!p || (p.stock_quantity || 0) <= 0) { skipped++; return; }
+      C.set(p.id, Math.min(item.quantity, p.stock_quantity));
+    });
+
+    if (skipped > 0) {
+      const word = skipped > 1 ? ' produits indisponibles ont été retirés' : ' produit indisponible a été retiré';
+      showReorderToast(skipped + word + ' de votre panier');
+      setTimeout(() => { window.location.href = 'Commande.html'; }, 2200);
+    } else {
+      window.location.href = 'Commande.html';
+    }
   });
 
   document.getElementById('cancelBackBtn').addEventListener('click', () => {
