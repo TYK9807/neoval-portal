@@ -386,7 +386,7 @@ import { initNotifications } from './notifications.js';
     const d = new Date(iso);
     return isNaN(d) ? '—' : d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
   }
-  function fmt(n) { return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmt(n){var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];}
   function tagHTML(b) { return `<span class="tag ${b}">${LABELS[b]}</span>`; }
 
   let orders = [];

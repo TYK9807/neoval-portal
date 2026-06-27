@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -61,12 +61,12 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
 /* stat cards */
 .scards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:38px}
-.scard{background:var(--glass);border:1px solid var(--hair);border-top:3px solid var(--teal);padding:26px 22px;
+.scard{background:var(--glass);border:1px solid var(--hair);border-top:3px solid var(--teal);padding:30px 26px;
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .scard.gold{border-top-color:var(--gold)}
-.scard .sk{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--faint);margin-bottom:14px}
-.scard .sv{font-family:'Syne';font-weight:800;font-size:26px;color:var(--white);line-height:1.1;word-break:break-word}
+.scard .sk{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--body);margin-bottom:14px}
+.scard .sv{font-family:'Syne';font-weight:800;font-size:32px;color:var(--white);line-height:1.1;word-break:break-word}
 .scard .sv small{font-size:13px;color:var(--body);font-weight:600;margin-left:3px}
 .scard .ss{font-size:12.5px;color:var(--faint);margin-top:8px}
 
@@ -247,10 +247,10 @@ import { initNotifications } from '../notifications.js';
   }
 
   function fmt(n) {
-    return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    var v=String(Math.round(Number(n)));return v.replace(/\B(?=(\d{3})+(?!\d))/g,' ');
   }
   function fmtDec(n) {
-    return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];
   }
 
   // Last 6 months

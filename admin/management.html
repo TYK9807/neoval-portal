@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -170,6 +170,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .pharm-detail.open{display:block}
 .pharm-inner{padding:0 24px 20px 24px}
 .pharm-addr{font-size:13px;color:var(--body);margin-bottom:16px;padding-top:12px}
+.pharm-meta{display:flex;flex-wrap:wrap;gap:14px 32px;padding-top:14px;margin-bottom:18px}
+.pharm-mf{display:flex;flex-direction:column;gap:3px}
+.pharm-ml{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.pharm-mv{font-size:13px;color:var(--body)}
 .pharm-orders-head{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--faint);margin-bottom:10px}
 .pharm-order-row{display:grid;grid-template-columns:140px 1fr 120px 130px;gap:12px;align-items:center;
@@ -423,7 +427,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
   var STATUS_LABELS = { Confirmé: 'confirme', 'En attente': 'attente', Livré: 'livre' };
 
   function fmt(n) {
-    return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];
   }
 
   function fmtDate(iso) {
@@ -598,7 +602,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
   // ——— PHARMACIES ———
   async function loadPharmacies() {
     var { data, error } = await sb.from('pharmacies')
-      .select('id, name, address')
+      .select('id, name, address, email, phone, ice')
       .order('name');
     if (error || !data) {
       document.getElementById('pharmList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
@@ -634,7 +638,9 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
       rowEl.className = 'tbl-row';
       rowEl.id = rowId;
       rowEl.innerHTML =
-        '<div class="pharm-name-cell"><div class="pn">' + esc(p.name) + '</div></div>' +
+        '<div class="pharm-name-cell"><div class="pn">' + esc(p.name) + '</div>' +
+          (p.email ? '<div class="pc">' + esc(p.email) + '</div>' : '') +
+        '</div>' +
         '<div class="tr-pcount pharm-count">' + pOrders.length + ' commande' + (pOrders.length !== 1 ? 's' : '') + '</div>' +
         '<div class="tr-ptotal pharm-total">' + fmt(totalSpend) + '<small>MAD</small></div>' +
         '<div class="th-pstatus"><span class="tag confirme">Approuvée</span></div>' +
@@ -664,9 +670,15 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
         ordersHtml = '<div class="pharm-no-orders">Aucune commande pour l\'instant.</div>';
       }
 
+      var metaHtml = '<div class="pharm-meta">' +
+        (p.address ? '<div class="pharm-mf"><span class="pharm-ml">Adresse</span><span class="pharm-mv">' + esc(p.address) + '</span></div>' : '') +
+        (p.email   ? '<div class="pharm-mf"><span class="pharm-ml">Email</span><span class="pharm-mv">' + esc(p.email) + '</span></div>' : '') +
+        (p.phone   ? '<div class="pharm-mf"><span class="pharm-ml">Téléphone</span><span class="pharm-mv">' + esc(p.phone) + '</span></div>' : '') +
+        (p.ice     ? '<div class="pharm-mf"><span class="pharm-ml">ICE</span><span class="pharm-mv">' + esc(p.ice) + '</span></div>' : '') +
+      '</div>';
       detEl.innerHTML =
         '<div class="pharm-inner">' +
-          (p.address ? '<div class="pharm-addr">' + esc(p.address) + '</div>' : '') +
+          metaHtml +
           '<div class="pharm-orders-head">Commandes récentes</div>' +
           ordersHtml +
         '</div>';

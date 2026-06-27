@@ -435,7 +435,7 @@ import { guard } from './auth-guard.js';
 import { initNotifications } from './notifications.js';
 
 var C=window.NeovalCart;
-function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmt(n){var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];}
 function glyph(name){return(name||'').trim().slice(0,2).toUpperCase()||'◇';}
 
 function syncCart(){

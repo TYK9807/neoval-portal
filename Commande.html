@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -68,7 +68,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   padding:22px 26px;border-bottom:1px solid var(--hair)}
 .line:last-child{border-bottom:0}
 .line .glyph{width:54px;height:54px;display:grid;place-items:center;font-family:'Syne';font-weight:800;
-  font-size:26px;color:rgba(13,191,168,.5);border:1px solid var(--hair);background:rgba(13,191,168,.06)}
+  font-size:26px;color:rgba(13,191,168,.5);border:1px solid var(--hair);background:rgba(13,191,168,.06);overflow:hidden}
+.line .info{min-width:0}
 .line .info h3{font-size:16px;margin-bottom:4px}
 .line .info .ref{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
 .line .info .meta{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.05em;color:var(--body);margin-top:8px}
@@ -111,19 +112,20 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 /* payment method */
 .pay-section{margin-bottom:20px;border-bottom:1px solid var(--hair);padding-bottom:20px}
 .pay-lbl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:11px}
-.pay-cards{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.pay-card{position:relative;border:1px solid var(--hair);padding:14px 12px;cursor:pointer;
-  background:transparent;text-align:left;transition:border-color .2s,background .2s;color:inherit;font:inherit;width:100%;display:block}
+.pay-cards{display:flex;gap:10px}
+.pay-card{position:relative;border:1px solid var(--hair);padding:20px 16px;cursor:pointer;
+  background:transparent;text-align:left;transition:border-color .2s,background .2s,box-shadow .2s;color:inherit;font:inherit;flex:1;min-width:0;display:block}
 .pay-card:not(.disabled):hover{border-color:rgba(13,191,168,.5);background:rgba(13,191,168,.04)}
-.pay-card.sel{border-color:var(--teal);background:rgba(13,191,168,.06)}
+.pay-card.sel{border-color:var(--teal);background:rgba(13,191,168,.06);box-shadow:0 0 0 1px var(--teal),0 0 18px rgba(13,191,168,.14)}
 .pay-card.disabled{opacity:.44;cursor:not-allowed;pointer-events:none}
-.pay-ico{font-size:18px;margin-bottom:7px;display:block;color:var(--faint);font-family:'IBM Plex Mono'}
+.pay-ico{margin-bottom:12px;display:block;color:var(--faint);line-height:0}
+.pay-ico svg{width:26px;height:26px;display:block}
 .pay-card.sel .pay-ico{color:var(--teal)}
-.pay-name{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--white);line-height:1.4;display:block}
-.pay-chk{position:absolute;top:7px;right:7px;width:15px;height:15px;border:1px solid var(--hair);
-  display:grid;place-items:center;color:var(--teal);font-size:9px;opacity:0;transition:opacity .2s}
+.pay-name{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--white);line-height:1.4;display:block;white-space:nowrap}
+.pay-chk{position:absolute;top:8px;right:8px;width:17px;height:17px;border:1px solid var(--hair);
+  display:grid;place-items:center;color:var(--teal);font-size:10px;opacity:0;transition:opacity .2s}
 .pay-card.sel .pay-chk{opacity:1;border-color:var(--teal);background:rgba(13,191,168,.15)}
-.pay-soon{position:absolute;bottom:7px;right:7px;font-family:'IBM Plex Mono';font-size:7.5px;letter-spacing:.08em;
+.pay-soon{position:absolute;bottom:8px;right:8px;font-family:'IBM Plex Mono';font-size:7.5px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--faint);border:1px solid var(--hair);padding:2px 5px;white-space:nowrap}
 
 /* empty */
@@ -157,6 +159,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   .order{grid-template-columns:1fr}
   .sum{position:static}
   .bar-nav{display:none}
+}
+@media(max-width:620px){
+  .pay-cards{flex-wrap:wrap}
+  .pay-card{flex:1 1 calc(50% - 5px)}
 }
 @media(max-width:560px){
   .wrap{padding:0 22px}
@@ -278,22 +284,22 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
         <div class="pay-lbl">Mode de paiement</div>
         <div class="pay-cards" id="payCards">
           <button class="pay-card sel" data-pay="virement">
-            <span class="pay-ico">⇄</span>
+            <span class="pay-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
             <span class="pay-name">Virement bancaire</span>
             <span class="pay-chk">✓</span>
           </button>
           <button class="pay-card" data-pay="cheque">
-            <span class="pay-ico">≡</span>
+            <span class="pay-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
             <span class="pay-name">Chèque</span>
             <span class="pay-chk">✓</span>
           </button>
           <button class="pay-card" data-pay="especes">
-            <span class="pay-ico">◈</span>
+            <span class="pay-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><line x1="6" y1="12" x2="6.01" y2="12"/><line x1="18" y1="12" x2="18.01" y2="12"/></svg></span>
             <span class="pay-name">Espèces à la livraison</span>
             <span class="pay-chk">✓</span>
           </button>
           <button class="pay-card disabled" data-pay="online" tabindex="-1" aria-disabled="true">
-            <span class="pay-ico">▣</span>
+            <span class="pay-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
             <span class="pay-name">Paiement en ligne</span>
             <span class="pay-soon">Bientôt</span>
           </button>
@@ -352,7 +358,7 @@ import { initNotifications } from './notifications.js';
     document.querySelectorAll('.pay-card').forEach(c => c.classList.toggle('sel', c === card));
   });
 
-  function fmt(n) { return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmt(n){var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];}
   function glyph(name) { return name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(); }
 
   async function loadProducts() {
