@@ -112,20 +112,20 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 /* payment method */
 .pay-section{margin-bottom:20px;border-bottom:1px solid var(--hair);padding-bottom:20px}
 .pay-lbl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:11px}
-.pay-cards{display:flex;gap:10px}
-.pay-card{position:relative;border:1px solid var(--hair);padding:20px 16px;cursor:pointer;
-  background:transparent;text-align:left;transition:border-color .2s,background .2s,box-shadow .2s;color:inherit;font:inherit;flex:1;min-width:0;display:block}
+.pay-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pay-card{position:relative;border:1px solid var(--hair);padding:18px 14px 22px;cursor:pointer;
+  background:transparent;text-align:left;transition:border-color .2s,background .2s,box-shadow .2s;color:inherit;font:inherit;display:block;min-height:86px}
 .pay-card:not(.disabled):hover{border-color:rgba(13,191,168,.5);background:rgba(13,191,168,.04)}
 .pay-card.sel{border-color:var(--teal);background:rgba(13,191,168,.06);box-shadow:0 0 0 1px var(--teal),0 0 18px rgba(13,191,168,.14)}
 .pay-card.disabled{opacity:.44;cursor:not-allowed;pointer-events:none}
-.pay-ico{margin-bottom:12px;display:block;color:var(--faint);line-height:0}
-.pay-ico svg{width:26px;height:26px;display:block}
+.pay-ico{margin-bottom:10px;display:block;color:var(--faint);line-height:0}
+.pay-ico svg{width:22px;height:22px;display:block}
 .pay-card.sel .pay-ico{color:var(--teal)}
-.pay-name{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--white);line-height:1.4;display:block;white-space:nowrap}
-.pay-chk{position:absolute;top:8px;right:8px;width:17px;height:17px;border:1px solid var(--hair);
-  display:grid;place-items:center;color:var(--teal);font-size:10px;opacity:0;transition:opacity .2s}
+.pay-name{font-family:'IBM Plex Mono';font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--white);line-height:1.55;display:block;overflow:hidden;word-break:break-word;padding-right:18px}
+.pay-chk{position:absolute;top:8px;right:8px;width:16px;height:16px;border:1px solid var(--hair);
+  display:grid;place-items:center;color:var(--teal);font-size:9px;opacity:0;transition:opacity .2s}
 .pay-card.sel .pay-chk{opacity:1;border-color:var(--teal);background:rgba(13,191,168,.15)}
-.pay-soon{position:absolute;bottom:8px;right:8px;font-family:'IBM Plex Mono';font-size:7.5px;letter-spacing:.08em;
+.pay-soon{position:absolute;bottom:7px;right:7px;font-family:'IBM Plex Mono';font-size:7px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--faint);border:1px solid var(--hair);padding:2px 5px;white-space:nowrap}
 
 /* empty */
@@ -159,10 +159,6 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   .order{grid-template-columns:1fr}
   .sum{position:static}
   .bar-nav{display:none}
-}
-@media(max-width:620px){
-  .pay-cards{flex-wrap:wrap}
-  .pay-card{flex:1 1 calc(50% - 5px)}
 }
 @media(max-width:560px){
   .wrap{padding:0 22px}
