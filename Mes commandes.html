@@ -523,12 +523,26 @@ import { initNotifications } from './notifications.js';
       return;
     }
 
-    const order = orders.find(o => o._uuid === _cancelUuid);
+    const cancelledUuid = _cancelUuid;
+    const order = orders.find(o => o._uuid === cancelledUuid);
     if (order) order.status = 'Annulé';
     _cancelUuid = null;
     cancelModal.classList.remove('show');
     cancelConfirmBtn.disabled = false;
     cancelConfirmBtn.textContent = "Confirmer l'annulation";
+
+    // Notify admin (non-blocking — failure here doesn't affect the cancel)
+    const phName = (_ph && _ph.phName) ? _ph.phName : (ctx.profile.name || 'Pharmacie');
+    const orderRef = 'CMD-' + cancelledUuid.slice(0, 8).toUpperCase();
+    supabase.from('notifications').insert({
+      title: 'Commande annulée',
+      body:  phName + ' a annulé la commande ' + orderRef,
+      link:  '/admin/Admin Orders.html',
+      target_role: 'admin',
+      user_id: null,
+      read: false
+    }).then(function(){});
+
     showCancelToast();
     render();
   });

@@ -606,6 +606,20 @@ document.getElementById('docList').addEventListener('click',function(e){
       return;
     }
     cancelModal.classList.remove('show');
+
+    // Notify admin (non-blocking)
+    var _ph2;try{_ph2=JSON.parse(localStorage.getItem('neoval_ph_v1'))||{};}catch(e){_ph2={};}
+    var phName2=(_ph2.phName)||ctx.profile.name||'Pharmacie';
+    var orderRef2='CMD-'+uuid.slice(0,8).toUpperCase();
+    supabase.from('notifications').insert({
+      title:'Commande annulée',
+      body:phName2+' a annulé la commande '+orderRef2,
+      link:'/admin/Admin Orders.html',
+      target_role:'admin',
+      user_id:null,
+      read:false
+    }).then(function(){});
+
     window.location.href='Mes commandes.html';
   });
 })();
