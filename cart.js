@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Neoval Pharma — shared order/cart logic
    Single source of truth for products + cart state (localStorage).
    ============================================================ */
@@ -73,7 +73,7 @@
       var tva=subtotal*TVA_RATE;
       return {items:items, subtotal:subtotal, tva:tva, total:subtotal+tva};
     },
-    fmt:function(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); },
+    fmt:function(n){if(!n&&n!==0)return'0';var num=Number(n);if(isNaN(num))return'0';var fixed=num.toFixed(2);var parts=fixed.split('.');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'');return parts[1]==='00'?parts[0]:parts[0]+','+parts[1];} ,
 
   };
 

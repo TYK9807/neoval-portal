@@ -428,7 +428,7 @@ function fmtDate(iso){
   var d=new Date(iso);if(isNaN(d))return '—';
   return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
 }
-function fmt(n){var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];}
+function fmt(n){if(!n&&n!==0)return'0';var num=Number(n);if(isNaN(num))return'0';var fixed=num.toFixed(2);var parts=fixed.split('.');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'');return parts[1]==='00'?parts[0]:parts[0]+','+parts[1];}
 function glyph(name){return(name||'').trim().slice(0,2).toUpperCase()||'◇';}
 
 var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
@@ -562,7 +562,7 @@ async function loadAndRender(){
   }).join('');
 
   var tva=subtotal*0.20;
-  document.getElementById('sUnits').textContent=units.toLocaleString('fr-FR');
+  document.getElementById('sUnits').textContent=String(units);
   document.getElementById('sSub').textContent=fmt(subtotal)+' MAD';
   document.getElementById('sTva').textContent=fmt(tva)+' MAD';
   document.getElementById('sTot').innerHTML=fmt(o.total)+'<small>MAD</small>';

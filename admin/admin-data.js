@@ -13,7 +13,7 @@
     if(s.indexOf('attente') > -1) return 'attente';
     return 'confirme';
   }
-  function fmt(n){ var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1]; }
+  function fmt(n){if(!n&&n!==0)return'0';var num=Number(n);if(isNaN(num))return'0';var fixed=num.toFixed(2);var parts=fixed.split('.');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'');return parts[1]==='00'?parts[0]:parts[0]+','+parts[1];}
 
   var _orders = [];
 

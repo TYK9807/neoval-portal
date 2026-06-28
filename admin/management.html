@@ -427,8 +427,15 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
   var STATUS_LABELS = { Confirmé: 'confirme', 'En attente': 'attente', Livré: 'livre' };
 
   function fmt(n) {
-    var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];
+    if (!n && n !== 0) return '0';
+    var num = Number(n);
+    if (isNaN(num)) return '0';
+    var fixed = num.toFixed(2);
+    var parts = fixed.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '');
+    return parts[1] === '00' ? parts[0] : parts[0] + ',' + parts[1];
   }
+  function fmtDisplay(n) { return fmt(n); }
 
   function fmtDate(iso) {
     if (!iso) return '—';
@@ -458,7 +465,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
       }
       if (!revenueRes.error && revenueRes.data) {
         var total = revenueRes.data.reduce(function(s, r){ return s + (r.total || 0); }, 0);
-        document.getElementById('statRevenue').textContent = fmt(total);
+        document.getElementById('statRevenue').textContent = fmtDisplay(total);
         document.getElementById('statRevSub').textContent = 'commandes confirmées';
       }
       if (!topRes.error && topRes.data && topRes.data.length) {

@@ -733,7 +733,16 @@ function rowHTML(label,status){
       (o.order_items||[]).forEach(function(it){totalUnits+=(it.quantity||0);});
     });
     statOrders.textContent=String(orders.length).padStart(2,'0');
-    statUnits.textContent=totalUnits.toLocaleString('fr-FR');
+      function fmtDisplay(n) {
+    if (!n && n !== 0) return '0';
+    var num = Number(n);
+    if (isNaN(num)) return '0';
+    var fixed = num.toFixed(2);
+    var parts = fixed.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '');
+    return parts[1] === '00' ? parts[0] : parts[0] + ',' + parts[1];
+  }
+  statUnits.textContent=fmtDisplay(totalUnits);
   } else {
     note.textContent='Aucune commande pour l\'instant';
     box.innerHTML='<div class="row"><span class="rn" style="color:var(--faint);font-size:13px">Aucune commande passée</span><span class="rt"></span></div>';
@@ -754,7 +763,7 @@ function rowHTML(label,status){
       var p=Math.min((ts-start)/dur,1);
       var ease=1-Math.pow(1-p,3);
       var v=Math.round(ease*end);
-      el.textContent=v.toLocaleString('fr-FR');
+      el.textContent=String(v);
       if(p<1)requestAnimationFrame(step);
     }
     requestAnimationFrame(step);

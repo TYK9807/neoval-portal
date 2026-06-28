@@ -249,11 +249,15 @@ import { initNotifications } from '../notifications.js';
   }
 
   function fmt(n) {
-    var v=String(Math.round(Number(n)));return v.replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+    if (!n && n !== 0) return '0';
+    var num = Number(n);
+    if (isNaN(num)) return '0';
+    var fixed = num.toFixed(2);
+    var parts = fixed.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '');
+    return parts[1] === '00' ? parts[0] : parts[0] + ',' + parts[1];
   }
-  function fmtDec(n) {
-    var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];
-  }
+  function fmtDisplay(n) { return fmt(n); }
 
   // Last 6 months
   const now = new Date();
@@ -307,8 +311,8 @@ import { initNotifications } from '../notifications.js';
   });
   const topPharmacyEntries = Object.entries(pharmacyCount).sort((a, b) => b[1] - a[1]);
 
-  document.getElementById('statRevenue').innerHTML = fmt(totalRevenue) + '<small>MAD</small>';
-  document.getElementById('statAvg').innerHTML = fmtDec(avgOrderValue) + '<small>MAD</small>';
+  document.getElementById('statRevenue').innerHTML = fmtDisplay(totalRevenue) + '<small>MAD</small>';
+  document.getElementById('statAvg').innerHTML = fmtDisplay(avgOrderValue) + '<small>MAD</small>';
   document.getElementById('statTopProd').textContent = topProductEntries[0]?.[0] || '—';
   document.getElementById('statTopPharma').textContent = topPharmacyEntries[0]?.[0] || '—';
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -294,6 +294,15 @@ body.p-orders.theme .tag.annule{color:#e07b74 !important;border-color:rgba(224,1
 (function(){
   var A=window.NeovalAdmin;
   var LABELS=A.LABELS, fmt=A.fmt, bucket=A.bucket;
+  function fmtDisplay(n) {
+    if (!n && n !== 0) return '0';
+    var num = Number(n);
+    if (isNaN(num)) return '0';
+    var fixed = num.toFixed(2);
+    var parts = fixed.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '');
+    return parts[1] === '00' ? parts[0] : parts[0] + ',' + parts[1];
+  }
   var current='tous';
 
   function fmtDate(iso){
@@ -323,7 +332,7 @@ body.p-orders.theme .tag.annule{color:#e07b74 !important;border-color:rgba(224,1
     document.getElementById('stAttente').textContent=c.attente;
     document.getElementById('stConfirme').textContent=c.confirme;
     var ca=orders.reduce(function(a,o){return a+o.total;},0);
-    document.getElementById('stCA').textContent=fmt(ca);
+    document.getElementById('stCA').textContent=fmtDisplay(ca);
 
     Object.keys(c).forEach(function(k){
       var el=document.querySelector('[data-ct="'+k+'"]'); if(el) el.textContent=c[k];

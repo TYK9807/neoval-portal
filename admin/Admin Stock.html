@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -299,7 +299,7 @@ import { initNotifications } from '../notifications.js';
       if (s === 'out') out++;
     });
     document.getElementById('stRefs').textContent  = PRODUCTS.length;
-    document.getElementById('stUnits').textContent = totalU.toLocaleString('fr-FR');
+    document.getElementById('stUnits').textContent = String(totalU);
     document.getElementById('stLow').textContent   = low;
     document.getElementById('stOut').textContent   = out;
   }
