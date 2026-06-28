@@ -61,10 +61,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 
 /* stat strip */
 .stats{display:flex;gap:0;border:1px solid var(--hair);background:var(--glass);backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);margin:8px 0 30px}
-.stat{flex:1;padding:20px 24px;border-right:1px solid var(--hair)}
+  -webkit-backdrop-filter:blur(14px);margin:8px 0 30px;overflow-x:auto}
+.stat{flex:1 1 auto;min-width:fit-content;padding:20px 24px;border-right:1px solid var(--hair)}
 .stat:last-child{border-right:0}
-.stat .num{font-family:'Syne';font-weight:800;font-size:28px;color:var(--white);line-height:1}
+.stat .num{font-family:'Syne';font-weight:800;font-size:28px;color:var(--white);line-height:1;white-space:nowrap}
 .stat .num.teal{color:var(--teal)} .stat .num.gold{color:var(--gold)}
 .stat .num.out{color:#e0655c}
 .stat .lbl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:9px}

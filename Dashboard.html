@@ -73,11 +73,11 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .head h1{font-size:clamp(34px,5vw,52px)}
 .head p{color:var(--body);font-size:16px;margin-top:14px;max-width:560px}
 
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:22px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:18px;margin-bottom:22px}
 .stat{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border:1px solid var(--hair);border-top:2px solid var(--teal);padding:28px 26px}
 .stat:nth-child(even){border-top-color:var(--gold)}
-.stat .num{font-family:'Syne';font-weight:800;font-size:38px;color:var(--teal);line-height:1}
+.stat .num{font-family:'Syne';font-weight:800;font-size:38px;color:var(--teal);line-height:1;white-space:nowrap}
 .stat:nth-child(even) .num{color:var(--gold)}
 .stat .lbl{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--body);margin-top:12px}
 
