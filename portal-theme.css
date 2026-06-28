@@ -536,7 +536,7 @@ body.theme .pcard .count b{color:var(--teal-ink)}
 /* stat kicker labels — deepened */
 body.theme .stat .lbl{color:#34495B;opacity:1}
 /* restore teal/gold accent on stat numbers — readable on the light glass card */
-body.theme .stat .num{color:var(--teal-ink)}
+body.theme .stat .num{color:var(--teal-ink);white-space:nowrap}
 body.theme .stat:nth-child(even) .num{color:var(--gold-ink)}
 /* status tags — guaranteed contrast */
 body.theme .tag.confirme{color:#0A7F71;border-color:rgba(10,127,113,.45);background:rgba(13,191,168,.13)}
@@ -568,6 +568,7 @@ body.theme .auth .card{
 }
 /* stat cards — teal-tinted glass */
 body.theme .stat{
+  min-width:fit-content;flex-shrink:0;
   background:rgba(230,248,246,.52);
   border-color:rgba(13,191,168,.3);
   box-shadow:
