@@ -337,7 +337,7 @@ body.theme .tag.pop{box-shadow:inset 0 0 12px rgba(196,160,58,.20)}
    TOPBAR — declutter: single-line nav, tighter rhythm,
    secondary identity line dropped so nothing is glued together
    ============================================================ */
-body.theme #bar .wrap{gap:18px}
+body.theme #bar .wrap{gap:18px;max-width:1240px}
 body.theme .bar-nav{gap:20px}
 body.theme .bar-nav a{white-space:nowrap;font-size:11px;letter-spacing:.07em}
 body.theme .bar-right{gap:14px}
