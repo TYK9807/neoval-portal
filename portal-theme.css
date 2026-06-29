@@ -621,6 +621,10 @@ body.theme .card h3,body.theme .donecard h2{
   body.theme .pcard:hover,body.theme .acard:hover{transform:translateY(-2px)}
 }
 
+/* pharmacy number elements — IBM Plex Mono prevents zero/O confusion */
+body.theme .pharm-total{font-family:var(--f-mono),monospace;font-variant-numeric:normal}
+body.theme .pharm-order-row .ot{font-family:var(--f-mono),monospace;font-variant-numeric:normal}
+
 /* ============================================================
    MOBILE NAVIGATION — hamburger + slide-in drawer
    Shared across every portal & admin page. The burger and drawer
