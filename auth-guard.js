@@ -37,6 +37,16 @@ export async function guard(requiredRole, loginUrl) {
       return null
     }
 
+    const _nameEl = document.querySelector('.who .meta .n')
+    const _avEl   = document.querySelector('.who .av')
+    if (_nameEl && profile.name) {
+      _nameEl.textContent = profile.name
+      if (_avEl) {
+        const _i = profile.name.trim().split(/\s+/).map(w => w[0]||'').join('').slice(0,2).toUpperCase() || (profile.name.slice(0,2)||'A').toUpperCase()
+        _avEl.textContent = _i
+      }
+    }
+
     document.body.style.visibility = 'visible'
 
     // Wire all logout links so they call signOut() before navigating.

@@ -638,10 +638,6 @@ var ctx=null;
   ctx=await guard('admin','Admin Login.html');
   if(!ctx)return;
   initNotifications(ctx.user.id, ctx.profile.role);
-  var n=ctx.profile.name||'Administrateur';
-  var av=n.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2)||n.slice(0,2)||'A';
-  document.querySelector('.who .meta .n').textContent=n;
-  document.querySelector('.who .av').textContent=av.toUpperCase();
   await loadAndRender();
 })();
 </script>

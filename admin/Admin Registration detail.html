@@ -535,12 +535,6 @@ import { initNotifications } from '../notifications.js';
   const ctx = await guard('admin', 'Admin Login.html');
   if (!ctx) return;
   initNotifications(ctx.user.id, ctx.profile.role);
-  const n = ctx.profile.name || 'Admin';
-  const av = n.split(' ').map(w => w[0]||'').join('').slice(0,2) || 'A';
-  const nameEl = document.querySelector('.who .meta .n');
-  const avEl   = document.querySelector('.who .av');
-  if (nameEl) nameEl.textContent = n;
-  if (avEl)   avEl.textContent   = av.toUpperCase();
 })();
 </script>
 </body>
