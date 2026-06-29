@@ -12,43 +12,48 @@ const CSS = `
 @keyframes nv-ring{0%,100%{transform:rotate(0)}20%{transform:rotate(-16deg)}
   40%{transform:rotate(16deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(8deg)}}
 .notif-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;
-  padding:0 4px;border-radius:9px;background:var(--teal);color:var(--navy);
+  padding:0 4px;border-radius:9px;background:#0DBFA8;color:#080F1E;
   font-family:'IBM Plex Mono',monospace;font-size:10px;display:grid;
   place-items:center;line-height:1;pointer-events:none}
 .notif-badge[hidden]{display:none}
 .notif-panel{position:absolute;top:calc(100% + 10px);right:0;width:340px;
-  max-width:calc(100vw - 24px);background:var(--glass);border:1px solid var(--hair);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:200;
-  box-shadow:0 8px 32px rgba(0,0,0,.12)}
+  max-width:calc(100vw - 24px);
+  background:rgba(15,25,40,0.95);
+  border:1px solid rgba(13,191,168,0.2);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:200;
+  box-shadow:0 16px 48px rgba(0,0,0,.55),0 0 0 1px rgba(13,191,168,.06)}
 .notif-panel[hidden]{display:none}
 .notif-ph{display:flex;align-items:center;justify-content:space-between;
-  padding:14px 18px;border-bottom:1px solid var(--hair)}
+  padding:14px 18px;border-bottom:1px solid rgba(13,191,168,0.15)}
 .notif-ph-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--faint)}
+  text-transform:uppercase;color:rgba(13,191,168,0.55);font-variant:small-caps}
 .notif-markall{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--teal);background:transparent;border:0;
+  text-transform:uppercase;color:#0DBFA8;background:transparent;border:0;
   cursor:pointer;padding:0;transition:opacity .2s}
 .notif-markall:hover{opacity:.7}
-.notif-list{max-height:360px;overflow-y:auto}
-.notif-empty{padding:28px 18px;font-size:13px;color:var(--faint);text-align:center}
-.notif-item{display:flex;gap:12px;padding:14px 18px;border-bottom:1px solid var(--hair);
+.notif-list{max-height:360px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(13,191,168,.25) transparent}
+.notif-list::-webkit-scrollbar{width:4px}
+.notif-list::-webkit-scrollbar-track{background:transparent}
+.notif-list::-webkit-scrollbar-thumb{background:rgba(13,191,168,.25);border-radius:2px}
+.notif-empty{padding:28px 18px;font-size:13px;color:rgba(255,255,255,0.35);text-align:center}
+.notif-item{display:flex;gap:12px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);
   cursor:pointer;transition:background .2s;text-align:left;width:100%;
-  background:transparent;color:var(--white);font-family:inherit;
+  background:transparent;color:#F5F7FA;font-family:inherit;
   border-left:0;border-right:0;border-top:0}
 .notif-item:last-child{border-bottom:0}
-.notif-item:hover{background:rgba(13,191,168,.045)}
-.notif-item.unread{background:rgba(13,191,168,.06)}
-.notif-item.unread:hover{background:rgba(13,191,168,.1)}
-.notif-dot{flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:var(--teal);
+.notif-item:hover{background:rgba(13,191,168,.05)}
+.notif-item.unread{background:rgba(13,191,168,.07)}
+.notif-item.unread:hover{background:rgba(13,191,168,.12)}
+.notif-dot{flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:#0DBFA8;
   margin-top:6px;opacity:0;transition:opacity .2s}
 .notif-item.unread .notif-dot{opacity:1}
 .notif-content{flex:1;min-width:0}
-.notif-title{font-size:13px;font-weight:500;color:var(--white);line-height:1.3;
+.notif-title{font-size:13px;font-weight:500;color:#F5F7FA;line-height:1.3;
   margin-bottom:3px;display:block}
-.notif-body{font-size:12px;color:var(--body);line-height:1.4;margin-bottom:4px;
+.notif-body{font-size:12px;color:rgba(255,255,255,.6);line-height:1.4;margin-bottom:4px;
   display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .notif-time{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;
-  color:var(--faint);display:block}
+  color:rgba(255,255,255,.6);display:block}
 `
 
 let _items = []
