@@ -386,7 +386,7 @@ import { initNotifications } from './notifications.js';
     const d = new Date(iso);
     return isNaN(d) ? '—' : d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
   }
-  function fmt(n){var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1];}
+  function fmt(n){var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'');return p[0]+','+p[1];}
   function tagHTML(b) { return `<span class="tag ${b}">${LABELS[b]}</span>`; }
 
   let orders = [];
@@ -472,7 +472,7 @@ import { initNotifications } from './notifications.js';
       return `<div class="orow" data-uuid="${o._uuid}" role="button" tabindex="0">
         <span class="onum">${o.id}</span>
         <span class="odate">${fmtDate(o.date)}</span>
-        <span class="oitems"><b>${lines}</b> · ${o.units} unités</span>
+        <span class="oitems"><b>${lines}</b> · ${o.units} unité${o.units > 1 ? 's' : ''}</span>
         <span class="ototal">${fmt(o.total)}<small>MAD</small></span>
         ${tagCell}
         <span class="ochev">${b === 'annule' ? '' : '→'}</span>

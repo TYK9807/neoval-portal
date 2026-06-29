@@ -311,7 +311,7 @@ import { initNotifications } from './notifications.js';
   const STOCK_LABEL = { in: 'En stock', low: 'Stock limité', out: 'Rupture' };
   function stockState(qty) { return qty <= 0 ? 'out' : qty < 50 ? 'low' : 'in'; }
   function glyph(name) { return name.replace(/[^A-Z0-9]/gi,'').substring(0,3).toUpperCase(); }
-  function fmt(n) { var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1]; }
+  function fmt(n) { var p=Number(n).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'');return p[0]+','+p[1]; }
 
   /* ---- render grid ---- */
   function render(cat) {

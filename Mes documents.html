@@ -312,7 +312,7 @@ function fmtDate(iso){
   var d=new Date(iso);if(isNaN(d))return '—';
   return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
 }
-function fmtMoney(n){var p=(Math.round((n||0)*100)/100).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');return p[0]+','+p[1]+' MAD';}
+function fmtMoney(n){var p=(Math.round((n||0)*100)/100).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'');return p[0]+','+p[1]+' MAD';}
 var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
 
 var docs=[],current='tous',currentOrder='all';

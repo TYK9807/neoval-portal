@@ -28,9 +28,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px;width:100%;position:relative;z-index:5}
 
 /* topbar */
-#bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--hair);
+#bar{position:fixed;top:0;left:0;right:0;z-index:9999;border-bottom:1px solid var(--hair);
   background:rgba(6,13,24,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 #bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+main{margin-top:72px}
 .brand{display:flex;align-items:center;gap:12px}
 .brand .mark{width:26px;height:26px;position:relative;flex:0 0 auto}
 .brand .name{font-family:'Syne';font-weight:800;font-size:16px;letter-spacing:.14em;color:var(--white)}
