@@ -465,8 +465,9 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
       }
       if (!revenueRes.error && revenueRes.data) {
         var total = revenueRes.data.reduce(function(s, r){ return s + (r.total || 0); }, 0);
+        var confCount = revenueRes.data.length;
         document.getElementById('statRevenue').textContent = fmtDisplay(total);
-        document.getElementById('statRevSub').textContent = 'commandes confirmées';
+        document.getElementById('statRevSub').textContent = confCount + ' commande' + (confCount > 1 ? 's' : '') + ' confirmée' + (confCount > 1 ? 's' : '');
       }
       if (!topRes.error && topRes.data && topRes.data.length) {
         var agg = {};
@@ -609,7 +610,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
   // ——— PHARMACIES ———
   async function loadPharmacies() {
     var { data, error } = await sb.from('pharmacies')
-      .select('id, name, address, email, phone, ice')
+      .select('id, name, address, ice_number')
       .order('name');
     if (error || !data) {
       document.getElementById('pharmList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
@@ -646,7 +647,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
       rowEl.id = rowId;
       rowEl.innerHTML =
         '<div class="pharm-name-cell"><div class="pn">' + esc(p.name) + '</div>' +
-          (p.email ? '<div class="pc">' + esc(p.email) + '</div>' : '') +
+          (p.address ? '<div class="pc">' + esc(p.address) + '</div>' : '') +
         '</div>' +
         '<div class="tr-pcount pharm-count">' + pOrders.length + ' commande' + (pOrders.length !== 1 ? 's' : '') + '</div>' +
         '<div class="tr-ptotal pharm-total">' + fmt(totalSpend) + '<small>MAD</small></div>' +
@@ -678,10 +679,8 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
       }
 
       var metaHtml = '<div class="pharm-meta">' +
-        (p.address ? '<div class="pharm-mf"><span class="pharm-ml">Adresse</span><span class="pharm-mv">' + esc(p.address) + '</span></div>' : '') +
-        (p.email   ? '<div class="pharm-mf"><span class="pharm-ml">Email</span><span class="pharm-mv">' + esc(p.email) + '</span></div>' : '') +
-        (p.phone   ? '<div class="pharm-mf"><span class="pharm-ml">Téléphone</span><span class="pharm-mv">' + esc(p.phone) + '</span></div>' : '') +
-        (p.ice     ? '<div class="pharm-mf"><span class="pharm-ml">ICE</span><span class="pharm-mv">' + esc(p.ice) + '</span></div>' : '') +
+        (p.address    ? '<div class="pharm-mf"><span class="pharm-ml">Adresse</span><span class="pharm-mv">' + esc(p.address) + '</span></div>' : '') +
+        (p.ice_number ? '<div class="pharm-mf"><span class="pharm-ml">ICE</span><span class="pharm-mv">' + esc(p.ice_number) + '</span></div>' : '') +
       '</div>';
       detEl.innerHTML =
         '<div class="pharm-inner">' +
