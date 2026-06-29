@@ -92,7 +92,7 @@ body.theme h4{
 }
 body.theme .brand .name{font-family:var(--f-head),sans-serif;font-weight:500;letter-spacing:.18em}
 
-/* unified display-number treatment — Syne 600 with tabular alignment */
+/* unified display-number treatment — IBM Plex Mono for consistent glyph rendering */
 body.theme .stat .num,
 body.theme .price .amt,
 body.theme .sumrow.tot .v,
@@ -103,7 +103,7 @@ body.theme .line .ltot,
 body.theme .li .st,
 body.theme .donecard h2,
 body.theme .pcard h3{
-  font-family:var(--f-head),sans-serif;
+  font-family:var(--f-mono),monospace;
   font-weight:600;
   letter-spacing:.008em;
   font-variant-numeric:normal;
