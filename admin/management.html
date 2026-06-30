@@ -614,7 +614,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
   // ——— PHARMACIES ———
   async function loadPharmacies() {
     var { data, error } = await sb.from('pharmacies')
-      .select('id, name, address, ice_number')
+      .select('id, name, address, email, ice_number')
       .order('name');
     if (error || !data) {
       document.getElementById('pharmList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
