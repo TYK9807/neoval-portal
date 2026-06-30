@@ -1,0 +1,32 @@
+/* Slim design-system extract for Login.html only.
+   Contains the two rules from portal-theme.css that Login actually uses.
+   Intentionally excludes body.theme main { margin-top:72px } — Login has
+   no navbar so that offset is wrong for the login card layout. */
+
+/* whisper-faint engineering grid */
+body.theme::after{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(14,28,43,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,28,43,.035) 1px, transparent 1px) !important;
+  background-size:48px 48px !important;
+  opacity:.55 !important;
+}
+
+/* brand leaf mark */
+body.theme .brand .mark.nv-leafmark{
+  background:none!important;border:0!important;width:auto!important;
+  display:inline-flex;align-items:center;justify-content:center;overflow:visible;
+}
+body.theme .brand .mark.nv-leafmark::before,
+body.theme .brand .mark.nv-leafmark::after{content:none!important;display:none!important}
+body.theme .brand .mark.nv-leafmark .nv-leaf{
+  display:block;height:118%;width:auto;
+  transition:transform .2s ease;
+}
+body.theme .brand:hover .mark.nv-leafmark .nv-leaf,
+body.theme .brand:focus-visible .mark.nv-leafmark .nv-leaf{transform:translateY(-3px)}
+@media(prefers-reduced-motion:reduce){
+  body.theme .brand .mark.nv-leafmark .nv-leaf{transition:none}
+  body.theme .brand:hover .mark.nv-leafmark .nv-leaf{transform:none}
+}
