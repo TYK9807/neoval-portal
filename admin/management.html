@@ -645,9 +645,13 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
       .select('id, pharmacy_id, placed_by, status, created_at, total')
       .order('created_at', { ascending: false });
 
+    console.log('[DEBUG] pharmUsers:', (pharmUsers||[]).length, pharmUsers);
+    console.log('[DEBUG] userToPharmacy:', userToPharmacy);
+    console.log('[DEBUG] orders loaded:', (orders||[]).length, orders);
     var orderMap = {};
     (orders || []).forEach(function(o) {
       var pid = o.pharmacy_id || userToPharmacy[o.placed_by];
+      console.log('[DEBUG] order', o.id, 'pharmacy_id:', o.pharmacy_id, 'placed_by:', o.placed_by, '→ resolved pid:', pid);
       if (!pid) return;
       if (!orderMap[pid]) orderMap[pid] = [];
       orderMap[pid].push(o);
