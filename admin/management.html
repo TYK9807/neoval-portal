@@ -614,7 +614,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
   // ——— PHARMACIES ———
   async function loadPharmacies() {
     var { data, error } = await sb.from('pharmacies')
-      .select('id, name, address, email, ice_number')
+      .select('id, name, address, ice_number')
       .order('name');
     if (error || !data) {
       document.getElementById('pharmList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
@@ -685,7 +685,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
 
       var metaHtml = '<div class="pharm-meta">' +
         (p.address    ? '<div class="pharm-mf"><span class="pharm-ml">Adresse</span><span class="pharm-mv">' + esc(p.address) + '</span></div>' : '') +
-        (p.email      ? '<div class="pharm-mf"><span class="pharm-ml">Email</span><span class="pharm-mv">' + esc(p.email) + '</span></div>' : '') +
+        (p.email      ? '<div class="pharm-mf"><span class="pharm-ml">Email</span><span class="pharm-mv">' + esc(p.email) + '</span></div>' : ''  ) +
         (p.ice_number ? '<div class="pharm-mf"><span class="pharm-ml">ICE</span><span class="pharm-mv">' + esc(p.ice_number) + '</span></div>' : '') +
       '</div>';
       detEl.innerHTML =
