@@ -122,6 +122,65 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
 .empty{display:none;text-align:center;padding:70px 0 90px;color:var(--faint);
   font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 
+/* ── product quick-view modal ── */
+#pmodal{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .25s}
+#pmodal.open{opacity:1;pointer-events:all}
+.pm-backdrop{position:absolute;inset:0;background:rgba(3,7,16,.80);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.pm-panel{position:relative;width:100%;max-width:800px;
+  display:grid;grid-template-columns:300px 1fr;
+  background:rgba(7,13,26,.97);border:1px solid rgba(13,191,168,.28);border-top:3px solid #0DBFA8;
+  box-shadow:0 32px 80px rgba(0,0,0,.75);
+  transform:translateY(20px) scale(.98);transition:transform .3s cubic-bezier(.16,1,.3,1);overflow:hidden}
+#pmodal.open .pm-panel{transform:none}
+.pm-close{position:absolute;top:14px;right:14px;background:rgba(7,13,26,.70);
+  border:1px solid rgba(244,246,249,.16);width:32px;height:32px;display:grid;place-items:center;
+  cursor:pointer;color:rgba(244,246,249,.50);font-size:13px;transition:color .2s,border-color .2s;z-index:2;padding:0}
+.pm-close:hover{color:#F4F6F9;border-color:rgba(244,246,249,.40)}
+.pm-img{position:relative;overflow:hidden;min-height:320px;
+  background:linear-gradient(135deg,rgba(13,191,168,.11) 0%,rgba(4,8,18,.92) 100%);
+  border-right:1px solid rgba(244,246,249,.08);display:flex;align-items:center;justify-content:center}
+.pm-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pm-glyph{font-family:'Syne',sans-serif;font-weight:800;font-size:80px;color:rgba(13,191,168,.45);
+  letter-spacing:-.03em;line-height:1;pointer-events:none;user-select:none}
+.pm-pill{position:absolute;bottom:16px;left:16px;font-family:'IBM Plex Mono';font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;color:#0DBFA8;
+  border:1px solid rgba(13,191,168,.35);padding:5px 9px;background:rgba(9,20,32,.75)}
+.pm-body{padding:32px 28px 26px;display:flex;flex-direction:column;overflow-y:auto;max-height:88vh}
+.pm-cat{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:#0DBFA8;margin-bottom:10px}
+.pm-name{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:#EFF4F8;
+  letter-spacing:-.02em;line-height:1.1;margin-bottom:7px}
+.pm-ref{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(244,246,249,.35);margin-bottom:18px}
+.pm-desc{color:rgba(244,246,249,.65);font-size:14px;line-height:1.75;margin-bottom:22px;flex:1}
+.pm-divider{height:1px;background:rgba(244,246,249,.08);margin-bottom:20px}
+.pm-price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px}
+.pm-amt{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;color:#EFF4F8;
+  line-height:1;display:flex;align-items:baseline;gap:5px}
+.pm-amt small{font-family:'IBM Plex Mono';font-size:15px;color:rgba(244,246,249,.45);
+  font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.pm-unit{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(244,246,249,.35);margin-top:4px}
+.pm-actions{display:flex;align-items:stretch;gap:10px;margin-top:auto;padding-top:4px}
+.pm-stepper{display:inline-flex;align-items:stretch;border:1px solid rgba(244,246,249,.16)}
+.pm-stepper button{background:transparent;border:0;color:#EFF4F8;font-size:20px;line-height:1;
+  width:42px;cursor:pointer;transition:background .18s;font-family:monospace;padding:0}
+.pm-stepper button:hover{background:rgba(244,246,249,.08)}
+.pm-qty{font-family:'IBM Plex Mono';font-size:14px;min-width:48px;display:grid;place-items:center;
+  color:#EFF4F8;border-left:1px solid rgba(244,246,249,.16);border-right:1px solid rgba(244,246,249,.16)}
+.pm-add{flex:1;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  padding:0 20px;cursor:pointer;border:1px solid #0DBFA8;background:transparent;color:#0DBFA8;
+  transition:background .24s,color .24s;white-space:nowrap;min-height:46px}
+.pm-add:hover:not(:disabled){background:#0DBFA8;color:#080F1E}
+.pm-add:disabled{border-color:rgba(244,246,249,.14);color:rgba(244,246,249,.26);cursor:not-allowed}
+@media(max-width:680px){
+  .pm-panel{grid-template-columns:1fr;overflow-y:auto;max-height:92vh}
+  .pm-img{min-height:200px;border-right:none;border-bottom:1px solid rgba(244,246,249,.08)}
+  .pm-glyph{font-size:60px}
+  .pm-body{overflow-y:visible;max-height:none;padding:22px 18px 20px}
+}
+
 #toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:200;
   background:rgba(10,22,38,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border:1px solid var(--teal);border-left:3px solid var(--teal);color:#E8EFF1;
@@ -263,6 +322,39 @@ body.p-cat.theme .fav-btn.fav{color:var(--gold) !important;background:rgba(196,1
   <section class="grid" id="grid"></section>
   <div class="empty" id="empty">Aucune référence dans cette catégorie</div>
 </main>
+
+<div id="pmodal" aria-modal="true" role="dialog" aria-hidden="true">
+  <div class="pm-backdrop"></div>
+  <div class="pm-panel">
+    <button class="pm-close" aria-label="Fermer">✕</button>
+    <div class="pm-img">
+      <span class="pm-glyph"></span>
+      <span class="pm-pill"></span>
+    </div>
+    <div class="pm-body">
+      <p class="pm-cat"></p>
+      <h2 class="pm-name"></h2>
+      <p class="pm-ref"></p>
+      <p class="pm-desc"></p>
+      <div class="pm-divider"></div>
+      <div class="pm-price-row">
+        <div class="pm-price">
+          <div class="pm-amt"></div>
+          <div class="pm-unit">/ unité · hors taxe</div>
+        </div>
+        <div class="pm-stock"></div>
+      </div>
+      <div class="pm-actions">
+        <div class="pm-stepper">
+          <button class="pm-dec" aria-label="Diminuer">−</button>
+          <span class="pm-qty">1</span>
+          <button class="pm-inc" aria-label="Augmenter">+</button>
+        </div>
+        <button class="pm-add">Ajouter à la commande</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
@@ -428,14 +520,90 @@ import { initNotifications } from './notifications.js';
     shelf.classList.add('visible');
   }
 
-  /* fav-mini click — quick add to cart */
+  /* fav-mini click — open quick-view modal */
   document.getElementById('favScroll').addEventListener('click', e => {
     const mini = e.target.closest('.fav-mini'); if (!mini) return;
-    const prod = list.find(p => p.id === mini.dataset.id);
-    if (!prod || (prod.stock_quantity || 0) <= 0) return;
-    window.NeovalCart.add(prod.id, 1);
-    toast('1 unité ajoutée · ' + prod.name);
+    openModal(list.find(p => p.id === mini.dataset.id));
+  });
+
+  /* ---- product quick-view modal ---- */
+  const modal   = document.getElementById('pmodal');
+  const pmGlyph = modal.querySelector('.pm-glyph');
+  const pmPill  = modal.querySelector('.pm-pill');
+  const pmCat   = modal.querySelector('.pm-cat');
+  const pmName  = modal.querySelector('.pm-name');
+  const pmRef   = modal.querySelector('.pm-ref');
+  const pmDesc  = modal.querySelector('.pm-desc');
+  const pmAmt   = modal.querySelector('.pm-amt');
+  const pmStock = modal.querySelector('.pm-stock');
+  const pmQtyEl = modal.querySelector('.pm-qty');
+  const pmAdd   = modal.querySelector('.pm-add');
+  const pmDec   = modal.querySelector('.pm-dec');
+  const pmInc   = modal.querySelector('.pm-inc');
+  const pmImg   = modal.querySelector('.pm-img');
+  let _mProd = null, _mQty = 1;
+
+  function openModal(p) {
+    if (!p) return;
+    _mProd = p; _mQty = 1;
+    const st = stockState(p.stock_quantity);
+    // image or glyph placeholder
+    const existing = pmImg.querySelector('img');
+    if (existing) existing.remove();
+    if (p.image_url) {
+      const img = document.createElement('img');
+      img.src = p.image_url; img.alt = p.name;
+      pmImg.appendChild(img);
+      pmGlyph.style.display = 'none';
+    } else {
+      pmGlyph.style.display = '';
+    }
+    pmGlyph.textContent    = glyph(p.name);
+    pmPill.textContent     = p.category || '';
+    pmCat.textContent      = p.category || '';
+    pmName.textContent     = p.name;
+    pmRef.textContent      = 'Réf. ' + String(p.id).slice(0,8).toUpperCase();
+    pmDesc.textContent     = p.description || 'Aucune description disponible.';
+    pmAmt.innerHTML        = fmt(p.price) + '<small>MAD</small>';
+    pmStock.className      = 'pm-stock stock ' + st;
+    pmStock.innerHTML      = '<span class="dot"></span>' + STOCK_LABEL[st];
+    pmQtyEl.textContent    = _mQty;
+    pmAdd.disabled         = st === 'out';
+    pmAdd.textContent      = st === 'out' ? 'Indisponible' : 'Ajouter à la commande';
+    modal.setAttribute('aria-hidden', 'false');
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  // open on card click (not on addbtn / fav-btn)
+  document.getElementById('grid').addEventListener('click', e => {
+    if (e.target.closest('.addbtn') || e.target.closest('.fav-btn')) return;
+    const card = e.target.closest('.pcard'); if (!card) return;
+    const pid = card.querySelector('.addbtn')?.dataset.id; if (!pid) return;
+    openModal(list.find(p => p.id === pid));
+  });
+
+  modal.addEventListener('click', e => {
+    if (e.target === modal || e.target.classList.contains('pm-backdrop') || e.target.closest('.pm-close'))
+      closeModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  pmDec.addEventListener('click', () => { if (_mQty > 1) { _mQty--; pmQtyEl.textContent = _mQty; } });
+  pmInc.addEventListener('click', () => { _mQty++; pmQtyEl.textContent = _mQty; });
+
+  pmAdd.addEventListener('click', () => {
+    if (!_mProd || pmAdd.disabled) return;
+    window.NeovalCart.add(_mProd.id, _mQty);
+    toast(_mQty + ' unité' + (_mQty > 1 ? 's' : '') + ' ajoutée' + (_mQty > 1 ? 's' : '') + ' · ' + _mProd.name);
     syncBadge();
+    closeModal();
   });
 
   await loadFavourites();
