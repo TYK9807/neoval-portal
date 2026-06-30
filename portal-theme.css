@@ -522,9 +522,9 @@ body.theme .pcard:hover .vis .glyph{
   transform:scale(1.1) translateY(-3px);
 }
 body.theme .pcard .vis .pill{
-  color:#0A7F71 !important;
-  border-color:rgba(10,127,113,.45) !important;
-  background:rgba(255,255,255,.85) !important;
+  color:#0DBFA8 !important;
+  border-color:rgba(13,191,168,.35) !important;
+  background:rgba(9,20,32,.72) !important;
 }
 /* kicker, ref, stock — all fully readable dark values */
 body.theme .pcard .ref{color:var(--faint);opacity:1}
