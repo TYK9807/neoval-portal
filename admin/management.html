@@ -640,14 +640,10 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
       }
     });
 
-    /* query orders by placed_by so we catch orders where pharmacy_id was NULL at insert */
-    var pharmUserIds = (pharmUsers || []).map(function(u){ return u.id; });
-    var { data: orders } = pharmUserIds.length
-      ? await sb.from('orders')
-          .select('id, pharmacy_id, placed_by, status, created_at, total')
-          .in('placed_by', pharmUserIds)
-          .order('created_at', { ascending: false })
-      : { data: [] };
+    /* load all orders — then resolve each to a pharmacy via pharmacy_id or placed_by lookup */
+    var { data: orders } = await sb.from('orders')
+      .select('id, pharmacy_id, placed_by, status, created_at, total')
+      .order('created_at', { ascending: false });
 
     var orderMap = {};
     (orders || []).forEach(function(o) {
