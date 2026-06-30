@@ -2045,6 +2045,34 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
     </div>
   </section>
 
+  <section class="ap-section" data-bg="cert">
+    <div class="wrap">
+      <div class="portal-panel">
+        <div class="glass gold reveal">
+          <div class="kicker gold" style="margin-bottom:22px">Portail Pharmacie</div>
+          <h2 style="font-size:clamp(28px,3.6vw,46px);margin-bottom:16px">Demander un accès au portail.</h2>
+          <p style="color:var(--body);font-size:16px;line-height:1.65;max-width:620px;margin-bottom:36px">Réservé aux pharmacies d'officine. Accédez au catalogue grossiste, aux tarifs préférentiels et à la commande en ligne. Renseignez vos informations, nous validons votre compte sous 48h.</p>
+          <form class="form" id="reg-form" novalidate>
+            <div class="formrow">
+              <div class="field"><label>Nom de la pharmacie</label><input id="reg-pharmacy" type="text" required placeholder="Pharmacie ..." /><span class="errmsg">Champ requis</span></div>
+              <div class="field"><label>Nom du gérant</label><input id="reg-contact" type="text" required placeholder="Dr. Prénom Nom" /><span class="errmsg">Champ requis</span></div>
+            </div>
+            <div class="formrow">
+              <div class="field"><label>Email professionnel</label><input id="reg-email" type="email" required placeholder="officine@email.ma" /><span class="errmsg">Email invalide</span></div>
+              <div class="field"><label>Téléphone</label><input id="reg-phone" type="tel" required placeholder="+212 ..." /><span class="errmsg">Champ requis</span></div>
+            </div>
+            <div class="formrow">
+              <div class="field"><label>Ville / Adresse</label><input id="reg-address" type="text" placeholder="Casablanca, Rabat…" /></div>
+              <div class="field"><label>N° RC / ICE</label><input id="reg-ice" type="text" placeholder="Identifiant de l'officine (optionnel)" /></div>
+            </div>
+            <button type="submit" class="btn btn-primary">Demander l'accès <span class="arr">→</span></button>
+          </form>
+          <div class="formok"><div class="ok-k">Demande reçue</div><h3>Votre demande d'accès est enregistrée.</h3><p>Notre équipe vérifie vos informations et active votre portail sous 48h. Vous recevrez vos identifiants par email.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="ap-section" data-bg="join">
     <div class="wrap">
       <div class="contact-grid">
@@ -2070,34 +2098,6 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
           <div class="ci"><div class="k">Téléphone</div><div class="v"><a href="tel:+212522000000">+212 5 22 00 00 00</a></div></div>
           <div class="ci"><div class="k">Service Commercial</div><div class="v"><a href="mailto:commercial@neovalpharma.ma">commercial@neovalpharma.ma</a></div></div>
           <div class="ci"><div class="k">Horaires</div><div class="v">Lundi – Vendredi · 9h – 18h</div></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="ap-section" data-bg="cert">
-    <div class="wrap">
-      <div class="portal-panel">
-        <div class="glass gold reveal">
-          <div class="kicker gold" style="margin-bottom:22px">Portail Pharmacie</div>
-          <h2 style="font-size:clamp(28px,3.6vw,46px);margin-bottom:16px">Demander un accès au portail.</h2>
-          <p style="color:var(--body);font-size:16px;line-height:1.65;max-width:620px;margin-bottom:36px">Réservé aux pharmacies d'officine. Accédez au catalogue grossiste, aux tarifs préférentiels et à la commande en ligne. Renseignez vos informations, nous validons votre compte sous 48h.</p>
-          <form class="form" id="reg-form" novalidate>
-            <div class="formrow">
-              <div class="field"><label>Nom de la pharmacie</label><input id="reg-pharmacy" type="text" required placeholder="Pharmacie ..." /><span class="errmsg">Champ requis</span></div>
-              <div class="field"><label>Nom du gérant</label><input id="reg-contact" type="text" required placeholder="Dr. Prénom Nom" /><span class="errmsg">Champ requis</span></div>
-            </div>
-            <div class="formrow">
-              <div class="field"><label>Email professionnel</label><input id="reg-email" type="email" required placeholder="officine@email.ma" /><span class="errmsg">Email invalide</span></div>
-              <div class="field"><label>Téléphone</label><input id="reg-phone" type="tel" required placeholder="+212 ..." /><span class="errmsg">Champ requis</span></div>
-            </div>
-            <div class="formrow">
-              <div class="field"><label>Ville / Adresse</label><input id="reg-address" type="text" placeholder="Casablanca, Rabat…" /></div>
-              <div class="field"><label>N° RC / ICE</label><input id="reg-ice" type="text" placeholder="Identifiant de l'officine (optionnel)" /></div>
-            </div>
-            <button type="submit" class="btn btn-primary">Demander l'accès <span class="arr">→</span></button>
-          </form>
-          <div class="formok"><div class="ok-k">Demande reçue</div><h3>Votre demande d'accès est enregistrée.</h3><p>Notre équipe vérifie vos informations et active votre portail sous 48h. Vous recevrez vos identifiants par email.</p></div>
         </div>
       </div>
     </div>
