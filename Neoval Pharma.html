@@ -99,7 +99,13 @@ body{
   line-height:1.5;
 }
 body.lock{overflow:hidden}
-h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.04}
+@font-face{
+  font-family:'SyneDigits';
+  src:url('https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3pQPwlBFgg.woff2') format('woff2');
+  font-weight:100 900;font-display:swap;
+  unicode-range:U+0030-0039,U+0025;
+}
+h1,h2,h3,h4{font-family:'SyneDigits','Syne',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.04}
 .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
 
 /* ============ BACKGROUND SYSTEM ============ */
