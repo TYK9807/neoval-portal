@@ -256,6 +256,21 @@ import { initNotifications } from '../notifications.js';
     return parts[1] === '00' ? parts[0] : parts[0] + ',' + parts[1];
   }
   function fmtDisplay(n) { return fmt(n); }
+  function countUpStat(el, endVal, suffix, dur) {
+    if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) {
+      el.innerHTML = fmt(endVal) + suffix; return;
+    }
+    var start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var ease = 1 - Math.pow(1 - p, 3);
+      el.innerHTML = fmt(ease * endVal) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+      else el.innerHTML = fmt(endVal) + suffix;
+    }
+    requestAnimationFrame(step);
+  }
 
   // Last 6 months
   const now = new Date();
@@ -309,8 +324,8 @@ import { initNotifications } from '../notifications.js';
   });
   const topPharmacyEntries = Object.entries(pharmacyCount).sort((a, b) => b[1] - a[1]);
 
-  document.getElementById('statRevenue').innerHTML = fmtDisplay(totalRevenue) + '<small>MAD</small>';
-  document.getElementById('statAvg').innerHTML = fmtDisplay(avgOrderValue) + '<small>MAD</small>';
+  countUpStat(document.getElementById('statRevenue'), totalRevenue, '<small>MAD</small>', 900);
+  countUpStat(document.getElementById('statAvg'), avgOrderValue, '<small>MAD</small>', 900);
   document.getElementById('statTopProd').textContent = topProductEntries[0]?.[0] || '—';
   document.getElementById('statTopPharma').textContent = topPharmacyEntries[0]?.[0] || '—';
 
