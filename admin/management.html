@@ -614,7 +614,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
   // ——— PHARMACIES ———
   async function loadPharmacies() {
     var { data, error } = await sb.from('pharmacies')
-      .select('id, name, address, email, ice_number')
+      .select('id, name, address, ice_number')
       .order('name');
     if (error || !data) {
       document.getElementById('pharmList').innerHTML = '<div class="state-row">Erreur de chargement.</div>';
@@ -626,6 +626,14 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
     }
 
     var pharmIds = data.map(function(p){ return p.id; });
+
+    var { data: pharmUsers } = await sb.from('users')
+      .select('pharmacy_id, email')
+      .eq('role', 'pharmacy')
+      .not('pharmacy_id', 'is', null);
+    var emailMap = {};
+    (pharmUsers || []).forEach(function(u){ if (u.pharmacy_id) emailMap[u.pharmacy_id] = u.email; });
+
     var { data: orders } = await sb.from('orders')
       .select('id, pharmacy_id, status, created_at, total')
       .in('pharmacy_id', pharmIds)
@@ -653,7 +661,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
         '<div class="pharm-name-cell"><div class="pn">' + esc(p.name) + '</div>' +
           (p.address ? '<div class="pc">' + esc(p.address) + '</div>' : '') +
         '</div>' +
-        '<div class="tr-pemail" style="font-family:\'IBM Plex Mono\';font-size:11px;letter-spacing:.03em;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.email || '—') + '</div>' +
+        '<div class="tr-pemail" style="font-family:\'IBM Plex Mono\';font-size:11px;letter-spacing:.03em;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(emailMap[p.id] || '—') + '</div>' +
         '<div class="tr-pcount pharm-count">' + pOrders.length + ' commande' + (pOrders.length !== 1 ? 's' : '') + '</div>' +
         '<div class="tr-ptotal pharm-total">' + fmt(totalSpend) + '<small>MAD</small></div>' +
         '<div class="th-pstatus"><span class="tag confirme">Approuvée</span></div>' +
@@ -685,7 +693,7 @@ body.p-management.theme .pharm-order-row{border-bottom-color:rgba(244,246,249,.0
 
       var metaHtml = '<div class="pharm-meta">' +
         (p.address    ? '<div class="pharm-mf"><span class="pharm-ml">Adresse</span><span class="pharm-mv">' + esc(p.address) + '</span></div>' : '') +
-        (p.email      ? '<div class="pharm-mf"><span class="pharm-ml">Email</span><span class="pharm-mv">' + esc(p.email) + '</span></div>' : ''  ) +
+        (emailMap[p.id] ? '<div class="pharm-mf"><span class="pharm-ml">Email</span><span class="pharm-mv">' + esc(emailMap[p.id]) + '</span></div>' : '') +
         (p.ice_number ? '<div class="pharm-mf"><span class="pharm-ml">ICE</span><span class="pharm-mv">' + esc(p.ice_number) + '</span></div>' : '') +
       '</div>';
       detEl.innerHTML =
