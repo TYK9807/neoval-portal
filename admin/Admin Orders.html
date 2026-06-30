@@ -195,6 +195,12 @@ body.p-orders.theme .cval{background:rgba(6,13,24,.70) !important;border-color:r
 body.p-orders.theme #done{background:rgba(3,7,16,.88) !important}
 body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-color:rgba(13,191,168,.3) !important}
 body.p-orders.theme .tag.annule{color:#e07b74 !important;border-color:rgba(224,101,92,.35) !important;background:rgba(224,101,92,.10) !important}
+body.p-orders.theme .stats{box-shadow:0 4px 24px rgba(0,0,0,.50),0 0 40px -14px rgba(13,191,168,.16) !important}
+body.p-orders.theme .stat{transition:background .22s,box-shadow .22s !important}
+body.p-orders.theme .stat:hover{background:rgba(13,191,168,.07) !important;box-shadow:inset 0 0 0 1px rgba(13,191,168,.18) !important}
+body.p-orders.theme .stat .num{letter-spacing:-.02em !important}
+body.p-orders.theme .stat .num.teal{text-shadow:0 0 24px rgba(13,191,168,.42) !important}
+body.p-orders.theme .stat .num.gold{text-shadow:0 0 24px rgba(196,160,58,.38) !important}
 @media(prefers-reduced-motion:reduce){body.p-orders.theme #bg-glow{animation:none !important}}
 </style>
 <link rel="stylesheet" href="../portal-theme.css" />
@@ -400,6 +406,35 @@ import { initNotifications } from '../notifications.js';
   const ctx = await guard('admin', 'Admin Login.html');
   if (!ctx) return;
   initNotifications(ctx.user.id, ctx.profile.role);
+})();
+</script>
+<script>
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  function countUp(el,end,dur){
+    var start=null;
+    function step(ts){
+      if(!start)start=ts;
+      var p=Math.min((ts-start)/dur,1);
+      var ease=1-Math.pow(1-p,3);
+      el.textContent=String(Math.round(ease*end));
+      if(p<1)requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  var obs=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      var el=m.target;
+      if(el.getAttribute('data-counted'))return;
+      var raw=(el.textContent||'').trim();
+      if(!/^\d+$/.test(raw))return;
+      var val=parseInt(raw,10);
+      if(val>1){el.setAttribute('data-counted','1');countUp(el,val,900);}
+    });
+  });
+  document.querySelectorAll('.stat .num').forEach(function(el){
+    obs.observe(el,{childList:true,characterData:true,subtree:true});
+  });
 })();
 </script>
 </body>
