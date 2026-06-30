@@ -169,9 +169,10 @@ body.p-account.theme .qedit{background:rgba(6,13,24,.55) !important;border-color
 body.p-account.theme .qedit button{border-right-color:rgba(244,246,249,.10) !important;border-left-color:rgba(244,246,249,.10) !important;color:rgba(244,246,249,.58) !important}
 body.p-account.theme .qedit input{color:#EFF4F8 !important}
 body.p-account.theme #toast{background:rgba(5,10,20,.94) !important;border-color:rgba(13,191,168,.40) !important;border-left-color:var(--teal) !important}
-body.p-account.theme .stats{box-shadow:0 4px 24px rgba(0,0,0,.50),0 0 40px -14px rgba(13,191,168,.16) !important}
-body.p-account.theme .stat{transition:background .22s,box-shadow .22s !important}
-body.p-account.theme .stat:hover{background:rgba(13,191,168,.07) !important;box-shadow:inset 0 0 0 1px rgba(13,191,168,.18) !important}
+body.p-account.theme .stat{border-top:2px solid var(--teal) !important;box-shadow:0 1px 0 rgba(13,191,168,.09) inset,0 4px 24px rgba(0,0,0,.52),0 0 36px -14px rgba(13,191,168,.22) !important;transition:box-shadow .22s ease,border-color .22s ease,background .22s !important}
+body.p-account.theme .stat:nth-child(even){border-top-color:var(--gold) !important;box-shadow:0 1px 0 rgba(196,160,58,.07) inset,0 4px 24px rgba(0,0,0,.52),0 0 36px -14px rgba(196,160,58,.18) !important}
+body.p-account.theme .stat:hover{background:rgba(13,191,168,.06) !important;border-top-color:rgba(13,191,168,.85) !important;box-shadow:0 1px 0 rgba(13,191,168,.16) inset,0 8px 32px rgba(0,0,0,.54),0 0 52px -8px rgba(13,191,168,.36) !important}
+body.p-account.theme .stat:nth-child(even):hover{background:rgba(196,160,58,.04) !important;border-top-color:rgba(196,160,58,.85) !important;box-shadow:0 1px 0 rgba(196,160,58,.12) inset,0 8px 32px rgba(0,0,0,.54),0 0 52px -8px rgba(196,160,58,.28) !important}
 body.p-account.theme .stat .num{letter-spacing:-.02em !important}
 body.p-account.theme .stat .num.teal{text-shadow:0 0 24px rgba(13,191,168,.42) !important}
 body.p-account.theme .stat .num.gold{text-shadow:0 0 24px rgba(196,160,58,.38) !important}
