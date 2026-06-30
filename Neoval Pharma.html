@@ -347,7 +347,7 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
   font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.10em;color:rgba(159,214,228,.82)}
 .lv-hud b{color:var(--teal);font-weight:500}
 .lv-bar{position:absolute;left:24px;bottom:92px;z-index:5;width:84px;height:4px;border:1px solid rgba(13,191,168,.45)}
-.lv-bar i{position:absolute;left:0;top:0;bottom:0;width:62%;background:var(--teal);animation:lvLock 11s ease-in-out infinite}
+.lv-bar i{position:absolute;left:0;top:0;bottom:0;width:84%;background:var(--teal);transform-origin:left center;animation:lvLock 11s ease-in-out infinite}
 .lv-bar span{position:absolute;left:0;top:9px;font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.14em;color:rgba(159,214,228,.7);white-space:nowrap}
 .lv-vig{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 43%,transparent 48%,rgba(4,10,18,.7))}
 .lv-scan{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:.5;
@@ -364,7 +364,14 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
 @keyframes lvParNear{0%,100%{transform:translate(0,0)}50%{transform:translate(-8px,-6px)}}
 /* the objective hunting for focus, then snapping back to lock */
 @keyframes lvFocusHunt{0%,38%{filter:blur(0)}54%{filter:blur(2.6px)}68%,100%{filter:blur(0)}}
-@keyframes lvLock{0%,38%{width:84%}54%{width:38%}68%,100%{width:84%}}
+@keyframes lvLock{0%,38%{transform:scaleX(1)}54%{transform:scaleX(.45)}68%,100%{transform:scaleX(1)}}
+/* pause all microscope animations when section is off-screen */
+.lv-scene.anim-paused .lv-field,
+.lv-scene.anim-paused .lv-layer,
+.lv-scene.anim-paused .lv-sweep,
+.lv-scene.anim-paused .lv-cell,
+.lv-scene.anim-paused .lv-deb,
+.lv-scene.anim-paused .lv-bar i{animation-play-state:paused}
 @media (prefers-reduced-motion:reduce){
   .lv-sweep,.lv-cell,.lv-deb,.lv-bar i,.lv-field,.lv-layer{animation:none}
   .lv-field{filter:none}
@@ -2643,6 +2650,14 @@ document.querySelectorAll('form.jsform').forEach(function(f){
     f.textContent=(11.1+Math.random()*0.7).toFixed(2);
     c.textContent=314+Math.floor(Math.random()*11);
   },1500);
+})();
+/* pause microscope animations when section leaves viewport */
+(function(){
+  var scene=document.querySelector('.lv-scene');
+  if(!scene||!window.IntersectionObserver) return;
+  new IntersectionObserver(function(entries){
+    scene.classList.toggle('anim-paused',!entries[0].isIntersecting);
+  },{threshold:0,rootMargin:'200px 0px 200px 0px'}).observe(scene);
 })();
 
 /* nav — glow follows the cursor */
