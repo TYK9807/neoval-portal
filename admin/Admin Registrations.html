@@ -340,7 +340,7 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
         <button class="copybtn" data-copy="password">Copier</button>
       </div>
     </div>
-    <p class="cred-note">Le pharmacien devra changer ce mot de passe à la première connexion.<br/>Portail : <strong>http://localhost:8080/Login.html</strong></p>
+    <p class="cred-note">Le pharmacien devra changer ce mot de passe à la première connexion.<br/>Portail : <strong id="cred-portal-url"></strong></p>
     <button class="cred-close" id="cred-close">Fermer</button>
   </div>
 </div>
@@ -471,6 +471,8 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
     document.getElementById('cred-pharmacy-name').textContent = result.pharmacy_name || 'Nouvelle pharmacie';
     document.getElementById('cred-email').textContent = result.email;
     document.getElementById('cred-password').textContent = result.temp_password;
+    document.getElementById('cred-portal-url').textContent =
+      window.location.origin + window.location.pathname.replace(/\/admin\/[^/]*$/, '/Login.html');
     document.getElementById('cred-modal').classList.add('show');
   }
 
@@ -504,14 +506,11 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
     });
   });
 
-  document.addEventListener('DOMContentLoaded', function(){
-    // window._sb set by supabase-client.js if already loaded; otherwise fall back to our client
-    if (window._sb) { /* sb is already our own client */ }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadRegistrations);
+  } else {
     loadRegistrations();
-  });
-
-  // In case DOMContentLoaded already fired
-  if (document.readyState !== 'loading') loadRegistrations();
+  }
 })();
 </script>
 <script src="../portal-nav.js"></script>

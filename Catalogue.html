@@ -383,7 +383,7 @@ import { initNotifications } from './notifications.js';
   /* ---- favourites state ---- */
   let favSet = new Set();
   async function loadFavourites() {
-    const { data } = await supabase.from('favourites').select('product_id');
+    const { data } = await supabase.from('favourites').select('product_id').eq('user_id', ctx.user.id);
     favSet = new Set((data || []).map(f => f.product_id));
   }
 

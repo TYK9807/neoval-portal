@@ -483,9 +483,10 @@ body.p-orders.theme .donecard{background:rgba(5,11,22,.96) !important;border-col
           var result = await callFunction('resend_invite');
           var wrap = document.getElementById('recovery-wrap');
           var linkEl = document.getElementById('recovery-link');
-          if (wrap && linkEl && result.link) {
-            linkEl.textContent = result.link;
-            linkEl.title = result.link;
+          var resolvedLink = result.invite_link || result.link;
+          if (wrap && linkEl && resolvedLink) {
+            linkEl.textContent = resolvedLink;
+            linkEl.title = resolvedLink;
             wrap.style.display = 'flex';
             wrap.style.flexDirection = 'column';
           }
