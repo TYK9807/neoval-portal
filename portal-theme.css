@@ -673,6 +673,9 @@ body.theme .mnav-logout:hover{color:var(--teal);border-color:var(--teal)}
   /* push brand left so cart/avatar/burger cluster cleanly at the right */
   body.theme #bar .brand{margin-right:auto}
   body.theme #bar .wrap{gap:12px}
+  /* hide topbar logout + who text — both are in the mobile drawer */
+  body.theme #bar .logout{display:none}
+  body.theme #bar .who .meta{display:none}
 }
 
 /* ============================================================
