@@ -417,6 +417,7 @@ body.p-orders.theme .doc .badge{background:rgba(196,160,58,.14) !important;borde
 
 <script src="../portal-nav.js"></script>
 <script src="admin-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import { supabase } from '../supabase-client.js';
 import { guard } from '../auth-guard.js';
@@ -440,6 +441,96 @@ function fmt(n){if(!n&&n!==0)return'0';var num=Number(n);if(isNaN(num))return'0'
 function glyph(name){return(name||'').trim().slice(0,2).toUpperCase()||'◇';}
 
 var DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>';
+
+function fmtMoney(n){var p=(Math.round((n||0)*100)/100).toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'');return p[0]+','+p[1]+' MAD';}
+
+var currentOrderData=null;
+
+function generatePDF(doc){
+  var jsPDF=window.jspdf.jsPDF;
+  var pdf=new jsPDF({unit:'mm',format:'a4'});
+  var o=doc.orderData;
+  var isbl=doc.type==='BL';
+  var title=isbl?'BON DE LIVRAISON':'PREUVE DE PAIEMENT';
+  var dateVal=isbl?(o.confirmed_at||o.created_at):(o.delivered_at||o.created_at);
+  var CONTENT_BOTTOM=265;
+
+  function drawFooter(){
+    pdf.setFont('helvetica','normal');pdf.setFontSize(7.5);pdf.setTextColor(160,160,160);
+    pdf.setDrawColor(200,200,200);pdf.setLineWidth(0.2);pdf.line(14,280,196,280);
+    pdf.text('Neoval Pharma — Document généré automatiquement via le portail B2B',14,286);
+    pdf.text('Ce document est valide sans signature.',196,286,{align:'right'});
+  }
+
+  function drawPageHeader(isFirst){
+    pdf.setFillColor(13,191,168);pdf.rect(0,0,210,22,'F');
+    pdf.setFont('helvetica','bold');pdf.setFontSize(13);pdf.setTextColor(255,255,255);
+    pdf.text('NEOVAL PHARMA',14,10);pdf.setFont('helvetica','normal');pdf.setFontSize(8);
+    pdf.text('PORTAIL B2B — DOCUMENT OFFICIEL',14,17);pdf.setTextColor(220,252,248);
+    pdf.text(new Date().toLocaleDateString('fr-FR'),196,10,{align:'right'});
+    if(isFirst){
+      pdf.setTextColor(13,27,42);pdf.setFont('helvetica','bold');pdf.setFontSize(22);
+      pdf.text(title,14,40);pdf.setDrawColor(13,191,168);pdf.setLineWidth(0.5);pdf.line(14,44,196,44);
+      pdf.setFont('helvetica','normal');pdf.setFontSize(10);pdf.setTextColor(60,70,80);
+      pdf.text('Référence:',14,54);pdf.setFont('helvetica','bold');pdf.text(doc.order,50,54);
+      pdf.setFont('helvetica','normal');pdf.text('Date:',14,62);pdf.setFont('helvetica','bold');pdf.text(fmtDate(dateVal),50,62);
+      var sy=74;
+      if(doc.pharmacyName){pdf.setFont('helvetica','normal');pdf.text('Pharmacie:',14,70);pdf.setFont('helvetica','bold');pdf.text(doc.pharmacyName,50,70);sy=82;}
+      return sy;
+    } else {
+      pdf.setTextColor(13,27,42);pdf.setFont('helvetica','bold');pdf.setFontSize(12);pdf.text(title+' — suite',14,36);
+      pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.setTextColor(60,70,80);pdf.text(doc.order,14,44);
+      if(doc.pharmacyName){pdf.text('· '+doc.pharmacyName,50,44);}
+      pdf.setDrawColor(13,191,168);pdf.setLineWidth(0.3);pdf.line(14,48,196,48);return 58;
+    }
+  }
+
+  function drawTableHeader(y){
+    pdf.setFillColor(240,244,248);pdf.rect(14,y-5,182,9,'F');
+    pdf.setFont('helvetica','bold');pdf.setFontSize(8.5);pdf.setTextColor(40,50,65);
+    pdf.text('PRODUIT',17,y);pdf.text('QTÉ',128,y,{align:'right'});
+    pdf.text('PRIX UNIT.',160,y,{align:'right'});pdf.text('SOUS-TOTAL',195,y,{align:'right'});
+    return y+10;
+  }
+
+  var startY=drawPageHeader(true);
+  drawFooter();
+
+  if(isbl){
+    var items=o.order_items||[];
+    if(items.length){
+      var y=drawTableHeader(startY);
+      pdf.setFont('helvetica','normal');pdf.setFontSize(9.5);var rowIndex=0;
+      items.forEach(function(item){
+        var pname=(item.products&&item.products.name)?item.products.name:'Produit';
+        var sub=(item.quantity||0)*(item.unit_price||0);
+        if(y+9+13>CONTENT_BOTTOM){
+          pdf.addPage();startY=drawPageHeader(false);drawFooter();y=drawTableHeader(startY);
+          pdf.setFont('helvetica','normal');pdf.setFontSize(9.5);rowIndex=0;
+        }
+        if(rowIndex%2===1){pdf.setFillColor(250,251,252);pdf.rect(14,y-5,182,8,'F');}
+        pdf.setTextColor(13,27,42);pdf.text(pname.slice(0,55),17,y);
+        pdf.setTextColor(60,70,80);pdf.text(String(item.quantity||0),128,y,{align:'right'});
+        pdf.text(fmtMoney(item.unit_price),160,y,{align:'right'});pdf.text(fmtMoney(sub),195,y,{align:'right'});
+        y+=9;pdf.setDrawColor(220,225,230);pdf.setLineWidth(0.2);pdf.line(14,y-4,196,y-4);rowIndex++;
+      });
+      y+=4;pdf.setFillColor(13,27,42);pdf.rect(130,y-5,66,9,'F');
+      pdf.setFont('helvetica','bold');pdf.setFontSize(9.5);pdf.setTextColor(255,255,255);
+      pdf.text('TOTAL',135,y);pdf.text(fmtMoney(o.total),195,y,{align:'right'});
+    }
+  } else {
+    pdf.setFont('helvetica','normal');pdf.setFontSize(10);pdf.setTextColor(60,70,80);
+    pdf.text('Ce document certifie la réception et le paiement de la commande '+doc.order+'.',14,startY);
+    var y2=startY+18;
+    pdf.setFillColor(240,254,250);pdf.setDrawColor(13,191,168);pdf.setLineWidth(0.4);
+    pdf.roundedRect(14,y2-6,182,28,2,2,'FD');
+    pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.setTextColor(13,100,90);
+    pdf.text('Montant total réglé',24,y2+4);
+    pdf.setFont('helvetica','bold');pdf.setFontSize(20);pdf.setTextColor(13,191,168);
+    pdf.text(fmtMoney(o.total),24,y2+16);
+  }
+  return pdf.output('blob');
+}
 
 var toast=document.getElementById('toast'),toastTimer;
 function showToast(name,sub,gold){
@@ -471,7 +562,7 @@ function renderDocs(shortId,blGenerated){
     var name=d.t+'-'+shortId;
     return '<div class="doc active"><div class="di">'+d.t+'</div>'+
       '<div class="dm"><div class="dt">'+d.label+'</div><div class="dd">'+name+'.pdf</div></div>'+
-      '<button class="dl" data-name="'+name+'">'+DL_SVG+'PDF</button></div>';
+      '<button class="dl" data-name="'+name+'" data-type="'+d.t+'">'+DL_SVG+'PDF</button></div>';
   }).join('');
 }
 
@@ -512,9 +603,10 @@ async function loadAndRender(){
 
   var {data:o,error}=await supabase
     .from('orders')
-    .select('id,status,total,created_at,payment_method,users!placed_by(name,email),order_items(quantity,unit_price,products(name,category))')
+    .select('id,status,total,created_at,confirmed_at,delivered_at,payment_method,users!placed_by(name,email),order_items(quantity,unit_price,products(name,category))')
     .eq('id',uuid)
     .single();
+  if(o) currentOrderData=o;
 
   if(error||!o){
     document.getElementById('detail').style.display='none';
@@ -622,23 +714,38 @@ document.querySelector('#detail').addEventListener('click',async function(e){
 
   } else if(act==='bl'){
     btn.innerHTML='<span class="ic"></span>Génération…';
-    setTimeout(async function(){
-      var shortId=currentUUID.slice(0,8).toUpperCase();
-      showToast('BL généré','BL-'+shortId+'.pdf · automatisation à venir',true);
-      await loadAndRender();
-    },700);
+    var shortId=currentUUID.slice(0,8).toUpperCase();
+    try{
+      var blob=generatePDF({type:'BL',order:'CMD-'+shortId,pharmacyName:currentOrderData&&currentOrderData.users?(currentOrderData.users.name||currentOrderData.users.email||''):'',orderData:currentOrderData});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');a.href=url;a.download='BL-'+shortId+'.pdf';a.click();
+      URL.revokeObjectURL(url);
+      showToast('BL-'+shortId+'.pdf','Téléchargement en cours',true);
+    }catch(err){
+      showToast('Erreur','Impossible de générer le BL',false);
+    }
+    btn.classList.remove('busy');btn.disabled=false;
+    btn.innerHTML='<span class="ic"></span>Régénérer le BL';
   }
 });
 
 document.getElementById('docList').addEventListener('click',function(e){
   var btn=e.target.closest('.dl');if(!btn)return;
   var name=btn.getAttribute('data-name');
+  var type=btn.getAttribute('data-type');
   btn.classList.add('busy');var orig=btn.innerHTML;
   btn.innerHTML=DL_SVG+'…';
-  setTimeout(function(){
-    btn.classList.remove('busy');btn.innerHTML=orig;
-    showToast(name+'.pdf','Téléchargement simulé',true);
-  },600);
+  try{
+    var shortId=currentUUID.slice(0,8).toUpperCase();
+    var blob=generatePDF({type:type,order:'CMD-'+shortId,pharmacyName:currentOrderData&&currentOrderData.users?(currentOrderData.users.name||currentOrderData.users.email||''):'',orderData:currentOrderData});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download=name+'.pdf';a.click();
+    URL.revokeObjectURL(url);
+    showToast(name+'.pdf','Téléchargement en cours',true);
+  }catch(err){
+    showToast('Erreur','Impossible de générer le document',false);
+  }
+  btn.classList.remove('busy');btn.innerHTML=orig;
 });
 
 var ctx=null;
