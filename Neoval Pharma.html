@@ -2521,7 +2521,14 @@ document.querySelectorAll('form.jsform').forEach(function(f){
 
   var SB_URL = 'https://nxlvdwqvkvgjvellmnic.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54bHZkd3F2a3ZnanZlbGxtbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIwNDcsImV4cCI6MjA5NzI4ODA0N30.qF8GNEtYeZpgvQbysSVVUgUQGhZ-0ksK-LWK4KxyjJM';
-  var sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+  // Lazy init: the Supabase SDK <script> is deferred, so window.supabase is
+  // not defined while this inline script runs. Create the client on first use
+  // (i.e. at submit time), by which point the deferred SDK has loaded.
+  var sb = null;
+  function getClient() {
+    if (!sb && window.supabase) sb = window.supabase.createClient(SB_URL, SB_KEY);
+    return sb;
+  }
 
   function validateRegForm() {
     var ok = true;
@@ -2558,10 +2565,14 @@ document.querySelectorAll('form.jsform').forEach(function(f){
       ice_number:    document.getElementById('reg-ice').value.trim() || null,
     };
 
-    if (!sb) {
-      regForm.style.display = 'none';
-      var box = regForm.parentNode.querySelector('.formok');
-      if (box) box.classList.add('show');
+    if (!getClient()) {
+      btn.disabled = false;
+      btn.innerHTML = 'Demander l\'accès <span class="arr">→</span>';
+      var errEl = document.createElement('p');
+      errEl.className = 'reg-error';
+      errEl.style.cssText = 'color:#e0655c;font-family:"IBM Plex Mono",monospace;font-size:12px;margin-top:10px;letter-spacing:.05em';
+      errEl.textContent = 'Service momentanément indisponible. Veuillez réessayer dans un instant.';
+      regForm.appendChild(errEl);
       return;
     }
 
