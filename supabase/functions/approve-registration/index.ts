@@ -6,6 +6,7 @@ const corsHeaders = {
 }
 
 const PORTAL_URL = 'https://tyk9807.github.io/neoval-portal/Login.html'
+const N8N_REG_WEBHOOK = 'https://tahayassine.app.n8n.cloud/webhook/neoval-registrations'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -136,6 +137,51 @@ Deno.serve(async (req) => {
       reviewed_at: new Date().toISOString(),
       reviewed_by: user.id,
     }).eq('id', registration_id)
+
+    // 5. Dispatch the single approval email through n8n, with the invite link
+    //    embedded. The link is a credential: it is sent over HTTPS in the request
+    //    body only (never in a URL, never written to the DB, never logged here).
+    //    The DB trigger deliberately skips the 'approved' transition, so this is
+    //    the sole sender of the approval email and there is no duplicate.
+    //    The webhook auth token lives only in Supabase Vault (single source of
+    //    truth) and is read via a service_role-only RPC.
+    try {
+      // Token read is best-effort: if the RPC/Vault secret isn't in place yet,
+      // fall back to an empty header rather than aborting the email. An empty
+      // header only matters once the webhook enforces Header Auth (the final
+      // cutover step), by which point the secret is guaranteed to exist.
+      let webhookToken = ''
+      try {
+        const { data: tokenData } = await adminClient.rpc('get_n8n_webhook_token')
+        if (tokenData) webhookToken = tokenData as string
+      } catch (_) { /* leave webhookToken empty */ }
+
+      await fetch(N8N_REG_WEBHOOK, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Neoval-Webhook-Token': webhookToken,
+        },
+        body: JSON.stringify({
+          type: 'UPDATE',
+          table: 'pending_registrations',
+          record: {
+            pharmacy_name: reg.pharmacy_name,
+            contact_name: reg.contact_name,
+            email: reg.email,
+            phone: reg.phone,
+            address: reg.address,
+            status: 'approved',
+          },
+          old_record: { status: 'pending' },
+          invite_link: inviteLink,
+        }),
+      })
+    } catch (n8nErr) {
+      // Non-fatal: the account is already created and the admin UI still shows
+      // the invite link for manual sharing. Never log the link itself.
+      console.error('n8n approval email dispatch failed:', (n8nErr as Error).message)
+    }
 
     return new Response(JSON.stringify({
       success: true,
