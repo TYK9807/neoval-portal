@@ -1,0 +1,280 @@
+{
+  "name": "Neoval — 4. Digest hebdomadaire",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "sched4",
+      "name": "Planificateur hebdo",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/rest/v1/rpc/get_delivered_orders_with_pharmacy",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "http_weekly",
+      "name": "Commandes semaine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json;\nconst cutoff7d = Date.now() - 7 * 24 * 60 * 60 * 1000;\nconst allOrders = Array.isArray(raw) ? raw : [];\nconst orders = allOrders.filter(o => new Date(o.created_at).getTime() > cutoff7d);\nconst count = orders.length;\nconst total = orders.reduce((s, o) => s + (o.total || 0), 0);\nconst avg = count > 0 ? total / count : 0;\nconst rows = orders.map(o => {\n  const ph = o.users || {};\n  const date = new Date(o.created_at).toLocaleDateString('fr-FR');\n  return `<tr><td style='padding:8px;border:1px solid #ddd'>${o.id.slice(0,8).toUpperCase()}</td><td style='padding:8px;border:1px solid #ddd'>${date}</td><td style='padding:8px;border:1px solid #ddd'>${ph.name || '?'}</td><td style='padding:8px;border:1px solid #ddd'>${(o.total||0).toFixed(2)} MAD</td></tr>`;\n}).join('');\nconst week = new Date().toLocaleDateString('fr-FR', {year:'numeric', month:'long', day:'numeric'});\nlet html = `<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto'><div style='background:#1a472a;color:white;padding:20px;text-align:center'><h1>Rapport Hebdomadaire Neoval Pharma</h1><p>Semaine du ${week}</p></div><div style='padding:20px'><h2>Resume</h2><table style='width:100%'><tr><td style='padding:8px'><strong>Commandes livrees</strong></td><td style='padding:8px'>${count}</td></tr><tr><td style='padding:8px'><strong>Chiffre d affaires</strong></td><td style='padding:8px'>${total.toFixed(2)} MAD</td></tr><tr><td style='padding:8px'><strong>Panier moyen</strong></td><td style='padding:8px'>${avg.toFixed(2)} MAD</td></tr></table></div>`;\nif (count > 0) {\n  html += `<div style='padding:20px'><h2>Detail</h2><table style='width:100%;border-collapse:collapse'><thead><tr style='background:#f5f5f5'><th style='padding:8px;text-align:left;border:1px solid #ddd'>Ref</th><th style='padding:8px;border:1px solid #ddd'>Date</th><th style='padding:8px;border:1px solid #ddd'>Pharmacie</th><th style='padding:8px;border:1px solid #ddd'>Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;\n} else {\n  html += '<p style=\"padding:20px\">Aucune commande livree cette semaine.</p>';\n}\nhtml += '</div>';\nreturn [{ json: { html, subject: '[Neoval] Rapport semaine - ' + count + ' commandes - ' + total.toFixed(2) + ' MAD' } }];"
+      },
+      "id": "code_stats",
+      "name": "Agregat statistiques",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "tahayassinekarim9@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "id": "gmail_weekly",
+      "name": "Email Admin Rapport hebdo",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        864,
+        304
+      ],
+      "webhookId": "ebb8cca4-ff92-4a6d-ab30-22c16a9e9e6d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/rest/v1/rpc/get_order_placements",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "http_30day",
+      "name": "Commandes 30 derniers jours",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1088,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/rest/v1/rpc/get_pharmacy_users",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "http_pharmacies",
+      "name": "Pharmacies inscrites",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1312,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const allOrders = $('Commandes 30 derniers jours').first().json;\nconst pharmacies = $input.first().json;\nconst cutoff30d = Date.now() - 30 * 24 * 60 * 60 * 1000;\nconst activeIds = new Set(\n  (Array.isArray(allOrders) ? allOrders : [])\n    .filter(o => new Date(o.created_at).getTime() > cutoff30d)\n    .map(o => o.placed_by)\n);\nconst inactive = (Array.isArray(pharmacies) ? pharmacies : []).filter(p => !activeIds.has(p.id));\nif (inactive.length === 0) return [];\nreturn inactive.map(p => ({\n  json: {\n    email: p.email,\n    name: p.name || p.email,\n    subject: 'Votre espace Neoval Pharma vous attend',\n    html: `<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto'><div style='background:#1a472a;color:white;padding:20px;text-align:center'><h1>Bonjour ${p.name || 'cher partenaire'},</h1></div><div style='padding:20px'><p>Nous n avons pas recu de commande de votre pharmacie depuis plus de 30 jours.</p><p>Notre catalogue est enrichi. N hesitez pas a consulter nos dernieres nouveautes.</p><p><a href='https://tyk9807.github.io/neoval-portal/Catalogue.html' style='background:#1a472a;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;margin-top:10px'>Voir le catalogue</a></p></div></div>`\n  }\n}));"
+      },
+      "id": "code_inactive",
+      "name": "Filtrer pharmacies inactives",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "id": "gmail_reengage",
+      "name": "Email Pharmacie Relance",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1744,
+        304
+      ],
+      "webhookId": "a3988460-1d46-4e07-957c-0d9effeb49a1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Planificateur hebdo": {
+      "main": [
+        [
+          {
+            "node": "Commandes semaine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commandes semaine": {
+      "main": [
+        [
+          {
+            "node": "Agregat statistiques",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregat statistiques": {
+      "main": [
+        [
+          {
+            "node": "Email Admin Rapport hebdo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Admin Rapport hebdo": {
+      "main": [
+        [
+          {
+            "node": "Commandes 30 derniers jours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commandes 30 derniers jours": {
+      "main": [
+        [
+          {
+            "node": "Pharmacies inscrites",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pharmacies inscrites": {
+      "main": [
+        [
+          {
+            "node": "Filtrer pharmacies inactives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrer pharmacies inactives": {
+      "main": [
+        [
+          {
+            "node": "Email Pharmacie Relance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Casablanca",
+    "binaryMode": "separate"
+  }
+}

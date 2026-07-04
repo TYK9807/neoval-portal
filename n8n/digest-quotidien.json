@@ -1,0 +1,251 @@
+{
+  "name": "Neoval â€” 3. Digest quotidien",
+  "nodes": [
+    {
+      "id": "sched3",
+      "name": "Planificateur quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "http_stale",
+      "name": "Commandes en attente 24h",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/rest/v1/rpc/get_pending_orders_with_pharmacy",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "sendQuery": false,
+        "queryParameters": {
+          "parameters": []
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}"
+      }
+    },
+    {
+      "id": "code_stale",
+      "name": "Traiter commandes en attente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const cutoff = Date.now() - 24 * 60 * 60 * 1000;\nconst allOrders = $input.all().map(i => i.json);\nconst orders = allOrders.filter(o => new Date(o.created_at).getTime() < cutoff);\nconst rows = orders.map(o => {\n  const ph = o.users || {};\n  const date = new Date(o.created_at).toLocaleDateString('fr-FR');\n  const ref = o.id.slice(0,8).toUpperCase();\n  const total = (o.total || 0).toFixed(2);\n  const name = ph.name || ph.email || '?';\n  return `<tr><td style='padding:8px;border:1px solid #ddd'>${ref}</td><td style='padding:8px;border:1px solid #ddd'>${date}</td><td style='padding:8px;border:1px solid #ddd'>${name}</td><td style='padding:8px;border:1px solid #ddd'>${total} MAD</td></tr>`;\n}).join('');\nreturn [{ json: { staleCount: orders.length, staleRows: rows } }];"
+      }
+    },
+    {
+      "id": "http_stock",
+      "name": "Stock faible",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/rest/v1/rpc/get_low_stock_products",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "sendQuery": false,
+        "queryParameters": {
+          "parameters": []
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}"
+      }
+    },
+    {
+      "id": "code_digest",
+      "name": "Construire digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const stale = $('Traiter commandes en attente').first().json;\nconst stock = $('Stock faible').all().map(i => i.json);\nconst stockRows = stock.map(p => {\n  const color = p.stock_quantity < 10 ? 'red' : '#e67e22';\n  return `<tr><td style='padding:8px;border:1px solid #ddd'>${p.name}</td><td style='padding:8px;border:1px solid #ddd;color:${color}'>${p.stock_quantity} unites</td></tr>`;\n}).join('');\nconst hasContent = stale.staleCount > 0 || stock.length > 0;\nconst today = new Date().toLocaleDateString('fr-FR', {weekday:'long', year:'numeric', month:'long', day:'numeric'});\nlet html = `<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto'><div style='background:#1a472a;color:white;padding:20px;text-align:center'><h1>Digest Quotidien Neoval Pharma</h1><p>${today}</p></div>`;\nif (stale.staleCount > 0) {\n  html += `<div style='padding:20px'><h2 style='color:#c0392b'>Commandes en attente +24h (${stale.staleCount})</h2><table style='width:100%;border-collapse:collapse'><thead><tr style='background:#f5f5f5'><th style='padding:8px;text-align:left;border:1px solid #ddd'>Ref</th><th style='padding:8px;border:1px solid #ddd'>Date</th><th style='padding:8px;border:1px solid #ddd'>Pharmacie</th><th style='padding:8px;border:1px solid #ddd'>Total</th></tr></thead><tbody>${stale.staleRows}</tbody></table></div>`;\n}\nif (stock.length > 0) {\n  html += `<div style='padding:20px'><h2 style='color:#e67e22'>Stock faible (${stock.length} produits)</h2><table style='width:100%;border-collapse:collapse'><thead><tr style='background:#f5f5f5'><th style='padding:8px;text-align:left;border:1px solid #ddd'>Produit</th><th style='padding:8px;border:1px solid #ddd'>Quantite</th></tr></thead><tbody>${stockRows}</tbody></table></div>`;\n}\nif (!hasContent) {\n  html += '<div style=\"padding:20px;color:green;text-align:center\"><p>Tout est en ordre - aucune alerte.</p></div>';\n}\nhtml += '</div>';\nconst subject = '[Neoval] Digest ' + today + (stale.staleCount > 0 ? ' - ' + stale.staleCount + ' commande(s) en attente' : '') + (stock.length > 0 ? ' - ' + stock.length + ' alerte(s) stock' : '');\nreturn [{ json: { hasContent, subject, html } }];"
+      }
+    },
+    {
+      "id": "if_anything",
+      "name": "Contenu a envoyer",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond1",
+              "leftValue": "={{ $json.hasContent }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "gmail_digest",
+      "name": "Email Admin Digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1520,
+        200
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "tahayassinekarim9@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "webhookId": "dbb49c2b-60f7-48ad-b83f-f4f12f06bbb9"
+    }
+  ],
+  "connections": {
+    "Planificateur quotidien": {
+      "main": [
+        [
+          {
+            "node": "Commandes en attente 24h",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commandes en attente 24h": {
+      "main": [
+        [
+          {
+            "node": "Traiter commandes en attente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traiter commandes en attente": {
+      "main": [
+        [
+          {
+            "node": "Stock faible",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Construire digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stock faible": {
+      "main": [
+        []
+      ]
+    },
+    "Construire digest": {
+      "main": [
+        [
+          {
+            "node": "Contenu a envoyer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contenu a envoyer": {
+      "main": [
+        [
+          {
+            "node": "Email Admin Digest",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Casablanca"
+  }
+}

@@ -1,0 +1,514 @@
+{
+  "name": "Neoval — 1. Commandes",
+  "nodes": [
+    {
+      "id": "wh1",
+      "name": "Webhook Commandes",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neoval-orders",
+        "responseMode": "onReceived",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "webhookId": "5d6f0417-14d8-48db-aa68-90c7c5c5405e",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vXLk72uOG88GVFvl",
+          "name": "Neoval Webhook Token"
+        }
+      }
+    },
+    {
+      "id": "code1",
+      "name": "Classifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const p = ($input.first().json.body) || $input.first().json;\nconst rec = p.record || {};\nconst old = p.old_record || {};\nconst newStatus = rec.status || '';\nconst oldStatus = old.status || '';\nlet action = 'ignore';\nif (p.type === 'INSERT') action = 'new_order';\nelse if (p.type === 'UPDATE') {\n  if (newStatus === 'Confirmé' && oldStatus !== 'Confirmé') action = 'confirmed';\n  else if (newStatus === 'Livré' && oldStatus !== 'Livré') action = 'delivered';\n}\nconst total = Number(rec.total || 0);\nreturn [{ json: { action, orderId: rec.id || '', shortId: 'CMD-' + (rec.id||'').slice(0,8).toUpperCase(), placedBy: rec.placed_by || '', total, formattedTotal: total.toFixed(2).replace('.', ',') + ' MAD', newStatus } }];"
+      }
+    },
+    {
+      "id": "if1",
+      "name": "Pertinent?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "ignore",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http1",
+      "name": "Chercher Pharmacie",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        260
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/rest/v1/rpc/get_user_contact",
+        "sendQuery": false,
+        "queryParameters": {
+          "parameters": []
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_user_id: $json.placedBy }) }}"
+      }
+    },
+    {
+      "id": "code2",
+      "name": "Préparer données",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        260
+      ],
+      "parameters": {
+        "jsCode": "const base = $('Classifier').first().json;\nconst resp = $input.first().json;\nconst users = Array.isArray(resp) ? resp : [resp];\nconst user = users[0] || {};\nreturn [{ json: { ...base, pharmacyName: user.name || 'Pharmacie', pharmacyEmail: user.email || '' } }];"
+      }
+    },
+    {
+      "id": "sw1",
+      "name": "Routage",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1300,
+        260
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "r0",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "new_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "r1",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "confirmed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "r2",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "delivered",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      }
+    },
+    {
+      "id": "gmail1",
+      "name": "Email Admin — Nouvelle commande",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1520,
+        100
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "tahayassinekarim9@gmail.com",
+        "subject": "=Nouvelle commande — {{ $json.shortId }}",
+        "message": "=<h2 style='color:#0DBFA8'>Nouvelle commande reçue</h2><table style='border-collapse:collapse;font-family:sans-serif'><tr><td style='padding:8px;color:#666'>Référence</td><td style='padding:8px;font-weight:bold'>{{ $json.shortId }}</td></tr><tr><td style='padding:8px;color:#666'>Pharmacie</td><td style='padding:8px'>{{ $json.pharmacyName }}</td></tr><tr><td style='padding:8px;color:#666'>Total</td><td style='padding:8px;font-weight:bold'>{{ $json.formattedTotal }}</td></tr></table><br><a href='https://tyk9807.github.io/neoval-portal/admin/Admin%20Orders.html' style='background:#0DBFA8;color:white;padding:10px 20px;text-decoration:none;display:inline-block;font-family:sans-serif'>Voir les commandes →</a>",
+        "options": {
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "webhookId": "37ab6008-a915-42d1-adba-81c19407dfbf"
+    },
+    {
+      "id": "gmail2",
+      "name": "Email Pharmacie — Commande reçue",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1740,
+        100
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "={{ $('Préparer données').first().json.pharmacyEmail }}",
+        "subject": "=Commande {{ $('Préparer données').first().json.shortId }} bien reçue — Neoval Pharma",
+        "message": "=<p style='font-family:sans-serif'>Bonjour <b>{{ $('Préparer données').first().json.pharmacyName }}</b>,</p><p>Votre commande <b>{{ $('Préparer données').first().json.shortId }}</b> a bien été reçue et est en cours de traitement. Notre équipe va la valider dans les plus brefs délais.</p><p>Total : <b>{{ $('Préparer données').first().json.formattedTotal }}</b></p><p>Vous recevrez un email dès sa confirmation.</p><br><p>Cordialement,<br><b>L'équipe Neoval Pharma</b></p>",
+        "options": {
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "webhookId": "465e439b-62f9-4f6f-8432-44098cf35d1d"
+    },
+    {
+      "id": "gmail3",
+      "name": "Email Pharmacie — Commande confirmée",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1740,
+        400
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "={{ $('Préparer données').first().json.pharmacyEmail }}",
+        "subject": "=Commande {{ $('Préparer données').first().json.shortId }} confirmée — Neoval Pharma",
+        "message": "=<p style='font-family:sans-serif'>Bonjour <b>{{ $('Préparer données').first().json.pharmacyName }}</b>,</p><p>Bonne nouvelle ! Votre commande <b>{{ $('Préparer données').first().json.shortId }}</b> a été confirmée et est en cours de préparation.</p><p>Total : <b>{{ $('Préparer données').first().json.formattedTotal }}</b></p><p>Vous trouverez ci-joint le bon de livraison (BL). Vous recevrez un email dès la livraison.</p><br><p>Cordialement,<br><b>L'équipe Neoval Pharma</b></p>",
+        "options": {
+          "senderName": "Neoval Pharma",
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          }
+        }
+      },
+      "webhookId": "cc73c85a-7863-44c6-af8d-63d0c1a7a6ce"
+    },
+    {
+      "id": "gmail4",
+      "name": "Email Pharmacie — Commande livrée",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1740,
+        560
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "={{ $('Préparer données').first().json.pharmacyEmail }}",
+        "subject": "=Commande {{ $('Préparer données').first().json.shortId }} livrée — Neoval Pharma",
+        "message": "=<p style='font-family:sans-serif'>Bonjour <b>{{ $('Préparer données').first().json.pharmacyName }}</b>,</p><p>Votre commande <b>{{ $('Préparer données').first().json.shortId }}</b> a été livrée avec succès.</p><p>Vous trouverez ci-joint la preuve de paiement (POP). Le bon de livraison reste disponible dans votre espace documents.</p><br><a href='https://tyk9807.github.io/neoval-portal/Mes%20documents.html' style='background:#0DBFA8;color:white;padding:10px 20px;text-decoration:none;display:inline-block;font-family:sans-serif'>Accéder à mes documents →</a><br><br><p>Cordialement,<br><b>L'équipe Neoval Pharma</b></p>",
+        "options": {
+          "senderName": "Neoval Pharma",
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          }
+        }
+      },
+      "webhookId": "33a146d5-8569-4807-8195-96da88ed40d2"
+    },
+    {
+      "id": "f633824a-e794-40b0-9608-2c412f5ffeae",
+      "name": "Generer BL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/functions/v1/generate-document",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ order_id: $json.orderId, type: 'BL' }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "2e9bdd74-ddd4-4f85-b345-363ff8fbf62b",
+      "name": "Generer POP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        560
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://nxlvdwqvkvgjvellmnic.supabase.co/functions/v1/generate-document",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SUPABASE_ANON_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer <SUPABASE_ANON_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ order_id: $json.orderId, type: 'POP' }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Commandes": {
+      "main": [
+        [
+          {
+            "node": "Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classifier": {
+      "main": [
+        [
+          {
+            "node": "Pertinent?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pertinent?": {
+      "main": [
+        [
+          {
+            "node": "Chercher Pharmacie",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Chercher Pharmacie": {
+      "main": [
+        [
+          {
+            "node": "Préparer données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer données": {
+      "main": [
+        [
+          {
+            "node": "Routage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Routage": {
+      "main": [
+        [
+          {
+            "node": "Email Admin — Nouvelle commande",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generer BL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generer POP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Admin — Nouvelle commande": {
+      "main": [
+        [
+          {
+            "node": "Email Pharmacie — Commande reçue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generer BL": {
+      "main": [
+        [
+          {
+            "node": "Email Pharmacie — Commande confirmée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generer POP": {
+      "main": [
+        [
+          {
+            "node": "Email Pharmacie — Commande livrée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Casablanca"
+  }
+}

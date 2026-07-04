@@ -1,0 +1,257 @@
+{
+  "name": "Neoval — 2. Inscriptions",
+  "nodes": [
+    {
+      "id": "wh2",
+      "name": "Webhook Inscriptions",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neoval-registrations",
+        "responseMode": "onReceived",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "webhookId": "1280edcd-8359-413c-96f0-61c5db4bf7dd",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vXLk72uOG88GVFvl",
+          "name": "Neoval Webhook Token"
+        }
+      }
+    },
+    {
+      "id": "code3",
+      "name": "Classifier Inscription",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const p = ($input.first().json.body) || $input.first().json;\nconst rec = p.record || {};\nconst old = p.old_record || {};\nlet action = 'ignore';\nif (p.type === 'INSERT') action = 'new_registration';\nelse if (p.type === 'UPDATE') {\n  if (rec.status === 'approved' && old.status !== 'approved') action = p.invite_link ? 'approved' : 'ignore';\n  else if (rec.status === 'rejected' && old.status !== 'rejected') action = 'rejected';\n}\nreturn [{ json: { action, pharmacyName: rec.pharmacy_name || 'Pharmacie', contactName: rec.contact_name || '', email: rec.email || '', phone: rec.phone || '', address: rec.address || '', inviteLink: p.invite_link || '' } }];"
+      }
+    },
+    {
+      "id": "sw2",
+      "name": "Routage Inscription",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "r0",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "new_registration",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "r1",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "approved",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "r2",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      }
+    },
+    {
+      "id": "gmail5",
+      "name": "Email Admin — Nouvelle demande",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        120
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "tahayassinekarim9@gmail.com",
+        "subject": "=Nouvelle demande d'accès — {{ $json.pharmacyName }}",
+        "message": "=<h2 style='color:#0DBFA8'>Nouvelle demande d'accès portail</h2><table style='border-collapse:collapse;font-family:sans-serif'><tr><td style='padding:8px;color:#666'>Pharmacie</td><td style='padding:8px;font-weight:bold'>{{ $json.pharmacyName }}</td></tr><tr><td style='padding:8px;color:#666'>Gérant</td><td style='padding:8px'>{{ $json.contactName }}</td></tr><tr><td style='padding:8px;color:#666'>Email</td><td style='padding:8px'>{{ $json.email }}</td></tr><tr><td style='padding:8px;color:#666'>Téléphone</td><td style='padding:8px'>{{ $json.phone }}</td></tr><tr><td style='padding:8px;color:#666'>Adresse</td><td style='padding:8px'>{{ $json.address }}</td></tr></table><br><a href='https://tyk9807.github.io/neoval-portal/admin/Admin%20Registrations.html' style='background:#0DBFA8;color:white;padding:10px 20px;text-decoration:none;display:inline-block;font-family:sans-serif'>Traiter la demande →</a>",
+        "options": {
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "webhookId": "9126350f-5f96-444b-8a6a-990a0592d4c3"
+    },
+    {
+      "id": "gmail6",
+      "name": "Email Pharmacie — Demande approuvée",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Votre accès au portail Neoval Pharma a été approuvé",
+        "message": "=<p style='font-family:sans-serif'>Bonjour <b>{{ $json.contactName }}</b>,</p><p>Votre demande d'accès au portail B2B Neoval Pharma a été <b style='color:#0DBFA8'>approuvée</b>.</p><p>Cliquez sur le bouton ci-dessous pour définir votre mot de passe et accéder à votre espace :</p><p style='margin:24px 0'><a href=\"{{ $json.inviteLink }}\" style=\"background:#0DBFA8;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:6px;font-family:sans-serif;font-weight:bold;display:inline-block\">Définir mon mot de passe →</a></p><p style='font-size:13px;color:#555'>Ce lien est valable 24h et à usage unique — ne le partagez avec personne. Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br><span style='word-break:break-all;color:#0DBFA8'>{{ $json.inviteLink }}</span></p><p>Pensez à vérifier vos spams.</p><br><p>Cordialement,<br><b>L'équipe Neoval Pharma</b></p>",
+        "options": {
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "webhookId": "11355306-fb71-4453-b4e9-2bef64f800e3"
+    },
+    {
+      "id": "gmail7",
+      "name": "Email Pharmacie — Demande rejetée",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        480
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mxY0Alz1Q2qVdTb",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Votre demande d'accès Neoval Pharma",
+        "message": "=<p style='font-family:sans-serif'>Bonjour <b>{{ $json.contactName }}</b>,</p><p>Nous avons bien examiné votre demande d'accès au portail B2B Neoval Pharma pour <b>{{ $json.pharmacyName }}</b>.</p><p>Nous ne sommes pas en mesure d'y donner suite pour le moment. Pour toute question, contactez-nous directement.</p><br><p>Cordialement,<br><b>L'équipe Neoval Pharma</b></p>",
+        "options": {
+          "senderName": "Neoval Pharma"
+        }
+      },
+      "webhookId": "69763ddf-b944-4139-aa59-8f79a002e2ad"
+    }
+  ],
+  "connections": {
+    "Webhook Inscriptions": {
+      "main": [
+        [
+          {
+            "node": "Classifier Inscription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classifier Inscription": {
+      "main": [
+        [
+          {
+            "node": "Routage Inscription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Routage Inscription": {
+      "main": [
+        [
+          {
+            "node": "Email Admin — Nouvelle demande",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Pharmacie — Demande approuvée",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Pharmacie — Demande rejetée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Casablanca",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false,
+    "saveExecutionProgress": false
+  }
+}
