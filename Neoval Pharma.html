@@ -454,6 +454,7 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
 .pv img{width:100%;height:100%;object-fit:contain;padding:18px;box-sizing:border-box;display:block}
 .pv-empty{background:#f3f5f7;display:flex;align-items:center;justify-content:center}
 .pv-empty span{font-family:'Syne';font-weight:800;font-size:56px;color:rgba(13,27,42,.26);opacity:1;line-height:1}
+.pcard .pv{height:150px;margin-bottom:20px}
 .pcard-lg .pv{height:200px;margin-bottom:24px}
 .m-img{margin-bottom:16px}
 .m-img .pv{height:280px}
@@ -2453,7 +2454,7 @@ function productVisual(p){
     var c=document.createElement('div');
     c.className='pcard reveal d'+d;
     c.setAttribute('data-id',i);
-    c.innerHTML='<div class="cat">'+p.cat+'</div><h3>'+p.name+'</h3><p>'+p.short+'</p>'+
+    c.innerHTML=productVisual(p)+'<div class="cat">'+p.cat+'</div><h3>'+p.name+'</h3><p>'+p.short+'</p>'+
       '<span class="lnk">Voir détails <span>→</span></span>';
     c.addEventListener('click',function(){openProduct(i)});
     pg.appendChild(c);
