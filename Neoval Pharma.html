@@ -446,14 +446,17 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
 .pcard-lg p{color:var(--body);font-size:14.5px;line-height:1.64;flex:1;margin-bottom:26px}
 .pcard-lg .btn{align-self:flex-start;padding:13px 22px;font-size:12px}
 .catcount{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;color:var(--faint);margin-bottom:26px;text-transform:uppercase}
-/* product visual (photo or placeholder) — baseline; dark-theme framing refined in review */
-.pv{position:relative;overflow:hidden;border:1px solid var(--hair);background:rgba(255,255,255,.045)}
-.pv img{width:100%;height:100%;object-fit:cover;display:block}
-.pv-empty{display:flex;align-items:center;justify-content:center}
-.pv-empty span{font-family:'Syne';font-weight:800;font-size:54px;color:var(--faint);opacity:.55;line-height:1}
-.pcard-lg .pv{height:190px;margin-bottom:22px}
-.m-img{margin-bottom:10px}
-.m-img .pv{height:260px}
+/* product visual — light "product tile": the white render sits on a clean white
+   rounded tile (contained + padded) so it reads as an intentional product photo
+   on the dark cards, not a raw white rectangle. Placeholder shares the tile shape. */
+.pv{position:relative;overflow:hidden;border-radius:14px;background:#ffffff;
+  box-shadow:0 6px 18px rgba(0,0,0,.28),inset 0 0 0 1px rgba(13,27,42,.08)}
+.pv img{width:100%;height:100%;object-fit:contain;padding:18px;box-sizing:border-box;display:block}
+.pv-empty{background:#f3f5f7;display:flex;align-items:center;justify-content:center}
+.pv-empty span{font-family:'Syne';font-weight:800;font-size:56px;color:rgba(13,27,42,.26);opacity:1;line-height:1}
+.pcard-lg .pv{height:200px;margin-bottom:24px}
+.m-img{margin-bottom:16px}
+.m-img .pv{height:280px}
 
 /* ============ PRODUCT MODAL ============ */
 .modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:30px}

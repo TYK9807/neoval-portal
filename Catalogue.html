@@ -84,15 +84,17 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   opacity:0;transform:translateY(14px);animation:cardin .5s cubic-bezier(.16,1,.3,1) forwards}
 @keyframes cardin{to{opacity:1;transform:none}}
 .pcard:hover{border-color:rgba(13,191,168,.4);transform:translateY(-4px)}
-.pcard .vis{height:158px;position:relative;overflow:hidden;border-bottom:1px solid var(--hair);
-  background:linear-gradient(135deg,rgba(13,191,168,.18) 0%,rgba(13,27,42,.32) 100%)}
+.pcard .vis{height:172px;position:relative;overflow:hidden;margin:14px 14px 0;border-radius:14px;
+  background:#f3f5f7;box-shadow:0 6px 16px rgba(0,0,0,.26),inset 0 0 0 1px rgba(0,0,0,.05)}
+.pcard .vis.has-img{background:#ffffff}
 .pcard .vis .glyph{position:absolute;inset:0;display:grid;place-items:center;
-  font-family:'Syne';font-weight:800;font-size:46px;color:rgba(13,191,168,.42);letter-spacing:-.03em}
-.pcard .vis .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  font-family:'Syne';font-weight:800;font-size:46px;color:rgba(13,27,42,.26);letter-spacing:-.03em}
+.pcard .vis .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:18px;box-sizing:border-box;display:block}
 .pcard .vis .pill{position:absolute;top:14px;left:14px;font-family:'IBM Plex Mono';font-size:9.5px;
   letter-spacing:.12em;text-transform:uppercase;color:var(--teal);border:1px solid rgba(13,191,168,.4);
   padding:5px 9px;background:rgba(6,13,24,.5)}
 .pcard .body{padding:22px 22px 24px;display:flex;flex-direction:column;flex:1}
+.pcard .body .pcat{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:8px}
 .pcard h3{font-size:18px;margin-bottom:6px}
 .pcard .ref{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
 .pcard .desc{color:var(--body);font-size:13.5px;line-height:1.6;margin-bottom:18px;flex:1}
@@ -130,15 +132,15 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   border:1px solid rgba(244,246,249,.16);width:32px;height:32px;display:grid;place-items:center;
   cursor:pointer;color:rgba(244,246,249,.50);font-size:13px;transition:color .2s,border-color .2s;z-index:2;padding:0}
 .pm-close:hover{color:#F4F6F9;border-color:rgba(244,246,249,.40)}
-.pm-img{position:relative;overflow:hidden;min-height:320px;
-  background:linear-gradient(135deg,rgba(13,191,168,.11) 0%,rgba(4,8,18,.92) 100%);
-  border-right:1px solid rgba(244,246,249,.08);display:flex;align-items:center;justify-content:center}
-.pm-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.pm-glyph{font-family:'Syne',sans-serif;font-weight:800;font-size:80px;color:rgba(13,191,168,.45);
+.pm-img{position:relative;overflow:hidden;min-height:300px;margin:20px;border-radius:14px;padding:24px;
+  background:#ffffff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
+  display:flex;align-items:center;justify-content:center}
+.pm-img img{position:static;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.pm-glyph{font-family:'Syne',sans-serif;font-weight:800;font-size:80px;color:rgba(13,27,42,.22);
   letter-spacing:-.03em;line-height:1;pointer-events:none;user-select:none}
 .pm-pill{position:absolute;bottom:16px;left:16px;font-family:'IBM Plex Mono';font-size:9px;
   letter-spacing:.12em;text-transform:uppercase;color:#0DBFA8;
-  border:1px solid rgba(13,191,168,.35);padding:5px 9px;background:rgba(9,20,32,.75)}
+  border:1px solid rgba(13,191,168,.35);padding:5px 9px;background:#0D1B2A}
 .pm-body{padding:32px 28px 26px;display:flex;flex-direction:column;overflow-y:auto;max-height:88vh}
 .pm-cat{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.2em;text-transform:uppercase;
   color:#0DBFA8;margin-bottom:10px}
@@ -231,8 +233,9 @@ body.p-cat.theme .chip:hover{color:#F4F6F9 !important;border-color:rgba(244,246,
 body.p-cat.theme .chip.active{color:#080F1E !important;background:var(--teal) !important;border-color:var(--teal) !important}
 body.p-cat.theme .pcard{background:rgba(7,13,26,.80) !important;border-color:rgba(244,246,249,.08) !important;box-shadow:0 4px 24px rgba(0,0,0,.50) !important}
 body.p-cat.theme .pcard:hover{border-color:rgba(13,191,168,.42) !important}
-body.p-cat.theme .pcard .vis{border-bottom-color:rgba(244,246,249,.08) !important;background:linear-gradient(135deg,rgba(13,191,168,.11) 0%,rgba(4,8,18,.90) 100%) !important}
-body.p-cat.theme .pcard .vis .glyph{color:rgba(13,191,168,.52) !important}
+body.p-cat.theme .pcard .vis{background:#f3f5f7 !important;box-shadow:0 6px 16px rgba(0,0,0,.42),inset 0 0 0 1px rgba(0,0,0,.05) !important}
+body.p-cat.theme .pcard .vis.has-img{background:#ffffff !important}
+body.p-cat.theme .pcard .vis .glyph{color:rgba(13,27,42,.26) !important}
 body.p-cat.theme .pcard h3{color:#EFF4F8 !important;-webkit-text-fill-color:#EFF4F8 !important}
 body.p-cat.theme #toast{background:rgba(5,10,20,.94) !important;border-color:rgba(13,191,168,.40) !important;border-left-color:var(--teal) !important}
 body.p-cat.theme .fav-shelf-inner{border-bottom-color:rgba(244,246,249,.08) !important}
@@ -416,9 +419,9 @@ import { initNotifications } from './notifications.js';
           ${p.image_url
             ? `<img class="pimg" src="${p.image_url}" alt="${p.name}" loading="lazy">`
             : `<span class="glyph">${glyph(p.name)}</span>`}
-          <span class="pill">${p.category || ''}</span>
         </div>
         <div class="body">
+          <div class="pcat">${p.category || ''}</div>
           <h3>${p.name}</h3>
           <p class="desc">${p.description || ''}</p>
           <div class="priceblock">
