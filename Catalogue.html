@@ -88,6 +88,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.02em;
   background:linear-gradient(135deg,rgba(13,191,168,.18) 0%,rgba(13,27,42,.32) 100%)}
 .pcard .vis .glyph{position:absolute;inset:0;display:grid;place-items:center;
   font-family:'Syne';font-weight:800;font-size:46px;color:rgba(13,191,168,.42);letter-spacing:-.03em}
+.pcard .vis .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .pcard .vis .pill{position:absolute;top:14px;left:14px;font-family:'IBM Plex Mono';font-size:9.5px;
   letter-spacing:.12em;text-transform:uppercase;color:var(--teal);border:1px solid rgba(13,191,168,.4);
   padding:5px 9px;background:rgba(6,13,24,.5)}
@@ -411,9 +412,11 @@ import { initNotifications } from './notifications.js';
       el.className = 'pcard';
       el.style.animationDelay = (i * 55) + 'ms';
       el.innerHTML =
-        `<div class="vis">
+        `<div class="vis${p.image_url ? ' has-img' : ''}">
+          ${p.image_url
+            ? `<img class="pimg" src="${p.image_url}" alt="${p.name}" loading="lazy">`
+            : `<span class="glyph">${glyph(p.name)}</span>`}
           <span class="pill">${p.category || ''}</span>
-          <span class="glyph">${glyph(p.name)}</span>
         </div>
         <div class="body">
           <h3>${p.name}</h3>

@@ -446,6 +446,14 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
 .pcard-lg p{color:var(--body);font-size:14.5px;line-height:1.64;flex:1;margin-bottom:26px}
 .pcard-lg .btn{align-self:flex-start;padding:13px 22px;font-size:12px}
 .catcount{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;color:var(--faint);margin-bottom:26px;text-transform:uppercase}
+/* product visual (photo or placeholder) — baseline; dark-theme framing refined in review */
+.pv{position:relative;overflow:hidden;border:1px solid var(--hair);background:rgba(255,255,255,.045)}
+.pv img{width:100%;height:100%;object-fit:cover;display:block}
+.pv-empty{display:flex;align-items:center;justify-content:center}
+.pv-empty span{font-family:'Syne';font-weight:800;font-size:54px;color:var(--faint);opacity:.55;line-height:1}
+.pcard-lg .pv{height:190px;margin-bottom:22px}
+.m-img{margin-bottom:10px}
+.m-img .pv{height:260px}
 
 /* ============ PRODUCT MODAL ============ */
 .modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:30px}
@@ -2083,6 +2091,7 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
   <div class="modal-backdrop" data-close></div>
   <div class="modal-panel" role="dialog" aria-modal="true">
     <button class="mclose" data-close aria-label="Fermer">✕</button>
+    <div class="m-img" id="m-img"></div>
     <div class="mcat" id="m-cat"></div>
     <h2 id="m-name"></h2>
     <p class="mlong" id="m-long"></p>
@@ -2415,6 +2424,24 @@ var PRODUCTS=[
    pack:'Boîte de 30 gélules · Conditionnement grossiste sur demande.'}
 ];
 
+/* Product photos live in the Supabase Storage public bucket `product-images`
+   (NOT in this repo). Keyed by product code; products without an entry
+   (e.g. Liberel) fall back to a lettered placeholder. */
+var PRODUCT_IMG_BASE='https://nxlvdwqvkvgjvellmnic.supabase.co/storage/v1/object/public/product-images/';
+var PRODUCT_IMG={
+  'NV-ARC-300':'arcar300.jpg',
+  'NV-DLQ-400':'d-liq.jpg',
+  'NV-FER-30':'fercap.jpg',
+  'NV-MAC-40':'macal.jpg',
+  'NV-NER-30':'nercure.jpg',
+  'NV-SOU-30':'soulnat.jpg'
+};
+function productVisual(p){
+  var f=PRODUCT_IMG[p.code];
+  if(f) return '<div class="pv"><img src="'+PRODUCT_IMG_BASE+f+'" alt="'+p.name+'" loading="lazy"></div>';
+  return '<div class="pv pv-empty" aria-hidden="true"><span>'+((p.name||'?').charAt(0))+'</span></div>';
+}
+
 /* ---- home preview grid (first 8, compact) ---- */
 (function(){
   var pg=document.getElementById('pgrid-home');
@@ -2460,7 +2487,8 @@ function renderCatalog(){
     var d=Math.min(8,(n%3)+1);
     var c=document.createElement('div');
     c.className='pcard-lg reveal d'+d;
-    c.innerHTML='<div class="code">'+p.code+'</div><div class="cat">'+p.cat+'</div>'+
+    c.innerHTML=productVisual(p)+
+      '<div class="code">'+p.code+'</div><div class="cat">'+p.cat+'</div>'+
       '<h3>'+p.name+'</h3><p>'+p.long+'</p>'+
       '<button class="btn btn-ghost">Voir détails <span class="arr">→</span></button>';
     c.querySelector('button').addEventListener('click',function(){openProduct(o.i)});
@@ -2477,6 +2505,7 @@ renderCatalog();
 var modal=document.getElementById('modal');
 function openProduct(i){
   var p=PRODUCTS[i];
+  document.getElementById('m-img').innerHTML=productVisual(p);
   document.getElementById('m-cat').textContent=p.code+' · '+p.cat;
   document.getElementById('m-name').textContent=p.name;
   document.getElementById('m-long').textContent=p.long;
