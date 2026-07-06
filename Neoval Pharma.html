@@ -449,9 +449,9 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
 /* product visual — light "product tile": the white render sits on a clean white
    rounded tile (contained + padded) so it reads as an intentional product photo
    on the dark cards, not a raw white rectangle. Placeholder shares the tile shape. */
-.pv{position:relative;overflow:hidden;border-radius:14px;background:#ffffff;
+.pv{position:relative;overflow:hidden;border-radius:14px;background:linear-gradient(160deg,#EEF0F3 0%,#C7CDD6 100%);
   box-shadow:0 6px 18px rgba(0,0,0,.28),inset 0 0 0 1px rgba(13,27,42,.08)}
-.pv img{width:100%;height:100%;object-fit:contain;padding:18px;box-sizing:border-box;display:block}
+.pv img{width:100%;height:100%;object-fit:contain;padding:18px;box-sizing:border-box;display:block;filter:drop-shadow(0 12px 14px rgba(12,20,38,.30))}
 .pv-empty{background:#f3f5f7;display:flex;align-items:center;justify-content:center}
 .pv-empty span{font-family:'Syne';font-weight:800;font-size:56px;color:rgba(13,27,42,.26);opacity:1;line-height:1}
 .pcard .pv{height:150px;margin-bottom:20px}
@@ -2433,13 +2433,13 @@ var PRODUCTS=[
    (e.g. Liberel) fall back to a lettered placeholder. */
 var PRODUCT_IMG_BASE='https://nxlvdwqvkvgjvellmnic.supabase.co/storage/v1/object/public/product-images/';
 var PRODUCT_IMG={
-  'NV-ARC-300':'arcar300.jpg',
-  'NV-DLQ-400':'d-liq.jpg',
-  'NV-FER-30':'fercap.jpg',
-  'NV-MAC-40':'macal.jpg',
-  'NV-NER-30':'nercure.jpg',
-  'NV-SOU-30':'soulnat.jpg',
-  'NV-LIB-100':'liberel.jpg'
+  'NV-ARC-300':'arcar300.webp',
+  'NV-DLQ-400':'d-liq.webp',
+  'NV-FER-30':'fercap.webp',
+  'NV-MAC-40':'macal.webp',
+  'NV-NER-30':'nercure.webp',
+  'NV-SOU-30':'soulnat.webp',
+  'NV-LIB-100':'liberel.webp'
 };
 function productVisual(p){
   var f=PRODUCT_IMG[p.code];
