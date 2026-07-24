@@ -2430,16 +2430,16 @@ var PRODUCTS=[
 
 /* Product photos live in the Supabase Storage public bucket `product-images`
    (NOT in this repo). Keyed by product code; products without an entry
-   (e.g. Liberel) fall back to a lettered placeholder. */
+   fall back to a lettered placeholder. All 7 currently have a photo. */
 var PRODUCT_IMG_BASE='https://nxlvdwqvkvgjvellmnic.supabase.co/storage/v1/object/public/product-images/';
 var PRODUCT_IMG={
-  'NV-ARC-300':'arcar300.webp',
-  'NV-DLQ-400':'d-liq.webp',
-  'NV-FER-30':'fercap.webp',
-  'NV-MAC-40':'macal.webp',
-  'NV-NER-30':'nercure.webp',
-  'NV-SOU-30':'soulnat.webp',
-  'NV-LIB-100':'liberel.webp'
+  'NV-ARC-300':'arcar300-v2.webp',
+  'NV-DLQ-400':'d-liq-v2.webp',
+  'NV-FER-30':'fercap-v2.webp',
+  'NV-MAC-40':'macal-v2.webp',
+  'NV-NER-30':'nercure-v2.webp',
+  'NV-SOU-30':'soulnat-v2.webp',
+  'NV-LIB-100':'liberel-v2.webp'
 };
 function productVisual(p){
   var f=PRODUCT_IMG[p.code];
