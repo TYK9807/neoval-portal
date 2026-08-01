@@ -1533,6 +1533,26 @@ body.nv-dark .fbar{color:rgba(13,27,42,.70)}
 body.nv-dark .modal-panel{background:#FFFFFF;border-color:#E0F5F2;color:#0D1B2A}
 body.nv-dark .modal-backdrop{background:rgba(13,27,42,.45)}
 body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
+
+/* ============================================================
+   MOBILE HERO — clear the fixed navbar
+   #hero sets padding:0 and centres its content in a 100vh box. The navbar is
+   position:fixed and overlays it, so on phones the first kicker line
+   ("Depuis 2010 · Expertise,") sat behind the nav and could not be scrolled
+   to — centred flex overflow clips at the start.
+   Placed at the end of the stylesheet: #hero is an ID selector, so this has to
+   come after the earlier #hero rules to win (media queries add no specificity).
+   svh = small viewport height, i.e. with the mobile browser's address bar
+   showing; plain vh is kept first as the fallback.
+   ============================================================ */
+@media(max-width:980px){
+  #hero{
+    min-height:100vh;
+    min-height:100svh;
+    padding:104px 0 48px;
+    align-items:safe center;
+  }
+}
 </style>
 </head>
 <body class="nv-dark hero-a">
