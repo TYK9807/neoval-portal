@@ -2328,11 +2328,13 @@ body.nv-dark #app .ff-copy{
       <!-- Accordéons produit. Les IDs m-ing / m-dos / m-pack sont conservés
            (ils restent les conteneurs de contenu) ; m-util est nouveau. -->
       <div class="acc" id="m-acc">
+        <!-- Order follows the client's product sheets exactly:
+             Présentation · Posologie · Composition · Utilisations -->
         <div class="acc-item">
-          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-ing">
-            <span>Composition</span><span class="acc-ico" aria-hidden="true"></span>
+          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-pack">
+            <span>Présentation</span><span class="acc-ico" aria-hidden="true"></span>
           </button>
-          <div class="acc-panel" id="m-ing" role="region"></div>
+          <div class="acc-panel" id="m-pack" role="region"></div>
         </div>
         <div class="acc-item">
           <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-dos">
@@ -2341,16 +2343,16 @@ body.nv-dark #app .ff-copy{
           <div class="acc-panel" id="m-dos" role="region"></div>
         </div>
         <div class="acc-item">
+          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-ing">
+            <span>Composition</span><span class="acc-ico" aria-hidden="true"></span>
+          </button>
+          <div class="acc-panel" id="m-ing" role="region"></div>
+        </div>
+        <div class="acc-item">
           <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-util">
             <span>Utilisations</span><span class="acc-ico" aria-hidden="true"></span>
           </button>
           <div class="acc-panel" id="m-util" role="region"></div>
-        </div>
-        <div class="acc-item">
-          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-pack">
-            <span>Présentation</span><span class="acc-ico" aria-hidden="true"></span>
-          </button>
-          <div class="acc-panel" id="m-pack" role="region"></div>
         </div>
       </div>
     </div>
@@ -2663,7 +2665,7 @@ var PRODUCTS=[
    pres:'Boîte de 30 gélules HPMC d’origine végétale.'},
   {code:'NV-LIB-100',cat:'Gel anti-douleur • Effet thermique (Cryo et Thermo)',tags:['Application locale'],name:'Liberel',
    short:'Douleurs musculaires, articulaires et post-traumatiques',
-   comp:['Menthol','Camphre','Illite (Argile verte)','Extrait d’harpagophytum (Harpagophytum procumbens)','Extrait de prêle (Equisetum arvense).','Huile de menthe poivrée (Mentha piperita)','Huile de romarin (Rosmarinus officinalis)','Huile de thym (Thymus vulgaris)','Huiles de l’eucaliptus','Huiles du Cajeput','Huiles de la Gaulthérie couchée'],
+   comp:['Menthol','Camphre','Illite (Argile verte)','Extrait d’harpagophytum (Harpagophytum procumbens)','Extrait de prêle (Equisetum arvense)','Huile de menthe poivrée (Mentha piperita)','Huile de romarin (Rosmarinus officinalis)','Huile de thym (Thymus vulgaris)','Huiles de l’eucaliptus','Huiles du Cajeput'],
    poso:['Adultes et enfants à partir de 7 ans.','Appliquer sur les zones douloureuses, 3 à 4 fois par jour.','Se laver les mains après utilisation.'],
    util:['Douleurs musculaires, articulaires et post-traumatiques.','Contractures, foulures, entorses, contusions, élongations, claquages et œdèmes associés.'],
    pres:'Gel anti-douleur à effet thermique (Cryo et Thermo), destiné à l’application cutanée.'},
