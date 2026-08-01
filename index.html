@@ -180,7 +180,10 @@ h1,h2,h3,h4{font-family:'SyneDigits','Syne',sans-serif;font-weight:700;letter-sp
 #bg-grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 #particles{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
-.pt{position:absolute;border-radius:50%;background:var(--teal);filter:blur(.3px);opacity:.0;
+/* filter:blur(.3px) removed: sub-pixel, visually indistinguishable, but it
+   forced each of the 22 always-on-screen particles onto its own paint layer.
+   Mobile already dropped it (.pt{filter:none}); desktop now matches. */
+.pt{position:absolute;border-radius:50%;background:var(--teal);opacity:.0;
   animation:drift linear infinite}
 @keyframes drift{
   0%{opacity:0;transform:translateY(20px)}
@@ -1553,6 +1556,45 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
     align-items:safe center;
   }
 }
+
+/* ============================================================
+   SCROLL PERFORMANCE — backdrop-filter on repeated cards
+   backdrop-filter re-samples and re-blurs everything behind an element every
+   time the backdrop changes. The background photo is animated continuously
+   (setBg -> push()), so the backdrop NEVER settles: measured live, 17 such
+   elements on Accueil and 34 on À Propos were re-blurring on every frame.
+   That was the scroll lag, on desktop as well as mobile.
+
+   Repeated cards drop the blur and compensate with a denser background
+   (0.72 -> 0.90 alpha) so they still read as translucent glass over the photo.
+   The blur is KEPT on the three singletons where it is both cheap and visible:
+   the navbar bar, the modal backdrop and the mobile drawer — each is one
+   element and the last two only exist while open.
+   ============================================================ */
+/* !important is used deliberately: the blur is applied from several rules at
+   different specificities (.value, body.nv-dark .value, body.nv-dark #app …),
+   and matching each one individually would be brittle. One authoritative
+   switch-off is clearer than five competing selectors. */
+.glass,.value,.step,.pcard,.pcard-lg,.certbig,.citem,.tcard,.panel,
+.timeline,.process,.ff-copy,.ff-tag,footer,.modal-panel{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+/* Compensate: without the blur these were 0.72–0.74 alpha over a moving photo,
+   which reads as visual noise. Denser fill keeps them calm and still translucent. */
+body.nv-dark .glass,
+body.nv-dark .value,
+body.nv-dark .step,
+body.nv-dark .pcard,
+body.nv-dark .pcard-lg,
+body.nv-dark .certbig,
+body.nv-dark .citem,
+body.nv-dark .panel,
+body.nv-dark #app .ap-section .timeline,
+body.nv-dark #app .process,
+body.nv-dark #app .ff-copy{
+  background-color:rgba(242,251,251,.92);
+}
 </style>
 </head>
 <body class="nv-dark hero-a">
@@ -2470,7 +2512,12 @@ function setBg(key){
   /* use a modest scale on portrait mobile — large zoom + cover crop = only a sliver
      of the landscape photo visible; 1.06 preserves the parallax feel without clipping */
   var pushTo = window.innerWidth < 768 ? 1.06 : 1.28;
-  if(anim) push(anim,1.0,pushTo,26000);
+  /* 26s -> 9s. The push writes a new transform every frame, so while it runs
+     the whole backdrop is in motion and anything compositing against it has to
+     be recomputed. Ending sooner lets the page settle into a static state
+     between scenes; the ease-out means the visible movement is nearly all in
+     the first seconds anyway, so the effect still reads the same. */
+  if(anim) push(anim,1.0,pushTo,9000);
 }
 /* scroll selects which scene shows — each section has its dedicated photo */
 /* Background section observer — fires when a section crosses the ~42% viewport line.
