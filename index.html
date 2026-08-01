@@ -231,6 +231,8 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
 .navlinks a.active{color:var(--white)}
 .navlinks a::after{content:"";position:absolute;left:0;bottom:-2px;height:1px;width:0;background:var(--teal);transition:width .3s ease}
 .navlinks a:hover::after,.navlinks a.active::after{width:100%}
+/* Desktop only: slightly tighter tracking so the wordmark clears the menu. */
+@media(min-width:1200px){.brand .name{letter-spacing:.10em}}
 /* 9-entry menu: tighten desktop spacing so links never collide with the wordmark. */
 @media(min-width:1200px){.navlinks{gap:clamp(16px,1.7vw,30px)}}
 /* NAV-ONLY drawer for 981-1199px. Mirrors the <=980px drawer so the 9-entry menu
@@ -562,14 +564,6 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
 .value .vn{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.16em;color:var(--teal);margin-bottom:18px}
 .value h4{font-family:'Syne';font-weight:700;font-size:20px;margin-bottom:12px;letter-spacing:-.01em}
 .value p{color:var(--body);font-size:14px;line-height:1.62}
-.team{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:8px}
-.tcard{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);border-top:2px solid var(--gold);padding:42px 34px;transition:transform .4s ease,border-color .4s}
-.tcard:hover{transform:translateY(-8px);border-color:rgba(196,160,58,.45)}
-.avatar{width:74px;height:74px;position:relative;display:grid;place-items:center;border:1px solid var(--teal);font-family:'Syne';font-weight:800;font-size:24px;color:var(--teal);margin-bottom:28px}
-.avatar::after{content:"";position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--gold)}
-.tcard h3{font-size:21px;margin-bottom:6px}
-.tcard .role{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
-.tcard p{color:var(--body);font-size:14px;line-height:1.62}
 .timeline{position:relative;padding-left:30px;margin-top:18px}
 .timeline::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:1px;background:linear-gradient(var(--teal),rgba(196,160,58,.55))}
 .tl-item{position:relative;padding:0 0 44px 0}
@@ -734,7 +728,8 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
     backdrop-filter:none;-webkit-backdrop-filter:none;
     transform:none !important;
     flex-direction:row;align-items:center;justify-content:flex-end;
-    gap:34px;overflow:visible;padding:0;z-index:9999;
+    /* was 34px; narrowed so the strip's left edge clears the wordmark */
+    gap:clamp(20px,2vw,30px);overflow:visible;padding:0;z-index:9999;
   }
   #navlinks::before{display:none}
   #navlinks a[data-nav]{opacity:1;transform:none;
@@ -812,6 +807,20 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
      and the burger is clipped by html{overflow-x:hidden}. Tighten both to restore room. */
   #nav .wrap{gap:12px}
   .brand .name{letter-spacing:.05em}
+}
+/* The rule above was not enough. Measured brand width was 322px; at a 360px
+   viewport only 312px is available for brand + 12px gap + the 44px burger,
+   so the burger was pushed out and clipped by html{overflow-x:hidden}. */
+@media(max-width:560px){
+  .brand .mark{width:34px;height:34px}
+  .brand .name{font-size:14px;letter-spacing:.03em}
+}
+@media(max-width:400px){
+  .brand .mark{width:30px;height:30px}
+  .brand .name{font-size:12.5px;letter-spacing:.02em}
+}
+@media(max-width:359px){
+  .brand .name{display:none}
 }
 /* ============================================================
    MOBILE PARALLAX + PERFORMANCE
@@ -1139,37 +1148,6 @@ body.opt-b #depth-layer{opacity:1}
 #depth-layer .b2{width:34vmax;height:34vmax;right:-6vmax;top:18vh;background:radial-gradient(circle,rgba(26,43,74,.16),transparent 66%)}
 #depth-layer .b3{width:38vmax;height:38vmax;left:30vw;bottom:-14vmax;background:radial-gradient(circle,rgba(176,121,42,.14),transparent 68%)}
 @media (prefers-reduced-motion:reduce){#depth-layer .blob{transform:none!important}}
-
-/* ============================================================
-   TWEAKS PANEL — palette switcher (neutral chrome, hidden when off)
-   ============================================================ */
-#tweakPanel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:248px;
-  background:#FFFFFF;border:1px solid rgba(18,38,52,.14);
-  box-shadow:0 24px 60px -22px rgba(18,38,52,.45);
-  font-family:'DM Sans',system-ui,sans-serif;color:#15314A;
-  transform:translateY(14px) scale(.98);opacity:0;pointer-events:none;
-  transition:opacity .22s ease,transform .22s ease}
-#tweakPanel.show{opacity:1;transform:none;pointer-events:auto}
-#tweakPanel .twk-head{display:flex;align-items:center;justify-content:space-between;
-  padding:13px 14px;border-bottom:1px solid rgba(18,38,52,.10)}
-#tweakPanel .twk-head span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
-  text-transform:uppercase;color:#15314A}
-#tweakPanel #twkClose{background:none;border:0;font-size:20px;line-height:1;cursor:pointer;color:#7c8a96;padding:0 2px}
-#tweakPanel #twkClose:hover{color:#15314A}
-#tweakPanel .twk-sec{padding:14px}
-#tweakPanel .twk-sec + .twk-sec{border-top:1px solid rgba(18,38,52,.10)}
-#tweakPanel .twk-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
-  text-transform:uppercase;color:#7c8a96;margin-bottom:10px}
-#tweakPanel .twk-radio{display:flex;flex-direction:column;gap:7px}
-#tweakPanel .twk-radio button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
-  background:#F4F7F9;border:1px solid rgba(18,38,52,.12);padding:10px 12px;transition:all .18s ease}
-#tweakPanel .twk-radio button:hover{border-color:rgba(13,167,150,.55)}
-#tweakPanel .twk-radio button b{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#15314A;
-  width:20px;height:20px;display:grid;place-items:center;border:1px solid rgba(18,38,52,.22)}
-#tweakPanel .twk-radio button span{font-size:13.5px;color:#3c5366}
-#tweakPanel .twk-radio button.active{background:#E7F6F3;border-color:#0DA796}
-#tweakPanel .twk-radio button.active b{background:#0DA796;color:#fff;border-color:#0DA796}
-#tweakPanel .twk-note{font-size:11.5px;line-height:1.5;color:#7c8a96;margin-top:12px}
 /* =====================================================================
    GLOBAL CONTRAST LOCK (.csurf) — applied permanently & site-wide.
    Every section's text rides a dark navy surface with light ink,
@@ -1527,9 +1505,6 @@ body.nv-dark .fbar{color:rgba(13,27,42,.70)}
 body.nv-dark .modal-panel{background:#FFFFFF;border-color:#E0F5F2;color:#0D1B2A}
 body.nv-dark .modal-backdrop{background:rgba(13,27,42,.45)}
 body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
-
-/* ---- hide the now-defunct dark/light-palette switcher ---- */
-#tweakPanel{display:none !important}
 </style>
 </head>
 <body class="nv-dark hero-a">
@@ -2055,7 +2030,7 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
 </main>
 
 <!-- ====================================================== CERTIFICATIONS ====================================================== -->
-<main class="page" id="page-certifications" data-page="certifications" data-screen-label="CERTIFICATIONS">
+<main class="page" id="page-certifications" data-page="certifications" data-screen-label="QUALITÉ">
 
   <section class="page-hero" data-bg="cert">
     <div class="hero-scrim"></div>
@@ -2871,65 +2846,5 @@ document.querySelectorAll('form.jsform').forEach(function(f){
 })();
 </script>
 
-<!-- ============ TWEAKS PANEL (palette switcher) ============ -->
-<div id="tweakPanel" data-omelette-chrome="" aria-hidden="true">
-  <div class="twk-head"><span>Tweaks</span><button id="twkClose" aria-label="Fermer">&times;</button></div>
-  <div class="twk-sec">
-    <div class="twk-label">Palette</div>
-    <div class="twk-radio" id="twkPalette">
-      <button type="button" data-opt="a"><b>A</b><span>Soft clinical</span></button>
-      <button type="button" data-opt="b"><b>B</b><span>Warm modern</span></button>
-      <button type="button" data-opt="c"><b>C</b><span>Vibrant fresh</span></button>
-    </div>
-    <p class="twk-note">Three light directions — background imagery &amp; colour shift per option.</p>
-  </div>
-  <div class="twk-sec">
-    <div class="twk-label">Lisibilité Hero</div>
-    <div class="twk-radio" id="twkHero">
-      <button type="button" data-hero="a"><b>A</b><span>Dégradé sombre</span></button>
-      <button type="button" data-hero="b"><b>B</b><span>Panneau navy</span></button>
-      <button type="button" data-hero="c"><b>C</b><span>Texte navy + halo</span></button>
-    </div>
-    <p class="twk-note">Contraste du texte sur l'image du hero.</p>
-  </div>
-</div>
-<script>
-(function(){
-  var panel=document.getElementById('tweakPanel');
-  var radio=document.getElementById('twkPalette');
-  function apply(opt){
-    document.body.classList.remove('opt-a','opt-b','opt-c');
-    document.body.classList.add('opt-'+opt);
-    Array.prototype.forEach.call(radio.children,function(b){b.classList.toggle('active',b.getAttribute('data-opt')===opt);});
-    try{localStorage.setItem('nv_palette',opt);}catch(e){}
-    if(window.NV_setBg) window.NV_setBg(opt);
-  }
-  var saved='b';try{var s=localStorage.getItem('nv_palette');if(s&&/^[abc]$/.test(s))saved=s;}catch(e){}
-  /* palette locked to the dark cinematic theme — apply() intentionally not called */
-  radio.addEventListener('click',function(e){var b=e.target.closest('button[data-opt]');if(b)apply(b.getAttribute('data-opt'));});
-
-  /* ---- hero readability options (scoped to #hero) ---- */
-  var heroRadio=document.getElementById('twkHero');
-  function applyHero(opt){
-    document.body.classList.remove('hero-a','hero-b','hero-c');
-    document.body.classList.add('hero-'+opt);
-    Array.prototype.forEach.call(heroRadio.children,function(b){b.classList.toggle('active',b.getAttribute('data-hero')===opt);});
-    try{localStorage.setItem('nv_hero3',opt);}catch(e){}
-  }
-  var savedHero='a';
-  applyHero(savedHero);
-  heroRadio.addEventListener('click',function(e){var b=e.target.closest('button[data-hero]');if(b)applyHero(b.getAttribute('data-hero'));});
-  document.getElementById('twkClose').addEventListener('click',function(){
-    panel.classList.remove('show');
-    window.parent.postMessage({type:'__edit_mode_dismissed'},'*');
-  });
-  window.addEventListener('message',function(e){
-    var t=e&&e.data&&e.data.type;
-    if(t==='__activate_edit_mode')panel.classList.add('show');
-    else if(t==='__deactivate_edit_mode')panel.classList.remove('show');
-  });
-  window.parent.postMessage({type:'__edit_mode_available'},'*');
-})();
-</script>
 </body>
 </html>

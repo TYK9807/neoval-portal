@@ -1,0 +1,33 @@
+# neovalpharma.com — Neoval Pharma
+# Le site institutionnel est indexable. Le portail pharmacie et l'espace
+# d'administration ne le sont pas : ils sont réservés aux comptes autorisés.
+# Note : Disallow empêche l'exploration, pas l'indexation d'une URL trouvée
+# ailleurs — chaque page du portail porte aussi une balise meta robots noindex.
+
+User-agent: *
+Allow: /$
+Allow: /assets/
+
+# Portail pharmacie
+Disallow: /Login.html
+Disallow: /Dashboard.html
+Disallow: /Catalogue.html
+Disallow: /Commande.html
+Disallow: /Commande%20detail.html
+Disallow: /Mes%20commandes.html
+Disallow: /Mes%20documents.html
+Disallow: /Mon%20compte.html
+
+# Espace administration
+Disallow: /admin/
+
+# Ancienne URL (redirige vers /)
+Disallow: /Neoval%20Pharma.html
+
+# Fichiers techniques
+Disallow: /supabase/
+Disallow: /scripts/
+Disallow: /n8n/
+Disallow: /node_modules/
+
+Sitemap: https://neovalpharma.com/sitemap.xml

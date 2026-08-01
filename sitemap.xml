@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Le site public est une application monopage : les rubriques (#histoire,
+  #expertise, #gamme…) sont des fragments d'URL, que les moteurs de recherche
+  ne traitent pas comme des pages distinctes. Une seule URL canonique est donc
+  déclarée. Le portail pharmacie et l'administration sont volontairement exclus.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://neovalpharma.com/</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
