@@ -524,6 +524,26 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
 .mcat{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
 .modal-panel h2{font-size:clamp(28px,4vw,38px);margin:12px 0 20px}
 .mlong{color:var(--body);font-size:15.5px;line-height:1.72;margin-bottom:30px}
+/* ---- Accordéons de la fiche produit (Composition / Posologie / Utilisations / Présentation) ---- */
+.acc{border-top:1px solid var(--hair)}
+.acc-item{border-bottom:1px solid var(--hair)}
+.acc-head{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;
+  background:none;border:0;cursor:pointer;text-align:left;padding:16px 2px;color:inherit;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);transition:color .25s}
+.acc-head:hover{color:var(--teal)}
+.acc-ico{position:relative;flex:0 0 auto;width:12px;height:12px}
+.acc-ico::before,.acc-ico::after{content:"";position:absolute;background:currentColor;transition:transform .3s ease,opacity .3s ease}
+.acc-ico::before{left:0;top:5px;width:12px;height:1.5px}
+.acc-ico::after{left:5px;top:0;width:1.5px;height:12px}
+.acc-item.open .acc-ico::after{transform:scaleY(0);opacity:0}
+.acc-panel{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.16,1,.3,1)}
+.acc-panel>p,.acc-list{color:var(--body);font-size:14.5px;line-height:1.7;margin:0 0 16px}
+.acc-list{list-style:none;padding:0}
+.acc-list li{position:relative;padding-left:18px;margin-bottom:8px}
+.acc-list li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;background:var(--teal)}
+.acc-list li:last-child{margin-bottom:0}
+@media (prefers-reduced-motion:reduce){.acc-panel{transition:none}.acc-ico::before,.acc-ico::after{transition:none}}
 .mspec{border-top:1px solid var(--hair)}
 .mspec .row{display:grid;grid-template-columns:150px 1fr;gap:22px;padding:17px 0;border-bottom:1px solid var(--hair)}
 .mspec .k{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
@@ -2235,9 +2255,34 @@ body.nv-dark .mclose{border-color:#E0F5F2;color:#0D1B2A}
     <h2 id="m-name"></h2>
     <p class="mlong" id="m-long"></p>
     <div class="mspec">
-      <div class="row"><div class="k">Ingrédients</div><div class="v" id="m-ing"></div></div>
-      <div class="row"><div class="k">Posologie</div><div class="v" id="m-dos"></div></div>
-      <div class="row"><div class="k">Conditionnement</div><div class="v" id="m-pack"></div></div>
+      <!-- Accordéons produit. Les IDs m-ing / m-dos / m-pack sont conservés
+           (ils restent les conteneurs de contenu) ; m-util est nouveau. -->
+      <div class="acc" id="m-acc">
+        <div class="acc-item">
+          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-ing">
+            <span>Composition</span><span class="acc-ico" aria-hidden="true"></span>
+          </button>
+          <div class="acc-panel" id="m-ing" role="region"></div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-dos">
+            <span>Posologie</span><span class="acc-ico" aria-hidden="true"></span>
+          </button>
+          <div class="acc-panel" id="m-dos" role="region"></div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-util">
+            <span>Utilisations</span><span class="acc-ico" aria-hidden="true"></span>
+          </button>
+          <div class="acc-panel" id="m-util" role="region"></div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-head" type="button" aria-expanded="false" aria-controls="m-pack">
+            <span>Présentation</span><span class="acc-ico" aria-hidden="true"></span>
+          </button>
+          <div class="acc-panel" id="m-pack" role="region"></div>
+        </div>
+      </div>
     </div>
     <div class="mcta">
       <button class="btn btn-primary" data-nav="contact" data-close>Commander <span class="arr">→</span></button>
@@ -2535,48 +2580,48 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nl.classLis
 
 /* ============ PRODUCTS DATA ============ */
 var PRODUCTS=[
-  {code:'NV-ARC-300',cat:'Articulations · Mobilité',tags:['Articulations'],name:'ARCAR 300',
-   short:'Formule articulaire pour soutenir la mobilité et le confort des articulations.',
-   long:'Complément conçu pour accompagner la mobilité articulaire au quotidien. Aide à préserver le confort des articulations sollicitées, en cure d\'entretien comme en période de gêne.',
-   ing:'Actifs dédiés à la mobilité articulaire. Composition complète disponible sur la fiche technique produit.',
-   dos:'1 à 2 gélules par jour au cours d\'un repas.',
-   pack:'Boîte de 30 gélules · Conditionnement grossiste sur demande.'},
-  {code:'NV-LIB-100',cat:'Application locale · Gel de massage',tags:['Application locale'],name:'Liberel',
-   short:'Gel de massage pour soulager les douleurs musculaires et articulaires.',
-   long:'Gel de massage à appliquer localement sur les zones musculaires et articulaires sensibles. Sa texture pénétrante procure une sensation de soulagement et accompagne la récupération après l\'effort ou en cas de gêne arthritique.',
-   ing:'Gel à usage externe. Composition complète disponible sur la fiche technique produit.',
-   dos:'Appliquer en massage léger sur la zone concernée, 2 à 3 fois par jour.',
-   pack:'Tube de 100 ml · Conditionnement grossiste sur demande.'},
-  {code:'NV-FER-30',cat:'Vitalité · Fer + Vitamine C',tags:['Vitamines & Minéraux'],name:'FERCAP',
-   short:'Fer associé à la vitamine C pour lutter contre la fatigue et soutenir la vitalité.',
-   long:'Association de fer et de vitamine C : la vitamine C favorise l\'absorption du fer et contribue à réduire la fatigue. Indiqué en cas de baisse de vitalité ou de besoins accrus en fer.',
-   ing:'Fer, vitamine C.',
-   dos:'1 gélule par jour au cours d\'un repas.',
-   pack:'Boîte de 30 gélules · Conditionnement grossiste sur demande.'},
-  {code:'NV-MAC-40',cat:'Minéraux · Magnésium + Calcium',tags:['Vitamines & Minéraux'],name:'MACAL',
-   short:'Magnésium et calcium pour les os, les muscles et l\'équilibre nerveux.',
-   long:'Duo magnésium–calcium contribuant au maintien d\'une ossature normale, à une fonction musculaire normale et à la réduction de la fatigue. Soutient également l\'équilibre du système nerveux.',
-   ing:'Magnésium, calcium.',
-   dos:'2 gélules par jour.',
-   pack:'Boîte de 40 gélules · Conditionnement grossiste sur demande.'},
-  {code:'NV-SOU-30',cat:'Articulations · Confort',tags:['Articulations'],name:'Soulnat',
-   short:'Confort articulaire au quotidien, pour des articulations souples.',
-   long:'Formule pensée pour le confort articulaire et la souplesse des articulations. Accompagne les personnes actives comme les articulations sollicitées par l\'âge ou l\'effort.',
-   ing:'Actifs du confort articulaire. Composition complète disponible sur la fiche technique produit.',
-   dos:'1 gélule par jour.',
-   pack:'Boîte de 30 gélules · Conditionnement grossiste sur demande.'},
-  {code:'NV-DLQ-400',cat:'Vitamine D3 · Solution buvable',tags:['Vitamines & Minéraux'],name:'D-LIQ 400 UI',
-   short:'Vitamine D3 en solution buvable, pour l\'immunité et la santé osseuse.',
-   long:'Vitamine D3 (400 UI) sous forme liquide, au dosage facile goutte à goutte. Contribue au maintien d\'une ossature et d\'une fonction immunitaire normales, ainsi qu\'à l\'absorption du calcium.',
-   ing:'Vitamine D3 (cholécalciférol) — 400 UI par dose.',
-   dos:'Selon recommandation, en gouttes.',
-   pack:'Flacon de 50 ml · Conditionnement grossiste sur demande.'},
-  {code:'NV-NER-30',cat:'Énergie cellulaire',tags:['Énergie'],name:'NERCURE',
-   short:'Acétyl-L-carnitine et coenzyme Q10 pour l\'énergie cellulaire et le système nerveux.',
-   long:'Association d\'acétyl-L-carnitine et de coenzyme Q10, deux actifs clés du métabolisme énergétique cellulaire. Soutient la vitalité, les fonctions nerveuses et la récupération en cas de fatigue.',
-   ing:'Acétyl-L-carnitine, coenzyme Q10.',
-   dos:'1 gélule par jour.',
-   pack:'Boîte de 30 gélules · Conditionnement grossiste sur demande.'}
+  {code:'NV-ARC-300',cat:'Mobilité et équilibre',tags:['Articulations'],name:'ARCAR 300',
+   short:'Les personnes ressentant une gêne articulaire ou de l\'arthrose confirmée',
+   comp:['Cartilage de requin','Harpagophytum'],
+   poso:['Prendre 1 gélule, 1 à 2 fois par jour, de préférence au cours des repas.','Avaler avec un grand verre d’eau.'],
+   util:['Les personnes ressentant une gêne articulaire ou de l\'arthrose confirmée,','Les adultes souhaitant préserver la flexibilité, la mobilité et le bien-être de leurs articulations,','Les personnes à risque d\'usure articulaire liée à l\'âge ou à une activité physique intense.'],
+   pres:'Boîte de 30 gélules HPMC d’origine végétale.'},
+  {code:'NV-LIB-100',cat:'Gel anti-douleur • Effet thermique (Cryo et Thermo)',tags:['Application locale'],name:'Liberel',
+   short:'Douleurs musculaires, articulaires et post-traumatiques',
+   comp:['Menthol','Camphre','Illite (Argile verte)','Extrait d’harpagophytum (Harpagophytum procumbens)','Extrait de prêle (Equisetum arvense).','Huile de menthe poivrée (Mentha piperita)','Huile de romarin (Rosmarinus officinalis)','Huile de thym (Thymus vulgaris)','Huiles de l’eucaliptus','Huiles du Cajeput','Huiles de la Gaulthérie couchée'],
+   poso:['Adultes et enfants à partir de 7 ans.','Appliquer sur les zones douloureuses, 3 à 4 fois par jour.','Se laver les mains après utilisation.'],
+   util:['Douleurs musculaires, articulaires et post-traumatiques.','Contractures, foulures, entorses, contusions, élongations, claquages et œdèmes associés.'],
+   pres:'Gel anti-douleur à effet thermique (Cryo et Thermo), destiné à l’application cutanée.'},
+  {code:'NV-FER-30',cat:'LipoFer & Vitamine C',tags:['Vitamines & Minéraux'],name:'FERCAP',
+   short:'Carence en fer et anémie ferriprive',
+   comp:['LipoFer','Vitamine C'],
+   poso:['Prendre 1 gélule, 1 à 2 fois par jour, de préférence au cours des repas.','Avaler avec un grand verre d’eau.'],
+   util:['Carence en fer et anémie ferriprive.','Fatigue liée au déficit en fer.'],
+   pres:'Boîte de 30 gélules HPMC d’origine végétale.'},
+  {code:'NV-MAC-40',cat:'Magnésium + Calcium / Dual Action',tags:['Vitamines & Minéraux'],name:'MACAL 500',
+   short:'Carence ou besoins accrus en calcium et magnésium',
+   comp:['Calcium','Vitamine D3','Magnésium bisglycinate','Vitamine B6'],
+   poso:['Prendre 1 gélule MACAL Calcium chaque matin, de préférence au cours du petit-déjeuner.','Prendre 1 gélule MACAL Magnésium chaque soir, de préférence au cours du dîner.','Avaler avec un grand verre d’eau.','Respecter un intervalle minimum de 6 heures entre les deux prises.'],
+   util:['Carence ou besoins accrus en calcium et magnésium.','Crampes, fatigue musculaire et fragilité osseuse.','Fatigue, stress et insomnie liée à une carence en Magnésium.'],
+   pres:'Boîte de 30 gélules HPMC d’origine végétale.'},
+  {code:'NV-SOU-30',cat:'À base d’actifs naturels',tags:['Articulations'],name:'Soulnat',
+   short:'Soulagement de la douleur',
+   comp:['Harpagophytum','Curcumine (bêta-cyclodextrine)','Gingembre','Boswellia serrata'],
+   poso:['Prendre 1 gélule, 2 fois par jour, de préférence au cours des repas.','Avaler avec un grand verre d’eau.'],
+   util:['Soulagement de la douleur.','Réduction de la réaction inflammatoire.'],
+   pres:'Boîte de 30 gélules HPMC d’origine végétale.'},
+  {code:'NV-DLQ-400',cat:'Vitamine D3 • Complément alimentaire en gouttes',tags:['Vitamines & Minéraux'],name:'D-LIQ 400 UI',
+   short:'Prévention et correction de la carence en vitamine D',
+   comp:['Vitamine D3 (cholécalciférol)','Vitamine E acétate','Huile de coco (MCT)'],
+   poso:['Utiliser la pipette compte-gouttes graduée.','Administrer selon la dose recommandée pour chaque patient.','Agiter si nécessaire avant emploi.'],
+   util:['Prévention et correction de la carence en vitamine D.','Soutien de la santé osseuse et de la fonction immunitaire.'],
+   pres:'Flacon de 30 mL avec pipette compte-gouttes graduée (Une goutte = 400 UI)'},
+  {code:'NV-NER-30',cat:'Soutien du système nerveux • Régulation glycémique',tags:['Énergie'],name:'NERCURE',
+   short:'Bon fonctionnement du système nerveux périphérique',
+   comp:['Acétyl-L-carnitine chlorhydrate','Acide alpha-lipoïque','Coenzyme Q10','Berbérine','Benfotiamine (vitamine B1)','Lipozinc','Chrome','Méthylcobalamine (vitamine B12)','Biotine (vitamine B8)'],
+   poso:['Prendre 1 comprimé, 2 fois par jour, de préférence au cours des repas.','Avaler avec un grand verre d’eau.'],
+   util:['Bon fonctionnement du système nerveux périphérique.','Maintien d\'une glycémie normale.','Soutien du métabolisme énergétique en favorisant le fonctionnement normal des nerfs et au métabolisme normal des macronutriments.'],
+   pres:'Boîte de 30 comprimés, voie orale.'}
 ];
 
 /* Product photos live in the Supabase Storage public bucket `product-images`
@@ -2645,7 +2690,7 @@ function renderCatalog(){
     c.className='pcard-lg reveal d'+d;
     c.innerHTML=productVisual(p)+
       '<div class="code">'+p.code+'</div><div class="cat">'+p.cat+'</div>'+
-      '<h3>'+p.name+'</h3><p>'+p.long+'</p>'+
+      '<h3>'+p.name+'</h3><p>'+p.short+'</p>'+
       '<button class="btn btn-ghost">Voir détails <span class="arr">→</span></button>';
     c.querySelector('button').addEventListener('click',function(){openProduct(o.i)});
     grid.appendChild(c);
@@ -2659,18 +2704,54 @@ renderCatalog();
 
 /* ============ MODAL ============ */
 var modal=document.getElementById('modal');
+
+/* --- Accordéons de la fiche produit --- */
+function setAcc(item, open){
+  var head=item.querySelector('.acc-head'), panel=item.querySelector('.acc-panel');
+  if(!head||!panel) return;
+  item.classList.toggle('open', open);
+  head.setAttribute('aria-expanded', open?'true':'false');
+  panel.style.maxHeight = open ? (panel.scrollHeight+'px') : '0px';
+}
+document.addEventListener('click', function(e){
+  var head=e.target.closest('.acc-head'); if(!head) return;
+  var item=head.closest('.acc-item'), acc=head.closest('.acc');
+  var willOpen=!item.classList.contains('open');
+  // un seul panneau ouvert à la fois
+  acc.querySelectorAll('.acc-item').forEach(function(it){ setAcc(it, false); });
+  setAcc(item, willOpen);
+});
+window.addEventListener('resize', function(){
+  document.querySelectorAll('.acc-item.open .acc-panel').forEach(function(p){
+    p.style.maxHeight=p.scrollHeight+'px';
+  });
+},{passive:true});
 function openProduct(i){
   var p=PRODUCTS[i];
   document.getElementById('m-img').innerHTML=productVisual(p);
   document.getElementById('m-cat').textContent=p.code+' · '+p.cat;
   document.getElementById('m-name').textContent=p.name;
-  document.getElementById('m-long').textContent=p.long;
-  document.getElementById('m-ing').textContent=p.ing;
-  document.getElementById('m-dos').textContent=p.dos;
-  document.getElementById('m-pack').textContent=p.pack;
+  document.getElementById('m-long').textContent=p.short;
+  function fill(id,val){
+    var el=document.getElementById(id); if(!el) return;
+    el.innerHTML = Array.isArray(val)
+      ? '<ul class="acc-list">'+val.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'
+      : '<p>'+esc(val||'')+'</p>';
+  }
+  function esc(t){return String(t).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  fill('m-ing',p.comp); fill('m-dos',p.poso); fill('m-util',p.util); fill('m-pack',p.pres);
   modal.classList.add('open');
   modal.setAttribute('aria-hidden','false');
   document.body.classList.add('lock');
+  /* The accordion state MUST be applied after .open is added. `.modal` is
+     display:none until then, and scrollHeight of a display:none element is 0 —
+     setting it earlier marked the first panel open (minus icon) with
+     max-height:0, so it showed the open state while staying collapsed.
+     rAF waits for the layout pass so scrollHeight is real. */
+  var items=modal.querySelectorAll('.acc-item');
+  requestAnimationFrame(function(){
+    for(var i=0;i<items.length;i++) setAcc(items[i], i===0);
+  });
 }
 function closeModal(){
   modal.classList.remove('open');
