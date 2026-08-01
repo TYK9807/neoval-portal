@@ -2743,15 +2743,12 @@ function openProduct(i){
   modal.classList.add('open');
   modal.setAttribute('aria-hidden','false');
   document.body.classList.add('lock');
-  /* The accordion state MUST be applied after .open is added. `.modal` is
-     display:none until then, and scrollHeight of a display:none element is 0 —
-     setting it earlier marked the first panel open (minus icon) with
-     max-height:0, so it showed the open state while staying collapsed.
-     rAF waits for the layout pass so scrollHeight is real. */
+  /* All panels start collapsed — the visitor chooses what to read.
+     Panels are measured on click (setAcc reads scrollHeight), by which point
+     the modal is visible; measuring here would return 0 because `.modal` is
+     display:none until `.open` is added. */
   var items=modal.querySelectorAll('.acc-item');
-  requestAnimationFrame(function(){
-    for(var i=0;i<items.length;i++) setAcc(items[i], i===0);
-  });
+  for(var i=0;i<items.length;i++) setAcc(items[i], false);
 }
 function closeModal(){
   modal.classList.remove('open');
