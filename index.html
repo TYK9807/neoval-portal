@@ -247,7 +247,11 @@ section.block{position:relative;padding:140px 0;display:flex;align-items:center;
   #nav .burger.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
   #navlinks{position:fixed;inset:0 0 0 auto;z-index:9999;width:min(60vw,366px);height:100vh;height:100dvh;
     background:var(--drawer);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);overflow-y:auto;
-    flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:0 46px;
+    flex-direction:column;align-items:flex-start;/* 92px top padding reserves room for the "MENU" label (absolute, top:40px);
+   without it the centred list rode up underneath it. `safe center` keeps the
+   list centred but degrades to flex-start when the content is taller than the
+   drawer, so the first item can never become unreachable. */
+    justify-content:safe center;gap:2px;padding:92px 46px 44px;
     transform:translateX(100%);transition:transform .55s cubic-bezier(.16,1,.3,1);
     border-left:1px solid var(--hair);box-shadow:-30px 0 80px -42px rgba(13,27,42,.30)}
   #navlinks.open{transform:translateX(0)}
@@ -780,7 +784,11 @@ html.js .reveal.d7{transition-delay:.56s}html.js .reveal.d8{transition-delay:.64
   #navlinks{position:fixed;inset:0 0 0 auto;z-index:9999;width:min(83vw,366px);height:100vh;height:100dvh;
     background:var(--drawer);
     backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);overflow-y:auto;
-    flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:0 46px;
+    flex-direction:column;align-items:flex-start;/* 92px top padding reserves room for the "MENU" label (absolute, top:40px);
+   without it the centred list rode up underneath it. `safe center` keeps the
+   list centred but degrades to flex-start when the content is taller than the
+   drawer, so the first item can never become unreachable. */
+    justify-content:safe center;gap:2px;padding:92px 46px 44px;
     transform:translateX(100%);transition:transform .55s cubic-bezier(.16,1,.3,1);
     border-left:1px solid var(--hair);box-shadow:-30px 0 80px -42px rgba(13,27,42,.30);counter-reset:navi}
   #navlinks::before{content:"MENU";position:absolute;top:40px;left:46px;font-family:'IBM Plex Mono';
